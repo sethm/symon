@@ -4,7 +4,7 @@
   <groupId>com.loomcom.j6502</groupId>
   <artifactId>j6502</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <name>j6502</name>
   <url>http://www.loomcom.com/j6502</url>
   <dependencies>
@@ -15,4 +15,27 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  
+  <build>
+    <plugins>
+      <!-- Set up Main-Class in the JAR manifest -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-jar-plugin</artifactId>
+	<configuration>
+	  <archive>
+	    <manifest>
+	      <mainClass>com.loomcom.j6502.Control</mainClass>
+	      <packageName>com.loomcom.j6502</packageName>
+	    </manifest>
+	    <manifestEntries>
+	      <mode>development</mode>
+	      <url>${pom.url}</url>
+	    </manifestEntries>
+	  </archive>
+	</configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
