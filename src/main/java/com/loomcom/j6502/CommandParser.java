@@ -44,7 +44,7 @@ public class CommandParser {
     }
 
     private void prompt() throws IOException {
-	m_out.write("> ");
+	m_out.write("j6502> ");
 	m_out.flush();
     }
 
