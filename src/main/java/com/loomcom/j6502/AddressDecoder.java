@@ -3,7 +3,6 @@ package com.loomcom.j6502;
 import java.util.Map;
 
 public class AddressDecoder {
-
     /**
      * Map of memory ranges to IO devices.
      */
@@ -11,10 +10,11 @@ public class AddressDecoder {
     
     public AddressDecoder() {}
 
-    public void addDevice(Device d) 
-	throws MemoryConflictException {
-	// Make sure there's no memory overlap.
-	// Add the device to the map.
+    public void addDevice(Device d)
+		throws MemoryConflictException {
+    	// Make sure there's no memory overlap.
+    	// Add the device to the map.
+    	m_ioMap.put(d.getMemoryRange(), d);
     }
 
     /**
@@ -23,7 +23,7 @@ public class AddressDecoder {
      * device.
      */
     public boolean isComplete() {
-	return true;
+    	return true;
     }
 
     /** 
@@ -31,9 +31,8 @@ public class AddressDecoder {
      * are gaps between IO devices.
      */
     public boolean isSparse() {
-	return !isComplete();
+    	return !isComplete();
     }
-
 }
 
 class MemoryRange {
