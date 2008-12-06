@@ -6,8 +6,9 @@ public class CommandParser {
     
     private BufferedReader m_in;
     private BufferedWriter m_out;
+    private Simulator m_simulator;
     
-    public CommandParser(InputStream in, OutputStream out) {
+    public CommandParser(InputStream in, OutputStream out, Simulator s) {
 	m_in  = new BufferedReader(new InputStreamReader(in));
 	m_out = new BufferedWriter(new OutputStreamWriter(out));
     }
@@ -21,7 +22,7 @@ public class CommandParser {
 		dispatch(command);
 		prompt();
 	    }
-	    writeLine("Goodbye!");
+	    writeLine("\n\nGoodbye!");
 	} catch (IOException ex) {
 	    System.err.println("Error: " + ex.toString());
 	    System.exit(1);

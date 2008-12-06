@@ -18,6 +18,17 @@
   
   <build>
     <plugins>
+      <!-- Set Java version to 6 -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<!-- best lock down version of the plugin too -->
+	<configuration>
+	  <source>5</source>
+	  <target>5</target>
+	</configuration>
+      </plugin>
+
       <!-- Set up Main-Class in the JAR manifest -->
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
@@ -25,7 +36,7 @@
 	<configuration>
 	  <archive>
 	    <manifest>
-	      <mainClass>com.loomcom.j6502.Control</mainClass>
+	      <mainClass>com.loomcom.j6502.Simulator</mainClass>
 	      <packageName>com.loomcom.j6502</packageName>
 	    </manifest>
 	    <manifestEntries>

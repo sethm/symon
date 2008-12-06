@@ -5,15 +5,15 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
- * Unit test for the j6502 control class.
+ * Unit test for the j6502 Simulator class.
  */
-public class ControlTest extends TestCase {
+public class SimulatorTest extends TestCase {
     /**
      * Create the test case
      *
      * @param testName name of the test case
      */
-    public ControlTest(String testName) {
+    public SimulatorTest(String testName) {
         super(testName);
     }
 
@@ -21,13 +21,13 @@ public class ControlTest extends TestCase {
      * @return the suite of tests being tested
      */
     public static Test suite() {
-        return new TestSuite(ControlTest.class);
+        return new TestSuite(SimulatorTest.class);
     }
 
     /**
      * Rigourous Test :-)
      */
-    public void testControl() {
+    public void testSimulator() {
         assertTrue(true);
     }
 }
