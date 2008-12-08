@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.loomcom.lm6502</groupId>
   <artifactId>lm6502</artifactId>
@@ -15,7 +15,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <!-- Set Java version to 6 -->
@@ -46,7 +46,64 @@
 	  </archive>
 	</configuration>
       </plugin>
+
+      <!-- Cobertura is essential -->
+      <plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>cobertura-maven-plugin</artifactId>
+	<version>2.1</version>
+	<configuration>
+	  <check>
+	    <haltOnFailure>false</haltOnFailure>
+	    <regexes>
+	      <regex>
+		<pattern>com.loomcom.lm6502.*</pattern>
+		<branchRate>90</branchRate>
+		<lineRate>90</lineRate>
+	      </regex>
+	      <regex>
+		<pattern>com.loomcom.lm6502.*</pattern>
+		<branchRate>90</branchRate>
+		<lineRate>90</lineRate>
+	      </regex>
+	    </regexes>
+	  </check>
+	  <instrumentation>
+	    <includes>
+	      <include>com/loomcom/**/*.class</include>
+	    </includes>
+	  </instrumentation>
+	</configuration>
+	<executions>
+	  <execution>
+	    <id>clean</id>
+	    <phase>pre-site</phase>
+	    <goals>
+	      <goal>clean</goal>
+	    </goals>
+	  </execution>
+	  <execution>
+	    <id>instrument</id>
+	    <phase>site</phase>
+	    <goals>
+	      <goal>instrument</goal>
+	      <goal>cobertura</goal>
+	      <goal>check</goal>
+	    </goals>
+	  </execution>
+	</executions>
+      </plugin>
+
     </plugins>
   </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>cobertura-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </reporting>
 
 </project>
