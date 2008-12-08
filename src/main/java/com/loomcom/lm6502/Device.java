@@ -1,4 +1,4 @@
- package com.loomcom.j6502;
+ package com.loomcom.lm6502;
 
 /**
  * A memory-mapped IO Device.

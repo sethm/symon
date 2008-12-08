@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.loomcom.j6502</groupId>
-  <artifactId>j6502</artifactId>
+  <groupId>com.loomcom.lm6502</groupId>
+  <artifactId>lm6502</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.0</version>
-  <name>j6502</name>
-  <url>http://www.loomcom.com/j6502</url>
+  <version>snapshot</version>
+  <name>lm6502</name>
+  <url>http://www.loomcom.com/lm6502</url>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -36,8 +36,8 @@
 	<configuration>
 	  <archive>
 	    <manifest>
-	      <mainClass>com.loomcom.j6502.Simulator</mainClass>
-	      <packageName>com.loomcom.j6502</packageName>
+	      <mainClass>com.loomcom.lm6502.Simulator</mainClass>
+	      <packageName>com.loomcom.lm6502</packageName>
 	    </manifest>
 	    <manifestEntries>
 	      <mode>development</mode>
