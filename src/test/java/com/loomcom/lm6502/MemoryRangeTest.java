@@ -46,43 +46,38 @@ public class MemoryRangeTest extends TestCase {
 		assertEquals(0x202, r.getEndAddress());
 	}
 
-	public void testOverlapsWith() throws MemoryRangeException {
-		MemoryRange a = new MemoryRange(0x0000, 0x0fff);
-		MemoryRange b = new MemoryRange(0x2000, 0x2fff);
-		MemoryRange c = new MemoryRange(0x1000, 0x1fff); // fits between a and b
-		MemoryRange d = new MemoryRange(0x0f00, 0x10ff); // overlaps with a
-		MemoryRange e = new MemoryRange(0x1fff, 0x20ff); // overlaps with b
-		MemoryRange f = new MemoryRange(0x0fff, 0x2000); // overlaps a and b
-		MemoryRange g = new MemoryRange(0x00ff, 0x0100); // Overlaps (inside) a, below b
-		MemoryRange h = new MemoryRange(0x20ff, 0x2100); // Overlaps (inside) b, above a
+	public void testOverlaps() throws MemoryRangeException {
+		MemoryRange a = new MemoryRange(0x0100, 0x01ff);
+		MemoryRange b = new MemoryRange(0x0200, 0x02ff);
 
-		assertFalse(c.overlapsWith(a));
-		assertFalse(c.overlapsWith(b));
-		assertFalse(a.overlapsWith(c));
-		assertFalse(b.overlapsWith(c));
-		assertFalse(a.overlapsWith(b));
-		assertFalse(b.overlapsWith(a));
+		MemoryRange c = new MemoryRange(0x01a0, 0x01af); // inside a
+		MemoryRange d = new MemoryRange(0x00ff, 0x01a0); // overlaps a
+		MemoryRange e = new MemoryRange(0x01a0, 0x02ff); // overlaps a
 
-		assertTrue(d.overlapsWith(a));
-		assertTrue(a.overlapsWith(d));
+		MemoryRange f = new MemoryRange(0x02a0, 0x02af); // inside b
+		MemoryRange g = new MemoryRange(0x01ff, 0x02a0); // overlaps b
+		MemoryRange h = new MemoryRange(0x02a0, 0x03ff); // overlaps b
 
-		assertTrue(e.overlapsWith(b));
-		assertTrue(b.overlapsWith(e));
+		assertFalse(a.overlaps(b));
+		assertFalse(b.overlaps(a));
 
-		assertTrue(f.overlapsWith(a));
-		assertTrue(a.overlapsWith(f));
-		assertTrue(f.overlapsWith(b));
-		assertTrue(b.overlapsWith(f));
+		assertTrue(a.overlaps(c));
+		assertTrue(c.overlaps(a));
 
-		assertTrue(a.overlapsWith(g));
-		assertTrue(g.overlapsWith(a));
-		assertFalse(b.overlapsWith(g));
-		assertFalse(g.overlapsWith(b));
+		assertTrue(a.overlaps(d));
+		assertTrue(d.overlaps(a));
 
-		assertFalse(a.overlapsWith(h));
-		assertFalse(h.overlapsWith(a));
-		assertTrue(b.overlapsWith(h));
-		assertTrue(h.overlapsWith(b));
+		assertTrue(a.overlaps(e));
+		assertTrue(e.overlaps(a));
+
+		assertTrue(b.overlaps(f));
+		assertTrue(f.overlaps(b));
+
+		assertTrue(b.overlaps(g));
+		assertTrue(g.overlaps(b));
+
+		assertTrue(b.overlaps(h));
+		assertTrue(h.overlaps(b));
 	}
 
 	public void testIncluded() throws MemoryRangeException {

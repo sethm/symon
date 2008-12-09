@@ -20,8 +20,9 @@ public class AddressDecoder {
 		throws MemoryRangeException {
 		// Make sure there's no memory overlap.
 		for (MemoryRange memRange : ioMap.keySet()) {
-			if (d.getMemoryRange().overlapsWith(memRange)) {
-				throw new MemoryRangeException("The device being added overlaps with an existing device.");
+			if (d.getMemoryRange().overlaps(memRange)) {
+				throw new MemoryRangeException("The device being added overlaps " +
+																			 "with an existing device.");
 			}
 		}
 

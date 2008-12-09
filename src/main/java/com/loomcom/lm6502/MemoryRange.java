@@ -10,7 +10,8 @@ public class MemoryRange implements Comparable<MemoryRange> {
 			throw new MemoryRangeException("Addresses cannot be less than 0.");
 		}
 		if (startAddress >= endAddress) {
-			throw new MemoryRangeException("End address must be greater than start address.");
+			throw new MemoryRangeException("End address must be greater " +
+																		 "than start address.");
 		}
 		this.startAddress = startAddress;
 		this.endAddress = endAddress;
@@ -40,15 +41,9 @@ public class MemoryRange implements Comparable<MemoryRange> {
 	 *
 	 * @returns true if this range overlaps in any way with the other.
 	 */
-	public boolean overlapsWith(MemoryRange other) {
-		return ((this.getEndAddress() >= other.getStartAddress() &&
-						 this.getEndAddress() <= other.getEndAddress()) ||
-						(other.getEndAddress() >= this.getStartAddress() &&
-						 other.getEndAddress() <= this.getEndAddress()) ||
-						(this.getStartAddress() <= other.getStartAddress() &&
-						 this.getEndAddress() >= other.getEndAddress()) ||
-						(other.getStartAddress() <= this.getStartAddress() &&
-						 other.getEndAddress() >= this.getEndAddress()));
+	public boolean overlaps(MemoryRange other) {
+		return (this.includes(other.getStartAddress()) ||
+						other.includes(this.getStartAddress()));
 	}
 
 	// Implementation of Comparable interface
