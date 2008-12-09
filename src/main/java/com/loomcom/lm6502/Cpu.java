@@ -5,33 +5,22 @@ package com.loomcom.lm6502;
  */
 public class Cpu {
 
-	/**
-	 * The Program Counter.
-	 */
-	private int m_pc;
-
-	/**
-	 * The system stack pointer.
-	 */
-	private int m_sp;
-
-	/**
-	 * Reference to the simulator
-	 */
-	private Simulator m_sim;
+	private int pc;
+	private int sp;
+	private Simulator sim;
 
 	public Cpu(Simulator sim) {
 		reset();
-		this.m_sim = sim;
+		this.sim = sim;
 	}
 
 	/**
 	 * Reset the CPU to known initial values.
 	 */
 	public void reset() {
-		m_sp = 0x01ff;
+		sp = 0x01ff;
 		/* locations fffc and fffd hold the reset vector address */
-		m_pc = 0xfffc;
+		pc = 0xfffc;
 	}
 
 	/**
@@ -51,7 +40,7 @@ public class Cpu {
 	 *         Program Counter.
 	 */
 	private int readAddress() {
-		return readAddress(m_pc);
+		return readAddress(pc);
 	}
 
 	/**
@@ -62,11 +51,11 @@ public class Cpu {
 	 * @return The address specified in the two bytes at location <tt>addr</tt>
 	 */
 	private int readAddress(int address) {
-		return (m_sim.read(address)<<8 & m_sim.read(address+1));
+		return (sim.read(address)<<8 & sim.read(address+1));
 	}
 
 	public Simulator getSimulator() {
-		return m_sim;
+		return sim;
 	}
 
 }

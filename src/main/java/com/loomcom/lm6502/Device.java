@@ -7,34 +7,34 @@
 public abstract class Device {
 
 	/** The memory range for this device. */
-	private MemoryRange m_memoryRange;
+	private MemoryRange memoryRange;
 
 	/** Reference to the CPU, for interrupts. */
-	private Cpu m_cpu;
+	private Cpu cpu;
 
 	public Device(MemoryRange range, Cpu cpu) {
-		m_memoryRange = range;
-		m_cpu = cpu;
+		this.memoryRange = range;
+		this.cpu = cpu;
 	}
 
 	public MemoryRange getMemoryRange() {
-		return m_memoryRange;
+		return memoryRange;
 	}
 
 	public int getEndAddress() {
-		return m_memoryRange.getEndAddress();
+		return memoryRange.getEndAddress();
 	}
 
 	public int getStartAddress() {
-		return m_memoryRange.getStartAddress();
+		return memoryRange.getStartAddress();
 	}
 
 	public void generateInterrupt() {
-		m_cpu.interrupt();
+		cpu.interrupt();
 	}
 
 	public void generateNonMaskableInterrupt() {
-		m_cpu.nmiInterrupt();
+		cpu.nmiInterrupt();
 	}
 
 }

@@ -4,13 +4,14 @@ import java.io.*;
 
 public class CommandParser {
 
-	private BufferedReader m_in;
-	private BufferedWriter m_out;
-	private Simulator m_simulator;
+	private BufferedReader in;
+	private BufferedWriter out;
+	private Simulator simulator;
 
-	public CommandParser(InputStream in, OutputStream out, Simulator s) {
-		m_in	= new BufferedReader(new InputStreamReader(in));
-		m_out = new BufferedWriter(new OutputStreamWriter(out));
+	public CommandParser(InputStream i, OutputStream o, Simulator s) {
+		this.in = new BufferedReader(new InputStreamReader(i));
+		this.out = new BufferedWriter(new OutputStreamWriter(o));
+		this.simulator = s;
 	}
 
 	public void run() {
@@ -45,20 +46,20 @@ public class CommandParser {
 	}
 
 	private void prompt() throws IOException {
-		m_out.write("j6502> ");
-		m_out.flush();
+		out.write("j6502> ");
+		out.flush();
 	}
 
 	private String readLine() throws IOException {
-		String line = m_in.readLine();
+		String line = in.readLine();
 		if (line == null) { return null; }
 		return line.trim();
 	}
 
 	private void writeLine(String line) throws IOException {
-		m_out.write(line);
-		m_out.newLine();
-		m_out.flush();
+		out.write(line);
+		out.newLine();
+		out.flush();
 	}
 
 	/**
