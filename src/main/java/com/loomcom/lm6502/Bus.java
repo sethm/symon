@@ -1,8 +1,9 @@
 package com.loomcom.lm6502;
 
 import java.util.*;
+import com.loomcom.lm6502.devices.*;
 
-public class AddressDecoder {
+public class Bus {
 
 	private int bottom = 0x0000;
 	private int top    = 0xffff;
@@ -12,11 +13,11 @@ public class AddressDecoder {
 	 */
 	private List<Device> devices;
 
-	public AddressDecoder(int size) {
+	public Bus(int size) {
 		this(0, size - 1);
 	}
 
-	public AddressDecoder(int bottom, int top) {
+	public Bus(int bottom, int top) {
 		this.devices = new ArrayList(8);
 		this.bottom = bottom;
 		this.top = top;

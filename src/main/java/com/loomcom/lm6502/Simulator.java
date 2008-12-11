@@ -18,10 +18,10 @@ public class Simulator {
 	Cpu m_cpu;
 
 	/**
-	 * The Address Decoder responsible for routing memory
-	 * read/write requests to the correct IO devices.
+	 * The Bus responsible for routing memory read/write requests to the
+	 * correct IO devices.
 	 */
-	AddressDecoder m_adc;
+	Bus m_bus;
 
 	public Simulator() {
 		m_cpu = new Cpu(this);

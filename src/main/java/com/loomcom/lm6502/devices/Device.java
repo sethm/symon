@@ -1,4 +1,6 @@
- package com.loomcom.lm6502;
+package com.loomcom.lm6502.devices;
+
+import com.loomcom.lm6502.*;
 
 /**
  * A memory-mapped IO Device.
