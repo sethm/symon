@@ -58,4 +58,12 @@ public class MemoryRange implements Comparable<MemoryRange> {
 		Integer thatStartAddr = new Integer(other.getStartAddress());
 		return thisStartAddr.compareTo(thatStartAddr);
 	}
+
+	public String toString() {
+		StringBuffer desc = new StringBuffer("@");
+		desc.append(String.format("0x%04x", startAddress));
+		desc.append("-");
+		desc.append(String.format("0x%04x", endAddress));
+		return desc.toString();
+	}
 }

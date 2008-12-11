@@ -9,13 +9,21 @@ public abstract class Device {
 	/** The memory range for this device. */
 	private MemoryRange memoryRange;
 
+	private String name;
+
 	/** Reference to the CPU, for interrupts. */
 	private Cpu cpu;
 
-	public Device(MemoryRange range, Cpu cpu) {
-		this.memoryRange = range;
+	public Device(int address, int size, String name, Cpu cpu)
+		    throws MemoryRangeException {
+		this.memoryRange = new MemoryRange(address, address + size - 1);
+		this.name = name;
 		this.cpu = cpu;
 	}
+
+	public abstract void write(int address, int data);
+
+	public abstract int read(int address);
 
 	public MemoryRange getMemoryRange() {
 		return memoryRange;
@@ -29,12 +37,12 @@ public abstract class Device {
 		return memoryRange.getStartAddress();
 	}
 
-	public void generateInterrupt() {
-		cpu.interrupt();
+	public String getName() {
+		return name;
 	}
 
-	public void generateNonMaskableInterrupt() {
-		cpu.nmiInterrupt();
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }

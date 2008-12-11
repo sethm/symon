@@ -80,6 +80,17 @@ public class MemoryRangeTest extends TestCase {
 		assertTrue(h.overlaps(b));
 	}
 
+	public void testToString() throws MemoryRangeException {
+		MemoryRange a = new MemoryRange(0x0abf, 0xff00);
+		assertEquals("@0x0abf-0xff00", a.toString());
+
+		MemoryRange b = new MemoryRange(0, 255);
+		assertEquals("@0x0000-0x00ff", b.toString());
+
+		MemoryRange c = new MemoryRange(0, 65535);
+		assertEquals("@0x0000-0xffff", c.toString());
+	}
+
 	public void testIncluded() throws MemoryRangeException {
 		MemoryRange a = new MemoryRange(0x0100, 0x0fff);
 

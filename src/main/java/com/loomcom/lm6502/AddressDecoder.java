@@ -4,30 +4,45 @@ import java.util.*;
 
 public class AddressDecoder {
 
-	public static final int MEMORY_BOTTOM = 0x0000;
-	public static final int MEMORY_TOP = 0xFFFF;
+	private int bottom = 0x0000;
+	private int top    = 0xffff;
 
 	/**
-	 * Ordered map of memory ranges to IO devices.
+	 * Ordered list of IO devices.
 	 */
-	private SortedMap<MemoryRange, Device> ioMap;
+	private List<Device> devices;
 
-	public AddressDecoder() {
-		ioMap = new TreeMap();
+	public AddressDecoder(int size) {
+		this(0, size - 1);
 	}
 
-	public void addDevice(Device d)
+	public AddressDecoder(int bottom, int top) {
+		this.devices = new ArrayList(8);
+		this.bottom = bottom;
+		this.top = top;
+	}
+
+	public int bottom() {
+		return bottom;
+	}
+
+	public int top() {
+		return top;
+	}
+
+	public void addDevice(Device device)
 		throws MemoryRangeException {
 		// Make sure there's no memory overlap.
-		for (MemoryRange memRange : ioMap.keySet()) {
+		MemoryRange memRange = device.getMemoryRange();
+		for (Device d : devices) {
 			if (d.getMemoryRange().overlaps(memRange)) {
 				throw new MemoryRangeException("The device being added overlaps " +
 																			 "with an existing device.");
 			}
 		}
 
-		// Add the device to the map.
-		ioMap.put(d.getMemoryRange(), d);
+		// Add the device
+		devices.add(device);
 	}
 
 	/**
@@ -37,27 +52,32 @@ public class AddressDecoder {
 	 */
 	public boolean isComplete() {
 		// Emtpy maps cannot be complete.
-		if (ioMap.isEmpty()) { return false; }
+		if (devices.isEmpty()) { return false; }
 
 		// Loop over devices and ensure they are contiguous.
 		MemoryRange prev = null;
 		int i = 0;
-		int size = ioMap.size();
-		for (Map.Entry e : ioMap.entrySet()) {
-			MemoryRange cur = (MemoryRange)e.getKey();
+		int length = devices.size();
+		for (Device d : devices) {
+			MemoryRange cur = d.getMemoryRange();
 			if (i == 0) {
-				// If the first entry doesn't start at MEMORY_BOTTOM, return false.
-				if (cur.getStartAddress() != MEMORY_BOTTOM) { return false; }
-			} else if (i < size - 1) {
+				// If the first entry doesn't start at 'bottom', return false.
+				if (cur.getStartAddress() != bottom) { return false; }
+			}
+
+			if (prev != null && i < length - 1) {
 				// Otherwise, compare previous map's end against this map's
 				// top.  They must be adjacent!
 				if (cur.getStartAddress() - 1 != prev.getEndAddress()) {
 					return false;
 				}
-			} else {
-				// If the last entry doesn't end at MEMORY_TOP, return false;
-				if (cur.getEndAddress() != MEMORY_TOP) { return false; }
 			}
+
+			if (i == length - 1) {
+				// If the last entry doesn't end at top, return false;
+				if (cur.getEndAddress() != top) { return false; }
+			}
+
 			i++;
 			prev = cur;
 		}
@@ -66,10 +86,8 @@ public class AddressDecoder {
 		return true;
 	}
 
-	/**
-	 * Returns true if there are any gap in the memory map.
-	 */
-	public boolean hasGaps() {
-		return !isComplete();
+	public List getDevices() {
+		// Expose a copy of the device list, not the original
+		return new ArrayList(devices);
 	}
 }
