@@ -4,15 +4,17 @@ import java.util.*;
 import com.loomcom.lm6502.devices.*;
 import com.loomcom.lm6502.exceptions.*;
 
+/**
+ * The Bus ties the whole thing together, man.
+ */
 public class Bus {
 
-	/* By default, our bus starts at 0, and goes up to 64K */
+	// By default, our bus starts at 0, and goes up to 64K
 	private int startAddress = 0x0000;
 	private int endAddress   = 0xffff;
-
-	/**
-	 * Ordered list of IO devices.
-	 */
+	// The CPU
+	private Cpu cpu;
+	// Ordered list of IO devices.
 	private SortedSet<Device> devices;
 
 	public Bus(int size) {
@@ -45,7 +47,12 @@ public class Bus {
 		}
 
 		// Add the device
+		device.setBus(this);
 		devices.add(device);
+	}
+
+	public void addCpu(Cpu cpu) {
+		this.cpu = cpu;
 	}
 
 	/**

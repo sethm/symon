@@ -5,13 +5,38 @@ package com.loomcom.lm6502;
  */
 public class Cpu {
 
-	private int pc;
-	private int sp;
-	private Simulator sim;
+	/* The Bus */
+	private Bus bus;
 
-	public Cpu(Simulator sim) {
+	/* User Registers */
+	private int a;    // Accumulator
+	private int x;    // X index register
+	private int y;    // Y index register
+
+	/* Internal Registers */
+	private int pc;   // Program Counter register
+	private int sp;   // Stack Pointer register
+	private int ir;   // Instruction register
+
+	/**
+	 * Construct a new CPU.
+	 */
+	public Cpu() {
 		reset();
-		this.sim = sim;
+	}
+
+	/**
+	 * Set the bus reference for this CPU.
+	 */
+	public void setBus(Bus bus) {
+		this.bus = bus;
+	}
+
+	/**
+	 * Return the Bus that this CPU is associated with.
+	 */
+	public Bus getBus() {
+		return bus;
 	}
 
 	/**
@@ -19,43 +44,8 @@ public class Cpu {
 	 */
 	public void reset() {
 		sp = 0x01ff;
-		/* locations fffc and fffd hold the reset vector address */
 		pc = 0xfffc;
-	}
-
-	/**
-	 * Trigger a maskable interrupt.
-	 */
-	public void interrupt() {
-	}
-
-	/**
-	 * Trigger a nonmaskable interrupt.
-	 */
-	public void nmiInterrupt() {
-	}
-
-	/**
-	 * @return An address specified by the two bytes immediately following the
-	 *         Program Counter.
-	 */
-	private int readAddress() {
-		return readAddress(pc);
-	}
-
-	/**
-	 * Read the two bytes located at <tt>addr</tt> and <tt>addr + 1</tt>,
-	 * and return the address held there.
-	 *
-	 * @param address
-	 * @return The address specified in the two bytes at location <tt>addr</tt>
-	 */
-	private int readAddress(int address) {
-		return (sim.read(address)<<8 & sim.read(address+1));
-	}
-
-	public Simulator getSimulator() {
-		return sim;
+		ir = 0;
 	}
 
 }

@@ -8,29 +8,24 @@ import com.loomcom.lm6502.exceptions.*;
 public class Memory extends Device {
 
 	private boolean readOnly;
-
 	private int[] mem;
 
-	public Memory(int address, int size, Cpu cpu, boolean readOnly)
+	public Memory(int address, int size, boolean readOnly)
 		    throws MemoryRangeException {
-		super(address, size, "RW Memory", cpu);
-
+		super(address, size, "RW Memory");
 		this.readOnly = readOnly;
 		this.mem = new int[size];
-
-		// Init the mem to all 0xff
+		// Initialize all locations to 0xff
 		Arrays.fill(this.mem, 0xff);
 	}
 
-	public Memory(int address, int size, Cpu cpu)
+	public Memory(int address, int size)
 		    throws MemoryRangeException {
-		this(address, size, cpu, false);
+		this(address, size, false);
 	}
 
 	public void write(int address, int data) {
-		System.out.println(String.format("[write] Before write: $%04x=$%04x", address, this.mem[address]));
 		this.mem[address] = data;
-		System.out.println(String.format("[write] After write:  $%04x=$%04x", address, this.mem[address]));
 	}
 
 	public int read(int address) {

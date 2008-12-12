@@ -10,21 +10,21 @@ public class Simulator {
 	/**
 	 * Command-line parser used by this simulator.
 	 */
-	CommandParser parser;
+	private CommandParser parser;
 
 	/**
 	 * The CPU itself.
 	 */
-	Cpu cpu;
+	private Cpu cpu;
 
 	/**
 	 * The Bus responsible for routing memory read/write requests to the
 	 * correct IO devices.
 	 */
-	Bus bus;
+	private Bus bus;
 
 	public Simulator() {
-		cpu = new Cpu(this);
+		cpu = new Cpu();
 		parser = new CommandParser(System.in, System.out, this);
 	}
 

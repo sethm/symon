@@ -19,14 +19,8 @@ public class CpuTest extends TestCase {
 	}
 
 	public void testCpu() {
-		Cpu cpu = new Cpu(new Simulator());
+		Cpu cpu = new Cpu();
 		assertNotNull(cpu);
-	}
-
-	public void testGetSimulator() {
-		Simulator sim = new Simulator();
-		Cpu cpu = new Cpu(sim);
-		assertEquals(sim, cpu.getSimulator());
 	}
 
 }

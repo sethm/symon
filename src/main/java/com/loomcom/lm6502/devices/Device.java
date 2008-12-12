@@ -12,22 +12,30 @@ public abstract class Device implements Comparable<Device> {
 	/** The memory range for this device. */
 	private MemoryRange memoryRange;
 
+	/** The name of the device. */
 	private String name;
 
-	/** Reference to the CPU, for interrupts. */
-	private Cpu cpu;
+	/** Reference to the bus where this Device is attached. */
+	private Bus bus;
 
-	public Device(int address, int size, String name, Cpu cpu)
+	public Device(int address, int size, String name)
 		    throws MemoryRangeException {
 		this.memoryRange = new MemoryRange(address, address + size - 1);
 		this.name = name;
-		this.cpu = cpu;
+	}
+
+	public Device(int address, int size) throws MemoryRangeException {
+		this(address, size, null);
 	}
 
 	/* Methods required to be implemented by inheriting classes. */
 	public abstract void write(int address, int data);
 	public abstract int read(int address);
 	public abstract String toString();
+
+	public void setBus(Bus bus) {
+		this.bus = bus;
+	}
 
 	public MemoryRange getMemoryRange() {
 		return memoryRange;

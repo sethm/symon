@@ -49,8 +49,8 @@ public class BusTest extends TestCase {
 	}
 
 	public void testAddDevice() throws MemoryRangeException {
-		Device memory = new Memory(0x0000, 0x0100, null, true);
-		Device rom    = new Memory(0x0100, 0x0200, null, false);
+		Device memory = new Memory(0x0000, 0x0100, true);
+		Device rom    = new Memory(0x0100, 0x0200, false);
 
 		Bus b = new Bus(0x0000, 0xffff);
 
@@ -62,8 +62,8 @@ public class BusTest extends TestCase {
 	}
 
 	public void testOverlappingDevicesShouldFail() throws MemoryRangeException {
-		Device memory = new Memory(0x0000, 0x0100, null, true);
-		Device rom    = new Memory(0x00ff, 0x0200, null, false);
+		Device memory = new Memory(0x0000, 0x0100, true);
+		Device rom    = new Memory(0x00ff, 0x0200, false);
 
 		Bus b = new Bus(0x0000, 0xffff);
 
@@ -78,7 +78,7 @@ public class BusTest extends TestCase {
 	}
 
 	public void testIsCompleteWithFirstDeviceNotStartingAtStartAddress() throws MemoryRangeException {
-		Device memory = new Memory(0x00ff, 0xff00, null, true);
+		Device memory = new Memory(0x00ff, 0xff00, true);
 
 		Bus b = new Bus(0x0000, 0xffff);
 		assertFalse("Address space was unexpectedly complete!", b.isComplete());
@@ -87,7 +87,7 @@ public class BusTest extends TestCase {
 	}
 
 	public void testIsCompleteWithOneDevice() throws MemoryRangeException {
-		Device memory = new Memory(0x0000, 0x10000, null, true);
+		Device memory = new Memory(0x0000, 0x10000, true);
 
 		Bus b = new Bus(0x0000, 0xffff);
 		assertFalse("Address space was unexpectedly complete!", b.isComplete());
@@ -96,8 +96,8 @@ public class BusTest extends TestCase {
 	}
 
 	public void testIsCompleteWithTwoDevices() throws MemoryRangeException {
-		Device memory = new Memory(0x0000, 0x8000, null, true);
-		Device rom    = new Memory(0x8000, 0x8000, null, false);
+		Device memory = new Memory(0x0000, 0x8000, true);
+		Device rom    = new Memory(0x8000, 0x8000, false);
 
 		Bus b = new Bus(0x0000, 0xffff);
 		assertFalse("Address space was unexpectedly complete!", b.isComplete());
@@ -108,9 +108,9 @@ public class BusTest extends TestCase {
 	}
 
 	public void testIsCompleteWithThreeDevices() throws MemoryRangeException {
-		Device memory = new Memory(0x0000, 0x8000, null, true);
-		Device rom1   = new Memory(0x8000, 0x4000, null, false);
-		Device rom2   = new Memory(0xC000, 0x4000, null, false);
+		Device memory = new Memory(0x0000, 0x8000, true);
+		Device rom1   = new Memory(0x8000, 0x4000, false);
+		Device rom2   = new Memory(0xC000, 0x4000, false);
 
 		Bus b = new Bus(0x0000, 0xffff);
 		assertFalse("Address space was unexpectedly complete!", b.isComplete());
