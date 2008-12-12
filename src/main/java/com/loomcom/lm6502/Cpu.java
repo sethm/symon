@@ -3,20 +3,20 @@ package com.loomcom.lm6502;
 /**
  * Main 6502 CPU Simulation.
  */
-public class Cpu {
+public class Cpu implements InstructionTable {
 
 	/* The Bus */
 	private Bus bus;
 
 	/* User Registers */
-	private int a;    // Accumulator
-	private int x;    // X index register
-	private int y;    // Y index register
+	private int a;  // Accumulator
+	private int x;  // X index register
+	private int y;  // Y index register
 
 	/* Internal Registers */
-	private int pc;   // Program Counter register
-	private int sp;   // Stack Pointer register
-	private int ir;   // Instruction register
+	private int pc;  // Program Counter register
+	private int sp;  // Stack Pointer register
+	private int ir;  // Instruction register
 
 	/**
 	 * Construct a new CPU.
@@ -46,6 +46,30 @@ public class Cpu {
 		sp = 0x01ff;
 		pc = 0xfffc;
 		ir = 0;
+	}
+
+	/**
+	 * Performs an individual machine cycle.
+	 */
+	public void step() {
+		// 1. Fetch memory
+		ir = bus.read(pc);
+
+		// 2. Decode the instruction and execute.
+
+		// x. Increment PC
+		incProgramCounter();
+	}
+
+	/*
+	 * Increment the PC, rolling over if necessary.
+	 */
+	private void incProgramCounter() {
+		if (pc == 0xffff) {
+			pc = 0;
+		} else {
+			++pc;
+		}
 	}
 
 }

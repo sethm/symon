@@ -9,8 +9,31 @@ import java.util.*;
 import com.loomcom.lm6502.devices.*;
 import com.loomcom.lm6502.exceptions.*;
 
-public class Profiler {
+public class Profiler implements InstructionTable {
+
+
 	public static void main(String[] args) {
+		// new Profiler().profileMemoryReads();
+
+		new Profiler().dumpOpCodes();
+	}
+
+	public void dumpOpCodes() {
+		for (int i = 0; i < 0x100; i++) {
+			String name = opcodeNames[i];
+			Mode mode = opcodeModes[i];
+
+			System.out.print(String.format("0x%02x: ", i));
+
+			if (name == null) {
+				System.out.println("n/a");
+			} else {
+				System.out.println(name + " (" + mode + ")");
+			}
+		}
+	}
+
+	public void profileMemoryReads() {
 
 		try {
 
