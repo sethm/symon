@@ -2,7 +2,9 @@ package com.loomcom.lm6502;
 
 public interface InstructionTable {
 
-	// Addressing mode Enumeration
+	/**
+	 * Enumeration of Addressing Modes.
+	 */
 	public enum Mode {
 		ACC {
 			public String toString() {
@@ -14,115 +16,115 @@ public interface InstructionTable {
 			public String toString() {
 				return "Absolute";
 			}
-    },
+		},
 
 		ABX {
 			public String toString() {
 				return "Absolute, X-indexed";
 			}
-    },
+		},
 
 		ABY {
 			public String toString() {
 				return "Absolute, Y-indexed";
 			}
-    },
+		},
 
 		IMM {
 			public String toString() {
 				return "Immediate";
 			}
-    },
+		},
 
 		IMP {
 			public String toString() {
 				return "Implied";
 			}
-    },
+		},
 
 		IND {
 			public String toString() {
 				return "Indirect";
 			}
-    },
+		},
 
 		XIN {
 			public String toString() {
 				return "X-indexed Indirect";
 			}
-    },
+		},
 
 		INY {
 			public String toString() {
 				return "Indirect, Y-indexedY";
 			}
-    },
+		},
 
 		REL {
 			public String toString() {
 				return "Relative";
 			}
-    },
+		},
 
 		ZPG {
 			public String toString() {
 				return "Zeropage";
 			}
-    },
+		},
 
 		ZPX {
 			public String toString() {
 				return "Zeropage, X-indexed";
 			}
-    },
+		},
 
 		ZPY {
 			public String toString() {
 				return "Zeropage, Y-indexed";
 			}
-    },
+		},
 
 		NUL {
 			public String toString() {
 				return "NULL";
 			}
-    }
+		}
 	}
 
 	// 6502 opcodes.  No 65C02 opcodes implemented.
 	public static final String[] opcodeNames = {
-    "BRK", "ORA",  null,  null,  null, "ORA", "ASL",  null,
-    "PHP", "ORA", "ASL",  null,  null, "ORA", "ASL",  null,
-    "BPL", "ORA",  null,  null,  null, "ORA", "ASL",  null,
-    "CLC", "ORA",  null,  null,  null, "ORA", "ASL",  null,
-    "JSR", "AND",  null,  null, "BIT", "AND", "ROL",  null,
-    "PLP", "AND", "ROL",  null, "BIT", "AND", "ROL",  null,
-    "BMI", "AND",  null,  null,  null, "AND", "ROL",  null,
-    "SEC", "AND",  null,  null,  null, "AND", "ROL",  null,
-    "RTI", "EOR",  null,  null,  null, "EOR", "LSR",  null,
-    "PHA", "EOR", "LSR",  null, "JMP", "EOR", "LSR",  null,
-    "BVC", "EOR",  null,  null,  null, "EOR", "LSR",  null,
-    "CLI", "EOR",  null,  null,  null, "EOR", "LSR",  null,
-    "RTS", "ADC",  null,  null,  null, "ADC", "ROR",  null,
-    "PLA", "ADC", "ROR",  null, "JMP", "ADC", "ROR",  null,
-    "BVS", "ADC",  null,  null,  null, "ADC", "ROR",  null,
-    "SEI", "ADC",  null,  null,  null, "ADC", "ROR",  null,
-    "BCS", "STA",  null,  null, "STY", "STA", "STX",  null,
-    "DEY",  null, "TXA",  null, "STY", "STA", "STX",  null,
-    "BCC", "STA",  null,  null, "STY", "STA", "STX",  null,
-    "TYA", "STA", "TXS",  null,  null, "STA",  null,  null,
-    "LDY", "LDA", "LDX",  null, "LDY", "LDA", "LDX",  null,
-    "TAY", "LDA", "TAX",  null, "LDY", "LDA", "LDX",  null,
-		 null, "LDA",  null,  null, "LDY", "LDA", "LDX",  null,
-    "CLV", "LDA", "TSX",  null, "LDY", "LDA", "LDX",  null,
-    "CPY", "CMP",  null,  null, "CPY", "CMP", "DEC",  null,
-    "INY", "CMP", "DEX",  null, "CPY", "CMP", "DEC",  null,
-    "BNE", "CMP",  null,  null,  null, "CMP", "DEC",  null,
-    "CLD", "CMP",  null,  null,  null, "CMP", "DEC",  null,
-    "CPX", "SBC",  null,  null, "CPX", "SBC", "INC",  null,
-    "INX", "SBC", "NOP",  null, "CPX", "SBC", "INC",  null,
-    "BEQ", "SBC",  null,  null,  null, "SBC", "INC",  null,
-    "SED", "SBC",  null,  null,  null, "SBC", "INC",  null
+		"BRK", "ORA",  null,  null,  null, "ORA", "ASL",  null,
+		"PHP", "ORA", "ASL",  null,  null, "ORA", "ASL",  null,
+		"BPL", "ORA",  null,  null,  null, "ORA", "ASL",  null,
+		"CLC", "ORA",  null,  null,  null, "ORA", "ASL",  null,
+		"JSR", "AND",  null,  null, "BIT", "AND", "ROL",  null,
+		"PLP", "AND", "ROL",  null, "BIT", "AND", "ROL",  null,
+		"BMI", "AND",  null,  null,  null, "AND", "ROL",  null,
+		"SEC", "AND",  null,  null,  null, "AND", "ROL",  null,
+		"RTI", "EOR",  null,  null,  null, "EOR", "LSR",  null,
+		"PHA", "EOR", "LSR",  null, "JMP", "EOR", "LSR",  null,
+		"BVC", "EOR",  null,  null,  null, "EOR", "LSR",  null,
+		"CLI", "EOR",  null,  null,  null, "EOR", "LSR",  null,
+		"RTS", "ADC",  null,  null,  null, "ADC", "ROR",  null,
+		"PLA", "ADC", "ROR",  null, "JMP", "ADC", "ROR",  null,
+		"BVS", "ADC",  null,  null,  null, "ADC", "ROR",  null,
+		"SEI", "ADC",  null,  null,  null, "ADC", "ROR",  null,
+		"BCS", "STA",  null,  null, "STY", "STA", "STX",  null,
+		"DEY",  null, "TXA",  null, "STY", "STA", "STX",  null,
+		"BCC", "STA",  null,  null, "STY", "STA", "STX",  null,
+		"TYA", "STA", "TXS",  null,  null, "STA",  null,  null,
+		"LDY", "LDA", "LDX",  null, "LDY", "LDA", "LDX",  null,
+		"TAY", "LDA", "TAX",  null, "LDY", "LDA", "LDX",  null,
+		null,  "LDA",  null,  null, "LDY", "LDA", "LDX",  null,
+		"CLV", "LDA", "TSX",  null, "LDY", "LDA", "LDX",  null,
+		"CPY", "CMP",  null,  null, "CPY", "CMP", "DEC",  null,
+		"INY", "CMP", "DEX",  null, "CPY", "CMP", "DEC",  null,
+		"BNE", "CMP",  null,  null,  null, "CMP", "DEC",  null,
+		"CLD", "CMP",  null,  null,  null, "CMP", "DEC",  null,
+		"CPX", "SBC",  null,  null, "CPX", "SBC", "INC",  null,
+		"INX", "SBC", "NOP",  null, "CPX", "SBC", "INC",  null,
+		"BEQ", "SBC",  null,  null,  null, "SBC", "INC",  null,
+		"SED", "SBC",  null,  null,  null, "SBC", "INC",  null
 	};
 
 	public static final Mode[] opcodeModes = {
@@ -189,7 +191,7 @@ public interface InstructionTable {
 		Mode.REL, Mode.INY, Mode.NUL, Mode.NUL,   // 0xf0-0xf3
 		Mode.NUL, Mode.ZPX, Mode.ZPX, Mode.NUL,   // 0xf4-0xf7
 		Mode.IMP, Mode.ABY, Mode.NUL, Mode.NUL,   // 0xf8-0xfb
-		Mode.NUL, Mode.ABX, Mode.ABX, Mode.NUL     // 0xfc-0xff
+		Mode.NUL, Mode.ABX, Mode.ABX, Mode.NUL    // 0xfc-0xff
 	};
 
 }
