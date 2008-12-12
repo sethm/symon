@@ -621,8 +621,11 @@ public class Cpu implements InstructionTable {
 			break;
 		}
 	}
-		
-	public String statusString() {
+	
+	/**
+	 * Returns a string representing the CPU state. 
+	 */
+	public String toString() {
 		String opcode = CpuUtils.opcode(ir, operands[0], operands[1]);
 		StringBuffer sb = new StringBuffer(String.format("$%04X", addr) + "  ");
 		sb.append(String.format("%-12s", opcode));
@@ -633,10 +636,31 @@ public class Cpu implements InstructionTable {
 		return sb.toString();
 	}
 	
+	/**
+	 * Push an item onto the stack, and decrement the stack counter.
+	 * Silently fails to push onto the stack if SP is
+	 * TODO: Unit tests.  
+	 */
+	protected void push(int data) {
+		bus.write(sp, data);
+		if (sp > 0x100) { sp--; }
+	}
+	
+
+	/**
+	 * Pop a byte off the user stack, and increment the stack counter. 
+	 * TODO: Unit tests.
+	 */
+	protected int pop() {
+		int data = bus.read(sp);
+		if (sp < 0x1ff) { sp++; }
+		return data;
+	}
+
 	/*
 	 * Increment the PC, rolling over if necessary.
 	 */
-	private void incProgramCounter() {
+	protected void incProgramCounter() {
 		if (pc == 0xffff) {
 			pc = 0;
 		} else {
