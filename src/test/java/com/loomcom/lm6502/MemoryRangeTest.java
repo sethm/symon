@@ -5,6 +5,8 @@ import junit.framework.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.loomcom.lm6502.exceptions.*;
+
 /**
  *
  */
@@ -36,14 +38,14 @@ public class MemoryRangeTest extends TestCase {
 		new MemoryRange(2, 10);
 	}
 
-	public void testGetStartAddress() throws MemoryRangeException {
+	public void testStartAddress() throws MemoryRangeException {
 		MemoryRange r = new MemoryRange(0x101, 0x202);
-		assertEquals(0x101, r.getStartAddress());
+		assertEquals(0x101, r.startAddress());
 	}
 
-	public void testGetEndAddress() throws MemoryRangeException {
+	public void testEndAddress() throws MemoryRangeException {
 		MemoryRange r = new MemoryRange(0x101, 0x202);
-		assertEquals(0x202, r.getEndAddress());
+		assertEquals(0x202, r.endAddress());
 	}
 
 	public void testOverlaps() throws MemoryRangeException {

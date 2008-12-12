@@ -1,4 +1,4 @@
-package com.loomcom.lm6502;
+package com.loomcom.lm6502.exceptions;
 
 /**
  * Exception that will be thrown if devices conflict in the IO map.

@@ -3,6 +3,7 @@ package com.loomcom.lm6502;
 import junit.framework.*;
 
 import com.loomcom.lm6502.devices.*;
+import com.loomcom.lm6502.exceptions.*;
 
 import java.util.*;
 
@@ -19,32 +20,32 @@ public class BusTest extends TestCase {
 		return new TestSuite(BusTest.class);
 	}
 
-	public void testCreatingWithTopAndBottom() {
+	public void testCreatingWithStartAndEndAddresses() {
 		Bus b = null;
 
 		b = new Bus(0x00, 0xff);
-		assertEquals(0x00, b.bottom());
-		assertEquals(0xff, b.top());
+		assertEquals(0x00, b.startAddress());
+		assertEquals(0xff, b.endAddress());
 
 		b = new Bus(0x20, 0xea);
-		assertEquals(0x20, b.bottom());
-		assertEquals(0xea, b.top());
+		assertEquals(0x20, b.startAddress());
+		assertEquals(0xea, b.endAddress());
 	}
 
 	public void testCreatingWithSize() {
 		Bus b = null;
 
 		b = new Bus(256);
-		assertEquals(0x00, b.bottom());
-		assertEquals(0xff, b.top());
+		assertEquals(0x00, b.startAddress());
+		assertEquals(0xff, b.endAddress());
 
 		b = new Bus(4096);
-		assertEquals(0x000, b.bottom());
-		assertEquals(0xfff, b.top());
+		assertEquals(0x000, b.startAddress());
+		assertEquals(0xfff, b.endAddress());
 
 		b = new Bus(65536);
-		assertEquals(0x0000, b.bottom());
-		assertEquals(0xffff, b.top());
+		assertEquals(0x0000, b.startAddress());
+		assertEquals(0xffff, b.endAddress());
 	}
 
 	public void testAddDevice() throws MemoryRangeException {
@@ -76,7 +77,7 @@ public class BusTest extends TestCase {
 		}
 	}
 
-	public void testIsCompleteWithFirstDeviceNotStartingAtBottom() throws MemoryRangeException {
+	public void testIsCompleteWithFirstDeviceNotStartingAtStartAddress() throws MemoryRangeException {
 		Device memory = new Memory(0x00ff, 0xff00, null, true);
 
 		Bus b = new Bus(0x0000, 0xffff);

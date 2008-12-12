@@ -10,30 +10,26 @@ public class Simulator {
 	/**
 	 * Command-line parser used by this simulator.
 	 */
-	CommandParser m_parser;
+	CommandParser parser;
 
 	/**
 	 * The CPU itself.
 	 */
-	Cpu m_cpu;
+	Cpu cpu;
 
 	/**
 	 * The Bus responsible for routing memory read/write requests to the
 	 * correct IO devices.
 	 */
-	Bus m_bus;
+	Bus bus;
 
 	public Simulator() {
-		m_cpu = new Cpu(this);
-		m_parser = new CommandParser(System.in, System.out, this);
+		cpu = new Cpu(this);
+		parser = new CommandParser(System.in, System.out, this);
 	}
 
 	public void run() {
-		m_parser.run();
-	}
-
-	public static void main(String[] args) {
-		new Simulator().run();
+		parser.run();
 	}
 
 	public void step() {
@@ -45,4 +41,12 @@ public class Simulator {
 
 	public void write(int address, int value) {
 	}
+
+	/**
+	 * Main simulator routine.
+	 */
+	public static void main(String[] args) {
+		new Simulator().run();
+	}
+
 }

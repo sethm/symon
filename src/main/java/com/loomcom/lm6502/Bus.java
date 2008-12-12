@@ -2,33 +2,35 @@ package com.loomcom.lm6502;
 
 import java.util.*;
 import com.loomcom.lm6502.devices.*;
+import com.loomcom.lm6502.exceptions.*;
 
 public class Bus {
 
-	private int bottom = 0x0000;
-	private int top    = 0xffff;
+	/* By default, our bus starts at 0, and goes up to 64K */
+	private int startAddress = 0x0000;
+	private int endAddress   = 0xffff;
 
 	/**
 	 * Ordered list of IO devices.
 	 */
-	private List<Device> devices;
+	private SortedSet<Device> devices;
 
 	public Bus(int size) {
 		this(0, size - 1);
 	}
 
-	public Bus(int bottom, int top) {
-		this.devices = new ArrayList(8);
-		this.bottom = bottom;
-		this.top = top;
+	public Bus(int startAddress, int endAddress) {
+		this.devices = new TreeSet();
+		this.startAddress = startAddress;
+		this.endAddress = endAddress;
 	}
 
-	public int bottom() {
-		return bottom;
+	public int startAddress() {
+		return startAddress;
 	}
 
-	public int top() {
-		return top;
+	public int endAddress() {
+		return endAddress;
 	}
 
 	public void addDevice(Device device)
@@ -62,21 +64,21 @@ public class Bus {
 		for (Device d : devices) {
 			MemoryRange cur = d.getMemoryRange();
 			if (i == 0) {
-				// If the first entry doesn't start at 'bottom', return false.
-				if (cur.getStartAddress() != bottom) { return false; }
+				// If the first entry doesn't start at 'startAddress', return false.
+				if (cur.startAddress() != startAddress) { return false; }
 			}
 
 			if (prev != null && i < length - 1) {
 				// Otherwise, compare previous map's end against this map's
-				// top.  They must be adjacent!
-				if (cur.getStartAddress() - 1 != prev.getEndAddress()) {
+				// endAddress.  They must be adjacent!
+				if (cur.startAddress() - 1 != prev.endAddress()) {
 					return false;
 				}
 			}
 
 			if (i == length - 1) {
-				// If the last entry doesn't end at top, return false;
-				if (cur.getEndAddress() != top) { return false; }
+				// If the last entry doesn't end at endAddress, return false;
+				if (cur.endAddress() != endAddress) { return false; }
 			}
 
 			i++;
@@ -87,8 +89,35 @@ public class Bus {
 		return true;
 	}
 
-	public List getDevices() {
+	public int read(int address) {
+		for (Device d : devices) {
+			MemoryRange range = d.getMemoryRange();
+			if (range.includes(address)) {
+				// Compute offset into this device's address space.
+				int devAddr = address - range.startAddress();
+				return d.read(devAddr);
+			}
+		}
+		// TODO: Raise access error.
+		throw new RuntimeException("Read failed!  Device not found.");
+	}
+
+	public void write(int address, int value) {
+		for (Device d : devices) {
+			MemoryRange range = d.getMemoryRange();
+			if (range.includes(address)) {
+				// Compute offset into this device's address space.
+				int devAddr = address - range.startAddress();
+				d.write(devAddr, value);
+				return;
+			}
+		}
+		// TODO: Raise access error.
+		throw new RuntimeException("Write failed!  Device not found.");
+	}
+
+	public SortedSet getDevices() {
 		// Expose a copy of the device list, not the original
-		return new ArrayList(devices);
+		return new TreeSet(devices);
 	}
 }

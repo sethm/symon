@@ -1,7 +1,19 @@
 package com.loomcom.lm6502;
 
+import com.loomcom.lm6502.exceptions.*;
+
+/**
+ * MemoryRange is a simple container class representing a literal
+ * range of memory, with a staraddress, and an end address.  It has
+ * guards against creating impossible memory ranges, and implements
+ * some useful methods for checking address inclusion and range
+ * overlaps.
+ */
 public class MemoryRange implements Comparable<MemoryRange> {
+
+	/** The starting address of the memory range. */
 	public int startAddress;
+	/** The ending address of the memory range. */
 	public int endAddress;
 
 	public MemoryRange(int startAddress, int endAddress)
@@ -17,11 +29,17 @@ public class MemoryRange implements Comparable<MemoryRange> {
 		this.endAddress = endAddress;
 	}
 
-	public int getStartAddress() {
+	/**
+	 * @returns the starting address.
+	 */
+	public int startAddress() {
 		return startAddress;
 	}
 
-	public int getEndAddress() {
+	/**
+	 * @returns the ending address.
+	 */
+	public int endAddress() {
 		return endAddress;
 	}
 
@@ -42,8 +60,8 @@ public class MemoryRange implements Comparable<MemoryRange> {
 	 * @returns true if this range overlaps in any way with the other.
 	 */
 	public boolean overlaps(MemoryRange other) {
-		return (this.includes(other.getStartAddress()) ||
-						other.includes(this.getStartAddress()));
+		return (this.includes(other.startAddress()) ||
+						other.includes(this.startAddress()));
 	}
 
 	// Implementation of Comparable interface
@@ -54,8 +72,8 @@ public class MemoryRange implements Comparable<MemoryRange> {
 		if (this == other) {
 			return 0;
 		}
-		Integer thisStartAddr = new Integer(this.getStartAddress());
-		Integer thatStartAddr = new Integer(other.getStartAddress());
+		Integer thisStartAddr = new Integer(this.startAddress());
+		Integer thatStartAddr = new Integer(other.startAddress());
 		return thisStartAddr.compareTo(thatStartAddr);
 	}
 
