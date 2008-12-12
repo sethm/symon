@@ -74,7 +74,7 @@ public class Cpu implements InstructionTable {
 		incProgramCounter();
 
 		// Decode the instruction and operands
-		int size = instructionSizes[ir];
+		int size = Cpu.instructionSizes[ir];
 		for (int i = 0; i < size-1; i++) {
 			operands[i] = bus.read(pc);
 			// Increment PC after reading
@@ -85,6 +85,7 @@ public class Cpu implements InstructionTable {
 		switch(ir) {
 		
 		case 0x00: // HLT
+			// TODO: Halt!
 			break;
 		case 0x01: // n/a
 			break;
@@ -415,11 +416,15 @@ public class Cpu implements InstructionTable {
 		case 0x9f: // n/a
 			break;
 
-		case 0xa0: // n/a
+		case 0xa0: // LDY - Immediate
+			y = operands[0];
+			// TODO: Set Zero Flag, Negative Flag			
 			break;
 		case 0xa1: // n/a
 			break;
-		case 0xa2: // n/a
+		case 0xa2: // LDX - Immediate
+			x = operands[0];
+			// TODO: Set Zero Flag, Negative Flag
 			break;
 		case 0xa3: // n/a
 			break;
@@ -435,6 +440,7 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xa9: // LDA - Immediate
 			a = operands[0];
+			// TODO: Set Zero Flag, Negative Flag
 			break;
 		case 0xaa: // n/a
 			break;
