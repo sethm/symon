@@ -1,6 +1,7 @@
 package com.loomcom.lm6502;
 
-import java.io.IOException;
+import com.loomcom.lm6502.devices.*;
+import com.loomcom.lm6502.exceptions.*;
 
 /**
  * Main control class for the J6502 Simulator.
@@ -23,8 +24,11 @@ public class Simulator {
 	 */
 	private Bus bus;
 
-	public Simulator() {
+	public Simulator() throws MemoryRangeException {
 		cpu = new Cpu();
+		bus = new Bus(0x0000, 0xffff);
+		bus.addCpu(cpu);
+		bus.addDevice(new Memory(0x0000, 0x10000));
 		parser = new CommandParser(System.in, System.out, this);
 	}
 
@@ -41,12 +45,51 @@ public class Simulator {
 
 	public void write(int address, int value) {
 	}
+	
+	/**
+	 * A test method.
+	 */
+	
+	public void runTest() {
+		
+		// Start at 0x0300
+		bus.write(0xfffc, 0x00);
+		bus.write(0xfffd, 0x03);
+		
+		bus.write(0x0300, 0xa9); // LDA #$FF
+		bus.write(0x0301, 0xff); 
+		bus.write(0x0302, 0xea); // NOP
+		bus.write(0x0303, 0xea); // NOP
+		bus.write(0x0304, 0xea); // NOP
+		bus.write(0x0305, 0xea); // NOP
+		bus.write(0x0306, 0xa9); // LDA #$1A
+		bus.write(0x0307, 0x1a);
+		bus.write(0x0308, 0xea); // NOP
+		bus.write(0x0309, 0xea); // NOP
+		bus.write(0x030a, 0xa9); // LDA #$03
+		bus.write(0x030b, 0x03);
+		bus.write(0x030c, 0x4c); // JMP #$0300
+		bus.write(0x030d, 0x00); 
+		bus.write(0x030e, 0x03);
+
+		cpu.reset();
+
+		for (int i = 0; i < 60; i++) {
+			cpu.step();
+			System.out.println(cpu.statusString());
+		}
+
+	}
 
 	/**
 	 * Main simulator routine.
 	 */
 	public static void main(String[] args) {
-		new Simulator().run();
+		try {
+			new Simulator().runTest();
+		} catch (MemoryRangeException ex) {
+			System.err.println("Error: " + ex.toString());
+		}
 	}
 
 }

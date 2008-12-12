@@ -92,6 +92,10 @@ public interface InstructionTable {
 	}
 
 	// 6502 opcodes.  No 65C02 opcodes implemented.
+	
+	/**
+	 * Instruction opcode names.
+	 */
 	public static final String[] opcodeNames = {
 		"BRK", "ORA",  null,  null,  null, "ORA", "ASL",  null,
 		"PHP", "ORA", "ASL",  null,  null, "ORA", "ASL",  null,
@@ -127,7 +131,10 @@ public interface InstructionTable {
 		"SED", "SBC",  null,  null,  null, "SBC", "INC",  null
 	};
 
-	public static final Mode[] opcodeModes = {
+	/**
+	 * Instruction addressing modes.
+	 */
+	public static final Mode[] instructionModes = {
 		Mode.IMP, Mode.XIN, Mode.NUL, Mode.NUL,   // 0x00-0x03
 		Mode.NUL, Mode.ZPG, Mode.ZPG, Mode.NUL,   // 0x04-0x07
 		Mode.IMP, Mode.IMM, Mode.ACC, Mode.NUL,   // 0x08-0x0b
@@ -192,6 +199,51 @@ public interface InstructionTable {
 		Mode.NUL, Mode.ZPX, Mode.ZPX, Mode.NUL,   // 0xf4-0xf7
 		Mode.IMP, Mode.ABY, Mode.NUL, Mode.NUL,   // 0xf8-0xfb
 		Mode.NUL, Mode.ABX, Mode.ABX, Mode.NUL    // 0xfc-0xff
+	};
+	
+
+	/**
+	 * Size, in bytes, required for each instruction.
+	 */
+	public static final int[] instructionSizes = {
+		1, 2, 0, 0, 0, 2, 2, 0, 1, 2, 1, 0, 0, 3, 3, 0, 
+		2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0, 
+		3, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0, 
+		2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0, 
+		1, 2, 0, 0, 0, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0, 
+		2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0, 
+		1, 2, 0, 0, 0, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0, 
+		2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0, 
+		2, 2, 0, 0, 2, 2, 2, 0, 1, 0, 1, 0, 3, 3, 3, 0, 
+		2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 0, 3, 0, 0, 
+		2, 2, 2, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0, 
+		0, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0, 
+		2, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0, 
+		2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0, 
+		2, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0, 
+		2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0
+	};
+
+	/**
+	 * Number of clock cycles required for each instruction
+	 */
+	public static final int[] instructionClocks = {
+		7, 6, 0, 0, 0, 3, 5, 0, 3, 2, 2, 0, 0, 4, 6, 0, 
+		2, 5, 0, 0, 0, 4, 6, 0,	2, 4, 0, 0, 0, 4, 7, 0, 
+		6, 6, 0, 0, 3, 3, 5, 0,	4, 2, 2, 0, 4, 4, 6, 0, 
+		2, 5, 0, 0, 0, 4, 6, 0,	2, 4, 0, 0, 0, 4, 7, 0, 
+		6, 6, 0, 0, 0, 3, 5, 0,	3, 2, 2, 0, 3, 4, 6, 0, 
+		2, 5, 0, 0, 0, 4, 6, 0,	2, 4, 0, 0, 0, 4, 7, 0, 
+		6, 6, 0, 0, 0, 3, 5, 0,	4, 2, 2, 0, 5, 4, 6, 0, 
+		2, 5, 0, 0, 0, 4, 6, 0,	2, 4, 0, 0, 0, 4, 7, 0, 
+		2, 6, 0, 0, 3, 3, 3, 0,	2, 0, 2, 0, 4, 4, 4, 0, 
+		2, 6, 0, 0, 4, 4, 4, 0,	2, 5, 2, 0, 0, 5, 0, 0, 
+		2, 6, 2, 0, 3, 3, 3, 0,	2, 2, 2, 0, 4, 4, 4, 0, 
+		0, 5, 0, 0, 4, 4, 4, 0,	2, 4, 2, 0, 4, 4, 4, 0, 
+		2, 6, 0, 0, 3, 3, 5, 0,	2, 2, 2, 0, 4, 4, 6, 0, 
+		2, 5, 0, 0, 0, 4, 6, 0,	2, 4, 0, 0, 0, 4, 7, 0, 
+		2, 6, 0, 0, 3, 3, 5, 0,	2, 2, 2, 0, 4, 4, 6, 0, 
+		2, 5, 0, 0, 0, 4, 6, 0,	2, 4, 0, 0, 0, 4, 7, 0
 	};
 
 }

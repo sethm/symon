@@ -2,9 +2,6 @@ package com.loomcom.lm6502;
 
 import junit.framework.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  *
  */

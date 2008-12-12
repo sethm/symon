@@ -22,7 +22,7 @@ public class Bus {
 	}
 
 	public Bus(int startAddress, int endAddress) {
-		this.devices = new TreeSet();
+		this.devices = new TreeSet<Device>();
 		this.startAddress = startAddress;
 		this.endAddress = endAddress;
 	}
@@ -41,8 +41,9 @@ public class Bus {
 		MemoryRange memRange = device.getMemoryRange();
 		for (Device d : devices) {
 			if (d.getMemoryRange().overlaps(memRange)) {
-				throw new MemoryRangeException("The device being added overlaps " +
-																			 "with an existing device.");
+				throw new MemoryRangeException("The device being added " +
+				                               "overlaps with an existing " +
+				                               "device.");
 			}
 		}
 
@@ -52,6 +53,7 @@ public class Bus {
 	}
 
 	public void addCpu(Cpu cpu) {
+		cpu.setBus(this);
 		this.cpu = cpu;
 	}
 
@@ -123,8 +125,8 @@ public class Bus {
 		throw new RuntimeException("Write failed!  Device not found.");
 	}
 
-	public SortedSet getDevices() {
+	public SortedSet<Device> getDevices() {
 		// Expose a copy of the device list, not the original
-		return new TreeSet(devices);
+		return new TreeSet<Device>(devices);
 	}
 }
