@@ -1,5 +1,7 @@
 package com.loomcom.lm6502;
 
+import java.util.Arrays;
+
 /**
  * Main 6502 CPU Simulation.
  */
@@ -22,12 +24,20 @@ public class Cpu implements InstructionTable {
 	private int[] operands = new int[2];
 	private int addr; // The address the most recent instruction 
 	                  // was fetched from
+	
+	/* Status Flag Register bits */
+	private boolean carryFlag;
+	private boolean zeroFlag;
+	private boolean irqDisableFlag;
+	private boolean decimalModeFlag;
+	private boolean breakFlag;
+	private boolean overflowFlag;
+	// Note: Zero Flag and Negative Flag are read directly from Accumulator.
 
 	/**
 	 * Construct a new CPU.
 	 */
-	public Cpu() {
-	}
+	public Cpu() {}
 
 	/**
 	 * Set the bus reference for this CPU.
@@ -55,6 +65,13 @@ public class Cpu implements InstructionTable {
 		
 		// Clear instruction register.
 		ir = 0;
+		
+		// Clear status register bits.
+		carryFlag = false;
+		irqDisableFlag = false;
+		decimalModeFlag = false;
+		breakFlag = false;
+		overflowFlag = false;
 	}
 
 	/**
@@ -623,6 +640,113 @@ public class Cpu implements InstructionTable {
 	}
 	
 	/**
+	 * @return the negative flag
+	 */
+	public boolean getNegativeFlag() {
+		// True if the most significant bit is '1' 
+		return ((a>>>7)&0xff) == 1;
+	}
+	
+	/**
+     * @return the carry flag
+     */
+    public boolean getCarryFlag() {
+    	return carryFlag;
+    }
+
+	/**
+     * @param carryFlag the carry flag to set
+     */
+    public void setCarryFlag(boolean carryFlag) {
+    	this.carryFlag = carryFlag;
+    }
+    
+    /**
+     * @return the zero flag
+     */
+    public boolean getZeroFlag() {
+    	return zeroFlag;
+    }
+    
+    /**
+     * @param zeroFlag the zero flag to set
+     */
+    public void setZeroFlag(boolean zeroFlag) {
+    	this.zeroFlag = zeroFlag;
+    }
+
+	/**
+     * @return the irq disable flag
+     */
+    public boolean getIrqDisableFlag() {
+    	return irqDisableFlag;
+    }
+
+	/**
+     * @param irqDisableFlag the irq disable flag to set
+     */
+    public void setIrqDisableFlag(boolean irqDisableFlag) {
+    	this.irqDisableFlag = irqDisableFlag;
+    }
+
+	/**
+     * @return the decimal mode flag
+     */
+    public boolean getDecimalModeFlag() {
+    	return decimalModeFlag;
+    }
+
+	/**
+     * @param decimalModeFlag the decimal mde flag to set
+     */
+    public void setDecimalModeFlag(boolean decimalModeFlag) {
+    	this.decimalModeFlag = decimalModeFlag;
+    }
+
+	/**
+     * @return the break flag
+     */
+    public boolean getBreakFlag() {
+    	return breakFlag;
+    }
+
+	/**
+     * @param breakFlag the break flag to set
+     */
+    public void setBreakFlag(boolean breakFlag) {
+    	this.breakFlag = breakFlag;
+    }
+
+	/**
+     * @return the overflow flag
+     */
+    public boolean getOverflowFlag() {
+    	return overflowFlag;
+    }
+
+	/**
+     * @param overflowFlag the overflow flag to set
+     */
+    public void setOverflowFlag(boolean overflowFlag) {
+    	this.overflowFlag = overflowFlag;
+    }
+    
+    /**
+     * @return A string representing the current status register state.
+     */
+    public String statusRegisterString() {
+    	StringBuffer sb = new StringBuffer();
+    	sb.append("(N:" + (getNegativeFlag() ? '1' : '0') + ", ");
+    	sb.append("V:" + (getOverflowFlag() ? '1' : '0') + ", ");
+    	sb.append("B:" + (getBreakFlag() ? '1' : '0') + ", ");
+    	sb.append("D:" + (getDecimalModeFlag() ? '1' : '0') + ", ");
+    	sb.append("I:" + (getIrqDisableFlag() ? '1' : '0') + ", ");
+    	sb.append("Z:" + (getZeroFlag() ? '1' : '0') + ", ");
+    	sb.append("C:" + (getCarryFlag() ? '1' : '0') + ")");
+    	return sb.toString();
+    }
+
+	/**
 	 * Returns a string representing the CPU state. 
 	 */
 	public String toString() {
@@ -632,7 +756,8 @@ public class Cpu implements InstructionTable {
 		sb.append("A="  + String.format("$%02X", a)  + "; ");
 		sb.append("X="  + String.format("$%02X", x)  + "; ");
 		sb.append("Y="  + String.format("$%02X", y)  + "; ");
-		sb.append("PC="  + String.format("$%04X", pc));
+		sb.append("PC=" + String.format("$%04X", pc)+ "; ");
+		sb.append("P="  + statusRegisterString());
 		return sb.toString();
 	}
 	
