@@ -1,4 +1,4 @@
-package com.loomcom.lm6502;
+package com.loomcom.symon;
 
 import java.io.*;
 

@@ -1,9 +1,9 @@
-package com.loomcom.lm6502.devices;
+package com.loomcom.symon.devices;
 
 import java.util.*;
 
-import com.loomcom.lm6502.*;
-import com.loomcom.lm6502.exceptions.*;
+import com.loomcom.symon.*;
+import com.loomcom.symon.exceptions.*;
 
 public class Memory extends Device {
 

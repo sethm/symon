@@ -1,6 +1,6 @@
-package com.loomcom.lm6502;
+package com.loomcom.symon;
 
-import com.loomcom.lm6502.InstructionTable.Mode;
+import com.loomcom.symon.InstructionTable.Mode;
 
 public class CpuUtils {
 

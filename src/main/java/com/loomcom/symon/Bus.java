@@ -1,8 +1,8 @@
-package com.loomcom.lm6502;
+package com.loomcom.symon;
 
 import java.util.*;
-import com.loomcom.lm6502.devices.*;
-import com.loomcom.lm6502.exceptions.*;
+import com.loomcom.symon.devices.*;
+import com.loomcom.symon.exceptions.*;
 
 /**
  * The Bus ties the whole thing together, man.

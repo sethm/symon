@@ -1,11 +1,11 @@
-package com.loomcom.lm6502;
+package com.loomcom.symon;
 
 import junit.framework.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.loomcom.lm6502.exceptions.*;
+import com.loomcom.symon.exceptions.*;
 
 /**
  *

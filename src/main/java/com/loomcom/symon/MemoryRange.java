@@ -1,6 +1,6 @@
-package com.loomcom.lm6502;
+package com.loomcom.symon;
 
-import com.loomcom.lm6502.exceptions.*;
+import com.loomcom.symon.exceptions.*;
 
 /**
  * MemoryRange is a simple container class representing a literal

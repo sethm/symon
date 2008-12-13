@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.loomcom.lm6502</groupId>
-  <artifactId>lm6502</artifactId>
+  <groupId>com.loomcom.symon</groupId>
+  <artifactId>symon</artifactId>
   <packaging>jar</packaging>
   <version>snapshot</version>
-  <name>lm6502</name>
-  <url>http://www.loomcom.com/lm6502</url>
+  <name>symon</name>
+  <url>http://www.loomcom.com/symon</url>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -36,8 +36,8 @@
 	<configuration>
 	  <archive>
 	    <manifest>
-	      <mainClass>com.loomcom.lm6502.Simulator</mainClass>
-	      <packageName>com.loomcom.lm6502</packageName>
+	      <mainClass>com.loomcom.symon.Simulator</mainClass>
+	      <packageName>com.loomcom.symon</packageName>
 	    </manifest>
 	    <manifestEntries>
 	      <mode>development</mode>
@@ -57,7 +57,7 @@
 	    <haltOnFailure>false</haltOnFailure>
 	    <regexes>
 	      <regex>
-		<pattern>com.loomcom.lm6502.*</pattern>
+		<pattern>com.loomcom.symon.*</pattern>
 		<branchRate>90</branchRate>
 		<lineRate>90</lineRate>
 	      </regex>
@@ -65,7 +65,7 @@
 	  </check>
 	  <instrumentation>
 	    <includes>
-	      <include>com/loomcom/lm6502/*.class</include>
+	      <include>com/loomcom/symon/*.class</include>
 	    </includes>
 	  </instrumentation>
 	</configuration>

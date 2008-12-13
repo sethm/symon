@@ -3,10 +3,10 @@
  * It is safe to ignore me.
  */
 
-package com.loomcom.lm6502;
+package com.loomcom.symon;
 
-import com.loomcom.lm6502.devices.*;
-import com.loomcom.lm6502.exceptions.*;
+import com.loomcom.symon.devices.*;
+import com.loomcom.symon.exceptions.*;
 
 public class Profiler implements InstructionTable {
 

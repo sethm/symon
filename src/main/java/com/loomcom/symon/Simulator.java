@@ -1,7 +1,7 @@
-package com.loomcom.lm6502;
+package com.loomcom.symon;
 
-import com.loomcom.lm6502.devices.*;
-import com.loomcom.lm6502.exceptions.*;
+import com.loomcom.symon.devices.*;
+import com.loomcom.symon.exceptions.*;
 
 /**
  * Main control class for the J6502 Simulator.

@@ -1,4 +1,4 @@
-package com.loomcom.lm6502.exceptions;
+package com.loomcom.symon.exceptions;
 
 /**
  * Exception that will be thrown if access to memory or IO cannot be

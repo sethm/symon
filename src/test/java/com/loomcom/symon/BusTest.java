@@ -1,9 +1,9 @@
-package com.loomcom.lm6502;
+package com.loomcom.symon;
 
 import junit.framework.*;
 
-import com.loomcom.lm6502.devices.*;
-import com.loomcom.lm6502.exceptions.*;
+import com.loomcom.symon.devices.*;
+import com.loomcom.symon.exceptions.*;
 
 import java.util.*;
 
