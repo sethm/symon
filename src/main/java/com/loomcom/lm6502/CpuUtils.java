@@ -20,7 +20,7 @@ public class CpuUtils {
 	 */
 	public static String opcode(int opcode, int op1, int op2) {
 		String opcodeName = Cpu.opcodeNames[opcode];
-		if (opcodeName == null) { return "??"; }
+		if (opcodeName == null) { return "???"; }
 		
 		StringBuffer sb = new StringBuffer(opcodeName);
 		

@@ -65,23 +65,30 @@ public class Simulator {
 		bus.write(0x0306, 0x1a);
 		bus.write(0x0307, 0xea); // NOP
 		bus.write(0x0308, 0xea); // NOP
-		bus.write(0x0309, 0xa2); // LDX #$03
-		bus.write(0x030a, 0x03);
+		bus.write(0x0309, 0xa2); // LDX #$90
+		bus.write(0x030a, 0x90);
 		
-		bus.write(0x030b, 0xa9); // LDA #$00
-		bus.write(0x030c, 0x00);
-		bus.write(0x030d, 0xa2); // LDX #$00
-		bus.write(0x030e, 0x00);
-		bus.write(0x030f, 0xa0); // LDY #$00
-		bus.write(0x0310, 0x00);
+		bus.write(0x030b, 0xea); // NOP
+		bus.write(0x030c, 0xea); // NOP
+		bus.write(0x030d, 0xea); // NOP
+
+		bus.write(0x030e, 0xa2); // LDX #$02
+		bus.write(0x030f, 0x02);
+
+		bus.write(0x0310, 0xa9); // LDA #$00
+		bus.write(0x0311, 0x00);
+		bus.write(0x0312, 0xa2); // LDX #$00
+		bus.write(0x0313, 0x00);
+		bus.write(0x0314, 0xa0); // LDY #$00
+		bus.write(0x0315, 0x00);
 		
-		bus.write(0x0311, 0x4c); // JMP #$0300
-		bus.write(0x0312, 0x00); 
-		bus.write(0x0313, 0x03);
+		bus.write(0x0316, 0x4c); // JMP #$0300
+		bus.write(0x0317, 0x00); 
+		bus.write(0x0318, 0x03);
 
 		cpu.reset();
 
-		for (int i = 0; i <= 23; i++) {
+		for (int i = 0; i <= 40; i++) {
 			cpu.step();
 			System.out.println(cpu.toString());
 		}

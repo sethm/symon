@@ -27,6 +27,7 @@ public class Cpu implements InstructionTable {
 	
 	/* Status Flag Register bits */
 	private boolean carryFlag;
+	private boolean negativeFlag;
 	private boolean zeroFlag;
 	private boolean irqDisableFlag;
 	private boolean decimalModeFlag;
@@ -435,13 +436,15 @@ public class Cpu implements InstructionTable {
 
 		case 0xa0: // LDY - Immediate
 			y = operands[0];
-			// TODO: Set Zero Flag, Negative Flag			
+			setZeroFlag(y);
+			setNegativeFlag(y);
 			break;
 		case 0xa1: // n/a
 			break;
 		case 0xa2: // LDX - Immediate
 			x = operands[0];
-			// TODO: Set Zero Flag, Negative Flag
+			setZeroFlag(x);
+			setNegativeFlag(x);
 			break;
 		case 0xa3: // n/a
 			break;
@@ -457,7 +460,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xa9: // LDA - Immediate
 			a = operands[0];
-			// TODO: Set Zero Flag, Negative Flag
+			setZeroFlag(a);
+			setNegativeFlag(a);
 			break;
 		case 0xaa: // n/a
 			break;
@@ -643,8 +647,21 @@ public class Cpu implements InstructionTable {
 	 * @return the negative flag
 	 */
 	public boolean getNegativeFlag() {
-		// True if the most significant bit is '1' 
-		return ((a>>>7)&0xff) == 1;
+		return negativeFlag;
+	}
+	
+	/**
+	 * @param register the register value to test for negativity
+	 */
+	public void setNegativeFlag(int register) {
+		this.negativeFlag = (((register>>>7)&0xff) == 1);
+	}
+
+	/**
+	 * @param negativeFlag the negative flag to set
+	 */
+	public void setNegativeFlag(boolean negativeFlag) {
+		this.negativeFlag = negativeFlag;
 	}
 	
 	/**
@@ -666,6 +683,13 @@ public class Cpu implements InstructionTable {
      */
     public boolean getZeroFlag() {
     	return zeroFlag;
+    }
+    
+    /**
+     * @param register the register to test for zero
+     */
+    public void setZeroFlag(int register) {
+    	this.zeroFlag = (register == 0);
     }
     
     /**
@@ -731,6 +755,22 @@ public class Cpu implements InstructionTable {
     	this.overflowFlag = overflowFlag;
     }
     
+    public int getAccumulator() {
+    	return a;
+    }
+    
+    public int getXRegister() {
+    	return x;
+    }
+    
+    public int getYRegister() {
+    	return y;
+    }
+    
+    public int getProgramCounter() {
+    	return pc;
+    }
+    
     /**
      * @return A string representing the current status register state.
      */
@@ -751,12 +791,13 @@ public class Cpu implements InstructionTable {
 	 */
 	public String toString() {
 		String opcode = CpuUtils.opcode(ir, operands[0], operands[1]);
-		StringBuffer sb = new StringBuffer(String.format("$%04X", addr) + "  ");
-		sb.append(String.format("%-12s", opcode));
-		sb.append("A="  + String.format("$%02X", a)  + "; ");
-		sb.append("X="  + String.format("$%02X", x)  + "; ");
-		sb.append("Y="  + String.format("$%02X", y)  + "; ");
-		sb.append("PC=" + String.format("$%04X", pc)+ "; ");
+		StringBuffer sb = new StringBuffer(String.format("$%04X", addr) +
+		                                   "   ");
+		sb.append(String.format("%-14s", opcode));
+		sb.append("A="  + String.format("$%02X", a)  + "  ");
+		sb.append("X="  + String.format("$%02X", x)  + "  ");
+		sb.append("Y="  + String.format("$%02X", y)  + "  ");
+		sb.append("PC=" + String.format("$%04X", pc)+ "  ");
 		sb.append("P="  + statusRegisterString());
 		return sb.toString();
 	}
