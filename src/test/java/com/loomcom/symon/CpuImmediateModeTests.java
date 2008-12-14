@@ -192,6 +192,103 @@ public class CpuImmediateModeTests extends TestCase {
 	
 	/* ADC Immediate Mode Tests - 0x69 */
 	
+	public void test_ADC_SetsAccumulator() {
+		bus.write(0x200, 0x69);
+		bus.write(0x201, 0x01);
+		cpu.step();
+		assertEquals(0x01, cpu.getAccumulator());
+		
+		bus.write(0x202, 0x69);
+		bus.write(0x203, 0xa0);
+		cpu.step();
+		assertEquals(0xa1, cpu.getAccumulator());
+
+		bus.write(0x204, 0x69);
+		bus.write(0x205, 0x02);
+		cpu.step();
+		assertEquals(0xa3, cpu.getAccumulator());
+
+		bus.write(0x206, 0x69);
+		bus.write(0x207, 0x06);
+		cpu.step();
+		assertEquals(0xa9, cpu.getAccumulator());
+	}
+	
+	public void test_ADC_IncludesCarry() {
+		cpu.setCarryFlag(true);
+		bus.write(0x200, 0x69);
+		bus.write(0x201, 0x01);
+		cpu.step();
+		assertEquals(0x02, cpu.getAccumulator());
+	}
+	
+	public void test_ADC_SetsCarryIfResultOverflows() {
+		bus.write(0x200, 0xa9); // LDA #$fe
+		bus.write(0x201, 0xff);
+		cpu.step();
+		bus.write(0x202, 0x69); // ADC #$02
+		bus.write(0x203, 0x02);
+		cpu.step();
+		// $ff + $02 = $101 = [c] + $01
+		assertEquals(0x01, cpu.getAccumulator());
+		assertTrue(cpu.getCarryFlag());
+	}
+	
+	public void test_ADC_SetsOverflowIfResultChangesSign() {
+		bus.write(0x200, 0xa9); // LDA #$7f
+		bus.write(0x201, 0x7f);
+		cpu.step();
+		bus.write(0x202, 0x69); // ADC #$01
+		bus.write(0x203, 0x01);
+		cpu.step();
+		assertEquals(0x80, cpu.getAccumulator());
+		assertTrue(cpu.getOverflowFlag());
+	}
+	
+	public void test_ADC_SetsNegativeFlagIfResultIsNegative() {
+		bus.write(0x200, 0xa9); // LDA #$7f
+		bus.write(0x201, 0x7f);
+		cpu.step();
+		bus.write(0x202, 0x69); // ADC #$01
+		bus.write(0x203, 0x01);
+		cpu.step();
+		assertEquals(0x80, cpu.getAccumulator());
+		assertTrue(cpu.getNegativeFlag());	
+	}
+	
+	public void test_ADC_SetsZeroFlagIfResultIsZero() {
+		bus.write(0x200, 0xa9); // LDA #$ff
+		bus.write(0x201, 0xff);
+		cpu.step();
+		bus.write(0x202, 0x69); // ADC #$01
+		bus.write(0x203, 0x01);
+		cpu.step();
+		assertEquals(0x00, cpu.getAccumulator());
+		assertTrue(cpu.getZeroFlag());		
+	}
+	
+	public void test_ADC_DoesNotSetNegativeFlagIfResultNotNegative() {
+		bus.write(0x200, 0xa9); // LDA #$7f
+		bus.write(0x201, 0x7e);
+		cpu.step();
+		bus.write(0x202, 0x69); // ADC #$01
+		bus.write(0x203, 0x01);
+		cpu.step();
+		assertEquals(0x7f, cpu.getAccumulator());
+		assertFalse(cpu.getNegativeFlag());
+	}
+	
+	public void test_ADC_DoesNotSetZeroFlagIfResultNotZero() {
+		bus.write(0x200, 0xa9); // LDA #$ff
+		bus.write(0x201, 0xff);
+		cpu.step();
+		bus.write(0x202, 0x69); // ADC #$01
+		bus.write(0x203, 0x03);
+		cpu.step();
+		assertEquals(0x2, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());		
+	}
+	
 	/* LDY Immediate Mode Tests - 0xa0 */
 	
 	public void test_LDY_SetsYRegister() {

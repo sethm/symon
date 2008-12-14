@@ -329,7 +329,20 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x68: // n/a
 			break;
-		case 0x69: // n/a
+		case 0x69: // ADC - Immediate Mode
+			boolean sign = (a < 0x80);
+			a += (operands[0] + (carryFlag ? 1 : 0));
+			// Result overflowed a byte
+			if (a > 0xff) { 
+				a &= 0xff;
+				setCarryFlag(true);
+			}
+			// Sign changed
+			if (sign != a < 0x80) {
+				setOverflowFlag(true);
+			}
+			setZeroFlag(a);
+			setNegativeFlag(a);
 			break;
 		case 0x6a: // n/a
 			break;
