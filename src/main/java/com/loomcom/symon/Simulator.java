@@ -45,50 +45,55 @@ public class Simulator {
 
 	public void write(int address, int value) {
 	}
-	
+
+	public void loadProgram(int address, int[] program) {
+		// Reset interrupt vector
+		int hi = (address&0xff00)>>>8;
+		int lo = address&0x00ff;
+		bus.write(0xfffc, lo);
+		bus.write(0xfffd, hi);
+
+		int i = 0;
+		for (int d : program) {
+			bus.write(address + i, program[i++]);
+		}
+	}
+
 	/**
 	 * A test method.
 	 */
-	
+
 	public void runTest() {
-		
-		// Start at 0x0300
-		bus.write(0xfffc, 0x00);
-		bus.write(0xfffd, 0x03);
-		
-		bus.write(0x0300, 0xa9); // LDA #$FF
-		bus.write(0x0301, 0xff); 
-		bus.write(0x0302, 0xea); // NOP
-		bus.write(0x0303, 0xea); // NOP
-		bus.write(0x0304, 0xea); // NOP
-		bus.write(0x0305, 0xa0); // LDY #$1A
-		bus.write(0x0306, 0x1a);
-		bus.write(0x0307, 0xea); // NOP
-		bus.write(0x0308, 0xea); // NOP
-		bus.write(0x0309, 0xa2); // LDX #$90
-		bus.write(0x030a, 0x90);
-		
-		bus.write(0x030b, 0xea); // NOP
-		bus.write(0x030c, 0xea); // NOP
-		bus.write(0x030d, 0xea); // NOP
+		int[] program = {
+			0xa9, // LDA #$FF
+			0xff,
+			0xa0, // LDY #$1A
+			0x1a,
+			0xa2, // LDX #$90
+			0x90,
+			0xa2, // LDX #$02
+			0x02,
+			0x49, // EOR #$FF
+			0xff,
+			0xa9, // LDA #$00
+			0x00,
+			0xa2, // LDX #$00
+			0x00,
+			0x29, // AND #$FF
+			0xff,
+			0xa0, // LDY #$00
+			0x00,
+			0x4c, // JMP #$0300
+			0x00,
+			0x03
+		};
 
-		bus.write(0x030e, 0xa2); // LDX #$02
-		bus.write(0x030f, 0x02);
-
-		bus.write(0x0310, 0xa9); // LDA #$00
-		bus.write(0x0311, 0x00);
-		bus.write(0x0312, 0xa2); // LDX #$00
-		bus.write(0x0313, 0x00);
-		bus.write(0x0314, 0xa0); // LDY #$00
-		bus.write(0x0315, 0x00);
-		
-		bus.write(0x0316, 0x4c); // JMP #$0300
-		bus.write(0x0317, 0x00); 
-		bus.write(0x0318, 0x03);
-
+		loadProgram(0x0300, program);
 		cpu.reset();
 
-		for (int i = 0; i <= 40; i++) {
+		int steps = program.length;
+
+		for (int i = 0; i <= steps; i++) {
 			cpu.step();
 			System.out.println(cpu.toString());
 		}

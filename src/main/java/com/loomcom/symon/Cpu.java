@@ -121,7 +121,10 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x08: // n/a
 			break;
-		case 0x09: // n/a
+		case 0x09: // ORA - Immediate
+			a |= operands[0];
+			setZeroFlag(a);
+			setNegativeFlag(a);
 			break;
 		case 0x0a: // n/a
 			break;
@@ -188,6 +191,9 @@ public class Cpu implements InstructionTable {
 		case 0x28: // n/a
 			break;
 		case 0x29: // n/a
+			a &= operands[0];
+			setZeroFlag(a);
+			setNegativeFlag(a);
 			break;
 		case 0x2a: // n/a
 			break;
@@ -253,7 +259,10 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x48: // n/a
 			break;
-		case 0x49: // n/a
+		case 0x49: // EOR - Immediate
+			a ^= operands[0];
+			setZeroFlag(a);
+			setNegativeFlag(a);
 			break;
 		case 0x4a: // n/a
 			break;
