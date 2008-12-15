@@ -6,7 +6,7 @@ import java.util.Arrays;
  * Main 6502 CPU Simulation.
  */
 public class Cpu implements InstructionTable {
-	
+
 	public static final int DEFAULT_BASE_ADDRESS = 0x200;
 
 	/* The Bus */
@@ -24,9 +24,9 @@ public class Cpu implements InstructionTable {
 
 	/* Operands for the current instruction */
 	private int[] operands = new int[2];
-	private int addr; // The address the most recent instruction 
+	private int addr; // The address the most recent instruction
 	                  // was fetched from
-	
+
 	/* Status Flag Register bits */
 	private boolean carryFlag;
 	private boolean negativeFlag;
@@ -62,13 +62,13 @@ public class Cpu implements InstructionTable {
 	public void reset() {
 		// Registers
 		sp = 0x01ff;
-		
+
 		// Set the PC to the address stored in 0xfffc
 		pc = CpuUtils.address(bus.read(0xfffc), bus.read(0xfffd));
-		
+
 		// Clear instruction register.
 		ir = 0;
-		
+
 		// Clear status register bits.
 		carryFlag = false;
 		irqDisableFlag = false;
@@ -95,7 +95,7 @@ public class Cpu implements InstructionTable {
 
 		// TODO: The way we increment the PC may need
 		// to change when interrupts are implemented
-		
+
 		// Increment PC
 		incProgramCounter();
 
@@ -109,7 +109,7 @@ public class Cpu implements InstructionTable {
 
 		// Execute
 		switch(ir) {
-		
+
 		case 0x00: // HLT
 			// TODO: Halt!
 			break;
@@ -522,7 +522,8 @@ public class Cpu implements InstructionTable {
 		case 0xbf: // n/a
 			break;
 
-		case 0xc0: // n/a
+		case 0xc0: // CPY - Immediate
+			cmp(y, operands[0]);
 			break;
 		case 0xc1: // n/a
 			break;
@@ -540,7 +541,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xc8: // n/a
 			break;
-		case 0xc9: // n/a
+		case 0xc9: // CMP - Immediate
+			cmp(a, operands[0]);
 			break;
 		case 0xca: // n/a
 			break;
@@ -588,7 +590,8 @@ public class Cpu implements InstructionTable {
 		case 0xdf: // n/a
 			break;
 
-		case 0xe0: // n/a
+		case 0xe0: // CPX - Immediate
+			cmp(x, operands[0]);
 			break;
 		case 0xe1: // n/a
 			break;
@@ -607,6 +610,8 @@ public class Cpu implements InstructionTable {
 		case 0xe8: // n/a
 			break;
 		case 0xe9: // n/a
+			a = sbc(a, operands[0]);
+			setArithmeticFlags(a);
 			break;
 		case 0xea: // NOP
 			break;
@@ -658,25 +663,36 @@ public class Cpu implements InstructionTable {
 
 	/**
 	 * Add with Carry, used by all addressing mode implementations of ADC.
-	 * As a side effect, this will set the 
-	 * 
+	 * As a side effect, this will set the
+	 *
 	 * @param acc  The current value of the accumulator
 	 * @param operand  The operand
 	 * @return
 	 */
 	public int adc(int acc, int operand) {
-		int result = operand + a + (carryFlag ? 1 : 0);
-		int carry = (operand & 0x7f) + (a & 0x7f) + (carryFlag ? 1 : 0);
-		if (result > 0xff) { setCarryFlag(true); }
+		int result = operand + acc + (carryFlag ? 1 : 0);
+		int carry = (operand & 0x7f) + (acc & 0x7f) + (carryFlag ? 1 : 0);
+		setCarryFlag(result > 0xff);
 		result = result & 0xff;
 		setOverflowFlag(carryFlag ^ ((carry & 0x80) != 0));
 		return result;
 	}
-	
+
+	public int sbc(int acc, int operand) {
+		// Equivalent to ADC of the 2's complement of the operand
+		return adc(acc, (--operand) ^ 0xff);
+	}
+
+	public void cmp(int reg, int operand) {
+		setCarryFlag(reg >= operand);
+		setZeroFlag(reg == operand);
+		setNegativeFlag((reg - operand) > 0);
+	}
+
 	/**
 	 * Set the Negative and Zero flags based on the current value of the
 	 * register operand.
-	 * 
+	 *
 	 * @param reg The register.
 	 */
 	public void setArithmeticFlags(int reg) {
@@ -689,7 +705,7 @@ public class Cpu implements InstructionTable {
 	public boolean getNegativeFlag() {
 		return negativeFlag;
 	}
-	
+
 	/**
 	 * @param register the register value to test for negativity
 	 */
@@ -702,7 +718,7 @@ public class Cpu implements InstructionTable {
 	public void setNegativeFlag(boolean negativeFlag) {
 		this.negativeFlag = negativeFlag;
 	}
-	
+
 	/**
      * @return the carry flag
      */
@@ -716,14 +732,14 @@ public class Cpu implements InstructionTable {
     public void setCarryFlag(boolean carryFlag) {
     	this.carryFlag = carryFlag;
     }
-    
+
     /**
      * @return the zero flag
      */
     public boolean getZeroFlag() {
     	return zeroFlag;
     }
-    
+
     /**
      * @param zeroFlag the zero flag to set
      */
@@ -786,23 +802,23 @@ public class Cpu implements InstructionTable {
     public void setOverflowFlag(boolean overflowFlag) {
     	this.overflowFlag = overflowFlag;
     }
-    
+
     public int getAccumulator() {
     	return a;
     }
-    
+
     public int getXRegister() {
     	return x;
     }
-    
+
     public int getYRegister() {
     	return y;
     }
-    
+
     public int getProgramCounter() {
     	return pc;
     }
-    
+
     /**
      * @return A string representing the current status register state.
      */
@@ -819,7 +835,7 @@ public class Cpu implements InstructionTable {
     }
 
 	/**
-	 * Returns a string representing the CPU state. 
+	 * Returns a string representing the CPU state.
 	 */
 	public String toString() {
 		String opcode = CpuUtils.opcode(ir, operands[0], operands[1]);
@@ -833,20 +849,20 @@ public class Cpu implements InstructionTable {
 		sb.append("P="  + statusRegisterString());
 		return sb.toString();
 	}
-	
+
 	/**
 	 * Push an item onto the stack, and decrement the stack counter.
 	 * Silently fails to push onto the stack if SP is
-	 * TODO: Unit tests.  
+	 * TODO: Unit tests.
 	 */
 	protected void push(int data) {
 		bus.write(sp, data);
 		if (sp > 0x100) { sp--; }
 	}
-	
+
 
 	/**
-	 * Pop a byte off the user stack, and increment the stack counter. 
+	 * Pop a byte off the user stack, and increment the stack counter.
 	 * TODO: Unit tests.
 	 */
 	protected int pop() {
@@ -865,5 +881,5 @@ public class Cpu implements InstructionTable {
 			++pc;
 		}
 	}
-	
+
 }
