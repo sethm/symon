@@ -55,7 +55,7 @@ public class Simulator {
 
 		int i = 0;
 		for (int d : program) {
-			bus.write(address + i, program[i++]);
+			bus.write(address + i++, d);
 		}
 	}
 

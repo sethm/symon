@@ -63,7 +63,7 @@ public class Bus {
 	 * device.
 	 */
 	public boolean isComplete() {
-		// Emtpy maps cannot be complete.
+		// Empty maps cannot be complete.
 		if (devices.isEmpty()) { return false; }
 
 		// Loop over devices and ensure they are contiguous.
@@ -129,4 +129,16 @@ public class Bus {
 		// Expose a copy of the device list, not the original
 		return new TreeSet<Device>(devices);
 	}
+
+	public Cpu getCpu() {
+		return cpu;
+	}
+
+    public void loadProgram(int... program) {
+    	int address = getCpu().getProgramCounter();
+		int i = 0;
+		for (int d : program) {
+			write(address + i++, d);
+		}
+    }
 }

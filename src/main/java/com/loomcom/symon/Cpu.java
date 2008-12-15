@@ -6,6 +6,8 @@ import java.util.Arrays;
  * Main 6502 CPU Simulation.
  */
 public class Cpu implements InstructionTable {
+	
+	public static final int DEFAULT_BASE_ADDRESS = 0x200;
 
 	/* The Bus */
 	private Bus bus;
@@ -75,6 +77,12 @@ public class Cpu implements InstructionTable {
 		overflowFlag = false;
 	}
 
+	public void step(int num) {
+		for (int i = 0; i < num; i++) {
+			step();
+		}
+	}
+
 	/**
 	 * Performs an individual machine cycle.
 	 */
@@ -123,8 +131,7 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x09: // ORA - Immediate
 			a |= operands[0];
-			setZeroFlag(a);
-			setNegativeFlag(a);
+			setArithmeticFlags(a);
 			break;
 		case 0x0a: // n/a
 			break;
@@ -192,8 +199,7 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x29: // n/a
 			a &= operands[0];
-			setZeroFlag(a);
-			setNegativeFlag(a);
+			setArithmeticFlags(a);
 			break;
 		case 0x2a: // n/a
 			break;
@@ -261,8 +267,7 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x49: // EOR - Immediate
 			a ^= operands[0];
-			setZeroFlag(a);
-			setNegativeFlag(a);
+			setArithmeticFlags(a);
 			break;
 		case 0x4a: // n/a
 			break;
@@ -330,19 +335,8 @@ public class Cpu implements InstructionTable {
 		case 0x68: // n/a
 			break;
 		case 0x69: // ADC - Immediate Mode
-			boolean sign = (a < 0x80);
-			a += (operands[0] + (carryFlag ? 1 : 0));
-			// Result overflowed a byte
-			if (a > 0xff) { 
-				a &= 0xff;
-				setCarryFlag(true);
-			}
-			// Sign changed
-			if (sign != a < 0x80) {
-				setOverflowFlag(true);
-			}
-			setZeroFlag(a);
-			setNegativeFlag(a);
+			a = adc(a, operands[0]);
+			setArithmeticFlags(a);
 			break;
 		case 0x6a: // n/a
 			break;
@@ -458,15 +452,13 @@ public class Cpu implements InstructionTable {
 
 		case 0xa0: // LDY - Immediate
 			y = operands[0];
-			setZeroFlag(y);
-			setNegativeFlag(y);
+			setArithmeticFlags(y);
 			break;
 		case 0xa1: // n/a
 			break;
 		case 0xa2: // LDX - Immediate
 			x = operands[0];
-			setZeroFlag(x);
-			setNegativeFlag(x);
+			setArithmeticFlags(x);
 			break;
 		case 0xa3: // n/a
 			break;
@@ -482,8 +474,7 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xa9: // LDA - Immediate
 			a = operands[0];
-			setZeroFlag(a);
-			setNegativeFlag(a);
+			setArithmeticFlags(a);
 			break;
 		case 0xaa: // n/a
 			break;
@@ -664,7 +655,34 @@ public class Cpu implements InstructionTable {
 			break;
 		}
 	}
+
+	/**
+	 * Add with Carry, used by all addressing mode implementations of ADC.
+	 * As a side effect, this will set the 
+	 * 
+	 * @param acc  The current value of the accumulator
+	 * @param operand  The operand
+	 * @return
+	 */
+	public int adc(int acc, int operand) {
+		int result = operand + a + (carryFlag ? 1 : 0);
+		int carry = (operand & 0x7f) + (a & 0x7f) + (carryFlag ? 1 : 0);
+		if (result > 0xff) { setCarryFlag(true); }
+		result = result & 0xff;
+		setOverflowFlag(carryFlag ^ ((carry & 0x80) != 0));
+		return result;
+	}
 	
+	/**
+	 * Set the Negative and Zero flags based on the current value of the
+	 * register operand.
+	 * 
+	 * @param reg The register.
+	 */
+	public void setArithmeticFlags(int reg) {
+		zeroFlag = (reg == 0);
+		negativeFlag = (reg & 0x80) != 0;
+	}
 	/**
 	 * @return the negative flag
 	 */
@@ -676,7 +694,6 @@ public class Cpu implements InstructionTable {
 	 * @param register the register value to test for negativity
 	 */
 	public void setNegativeFlag(int register) {
-		this.negativeFlag = (((register>>>7)&0xff) == 1);
 	}
 
 	/**
@@ -705,13 +722,6 @@ public class Cpu implements InstructionTable {
      */
     public boolean getZeroFlag() {
     	return zeroFlag;
-    }
-    
-    /**
-     * @param register the register to test for zero
-     */
-    public void setZeroFlag(int register) {
-    	this.zeroFlag = (register == 0);
     }
     
     /**

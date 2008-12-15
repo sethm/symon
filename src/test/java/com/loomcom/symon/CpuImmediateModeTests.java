@@ -2,15 +2,14 @@ package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
 import com.loomcom.symon.exceptions.MemoryRangeException;
-
-import junit.framework.TestCase;
+import junit.framework.*;
 
 public class CpuImmediateModeTests extends TestCase {
 
-	private Cpu cpu;
-	private Bus bus;
-	private Memory mem;
-
+	protected Cpu cpu;
+	protected Bus bus;
+	protected Memory mem;
+	
 	public void setUp() throws MemoryRangeException {		
 		this.cpu = new Cpu();
 		this.bus = new Bus(0x0000, 0xffff);
@@ -18,71 +17,62 @@ public class CpuImmediateModeTests extends TestCase {
 		bus.addCpu(cpu);
 		bus.addDevice(mem);
 
-		// All test programs start at 0x0200;
-		bus.write(0xfffc, 0x00);
-		bus.write(0xfffd, 0x02);
+		// Load the reset vector.
+		bus.write(0xfffc, Cpu.DEFAULT_BASE_ADDRESS & 0x00ff);
+		bus.write(0xfffd, (Cpu.DEFAULT_BASE_ADDRESS & 0xff00)>>>8);
 
 		cpu.reset();
 	}
-
+	
 	/* ORA Immediate Mode Tests - 0x09 */
 	
 	public void test_ORA_SetsAccumulator() {
-		bus.write(0x0200, 0x09);  // ORA #$00
-		bus.write(0x0201, 0x00);
+		bus.loadProgram(0x09, 0x00,  // ORA #$00
+		                0x09, 0x11,  // ORA #$11
+		                0x09, 0x22,  // ORA #$22
+		                0x09, 0x44,  // ORA #$44
+		                0x09, 0x88); // ORA #$88		
 		cpu.step();
 		// 0x00 | 0x00 == 0x00
 		assertEquals(0x00, cpu.getAccumulator());
-		
-		bus.write(0x0202, 0x09);  // ORA #$11
-		bus.write(0x0203, 0x11);
+				
 		cpu.step();
 		// 0x00 | 0x11 == 0x11
 		assertEquals(0x11, cpu.getAccumulator());
 
-		bus.write(0x0204, 0x09);  // ORA #$22
-		bus.write(0x0205, 0x22);
 		cpu.step();
 		// 0x11 | 0x22 == 0x33
 		assertEquals(0x33, cpu.getAccumulator());
 		
-		bus.write(0x0206, 0x09);  // ORA #$44
-		bus.write(0x0207, 0x44);
 		cpu.step();
 		// 0x33 | 0x44 == 0x77
 		assertEquals(0x77, cpu.getAccumulator());
 
-		bus.write(0x0208, 0x09);  // ORA #$88
-		bus.write(0x0209, 0x88);
 		cpu.step();
 		// 0x77 | 0x88 == 0xFF
 		assertEquals(0xff, cpu.getAccumulator());
 	}
 	
 	public void test_ORA_SetsZeroFlagIfResultIsZero() {
-		bus.write(0x0200, 0x09);  // ORA #$00
-		bus.write(0x0201, 0x00);
+		bus.loadProgram(0x09, 0x00);  // ORA #$00
 		cpu.step();
 		assertTrue(cpu.getZeroFlag());
 	}
 	
 	public void test_ORA_DoesNotSetZeroFlagIfResultNotZero() {
-		bus.write(0x0200, 0x09);  // ORA #$01
-		bus.write(0x0201, 0x01);
+		bus.loadProgram(0x09, 0x01);  // ORA #$01
 		cpu.step();
 		assertFalse(cpu.getZeroFlag());		
 	}
 
 	public void test_ORA_SetsNegativeFlagIfResultIsNegative() {
-		bus.write(0x0200, 0x09);  // ORA #$80
-		bus.write(0x0201, 0x80);
+		bus.loadProgram(0x09, 0x80);  // ORA #$80
 		cpu.step();
 		assertTrue(cpu.getNegativeFlag());
 	}
 	
 	public void test_ORA_DoesNotSetNegativeFlagIfResultNotNegative() {
-		bus.write(0x0200, 0x09);  // ORA #$7F
-		bus.write(0x0201, 0x7f);
+		bus.loadProgram(0x09, 0x7f);  // ORA #$7F
 		cpu.step();
 		assertFalse(cpu.getNegativeFlag());		
 	}
@@ -138,56 +128,55 @@ public class CpuImmediateModeTests extends TestCase {
 	}
 	
 	public void test_AND_DoesNotSetZeroFlagIfResultNotZero() {
-		bus.write(0x0200, 0xa9);  // LDA #$88
-		bus.write(0x0201, 0x88);
-		cpu.step();
-		bus.write(0x0202, 0x29);  // AND #$f1
-		bus.write(0x0203, 0xf1);
-		cpu.step();
+		bus.loadProgram(0xa9, 0x88,  // LDA #$88
+		                0x29, 0xf1); // AND #$F1
+		cpu.step(2);
 		assertFalse(cpu.getZeroFlag());
 	}
 
 	public void test_AND_SetsNegativeFlagIfResultIsNegative() {
-		bus.write(0x0200, 0xa9);  // LDA #$88
-		bus.write(0x0201, 0x88);
-		cpu.step();
-		bus.write(0x0202, 0x29);  // AND #$F0
-		bus.write(0x0203, 0xf0);
-		cpu.step();
+		bus.loadProgram(0xa9, 0x88,  // LDA #$88
+		                0x29, 0xf0); // AND #$F0
+		cpu.step(2);
 		assertTrue(cpu.getNegativeFlag());
 	}
 	
 	public void test_AND_DoesNotSetNegativeFlagIfResultNotNegative() {
-		bus.write(0x0200, 0xa9);  // LDA #$88
-		bus.write(0x0201, 0x88);
-		cpu.step();
-		bus.write(0x0202, 0x29);  // AND #$0F
-		bus.write(0x0203, 0x0f);
-		cpu.step();
+		bus.loadProgram(0xa9, 0x88,  // LDA #$88
+		                0x29, 0x0f); // AND #$0F
+		cpu.step(2);
 		assertFalse(cpu.getNegativeFlag());
 	}
 	
 	/* EOR Immediate Mode Tests - 0x49 */
 	
 	public void test_EOR_SetsAccumulator() {
-		bus.write(0x0200, 0xa9);  // LDA #$88
-		bus.write(0x0201, 0x88);
+		bus.loadProgram(0xa9, 0x88,  // LDA #$88
+		                0x49, 0x00,  // EOR #$00
+		                0x49, 0xff,  // EOR #$ff
+		                0x49, 0x33); // EOR #$33
 		cpu.step();
-
-		bus.write(0x0202, 0x49);  // EOR #$00
-		bus.write(0x0203, 0x00);
 		cpu.step();
 		assertEquals(0x88, cpu.getAccumulator());
-		
-		bus.write(0x0204, 0x49);  // EOR #$ff
-		bus.write(0x0205, 0xff);
 		cpu.step();
 		assertEquals(0x77, cpu.getAccumulator());
-
-		bus.write(0x0206, 0x49);  // EOR #$33
-		bus.write(0x0207, 0x33);
 		cpu.step();
 		assertEquals(0x44, cpu.getAccumulator());	
+	}
+	
+	public void test_EOR_SetsArithmeticFlags() {
+		bus.loadProgram(0xa9, 0x77,  // LDA #$77
+		                0x49, 0x77,  // EOR #$77
+		                0x49, 0xff); // EOR #$ff
+		cpu.step();
+		cpu.step();
+		assertEquals(0x00, cpu.getAccumulator());
+		assertTrue(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+		cpu.step();
+		assertEquals(0xff, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getNegativeFlag());
 	}
 	
 	/* ADC Immediate Mode Tests - 0x69 */
@@ -222,7 +211,7 @@ public class CpuImmediateModeTests extends TestCase {
 		assertEquals(0x02, cpu.getAccumulator());
 	}
 	
-	public void test_ADC_SetsCarryIfResultOverflows() {
+	public void test_ADC_SetsCarryIfResultCarries() {
 		bus.write(0x200, 0xa9); // LDA #$fe
 		bus.write(0x201, 0xff);
 		cpu.step();
@@ -231,7 +220,9 @@ public class CpuImmediateModeTests extends TestCase {
 		cpu.step();
 		// $ff + $02 = $101 = [c] + $01
 		assertEquals(0x01, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
 		assertTrue(cpu.getCarryFlag());
+		assertFalse(cpu.getOverflowFlag());
 	}
 	
 	public void test_ADC_SetsOverflowIfResultChangesSign() {
@@ -242,7 +233,51 @@ public class CpuImmediateModeTests extends TestCase {
 		bus.write(0x203, 0x01);
 		cpu.step();
 		assertEquals(0x80, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getCarryFlag());
 		assertTrue(cpu.getOverflowFlag());
+		
+		cpu.reset();
+		
+		bus.write(0x200, 0xa9); // LDA #$80
+		bus.write(0x201, 0x80);
+		cpu.step();
+		bus.write(0x202, 0x69); // ADC #$ff
+		bus.write(0x203, 0xff);
+		cpu.step();
+		assertEquals(0x7f, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertTrue(cpu.getOverflowFlag());
+	}
+	
+	public void test_ADC_DoesNotSetOverflowIfNotNeeded() {
+		bus.write(0x200, 0xa9); // LDA #$ff
+		bus.write(0x201, 0xff);
+		cpu.step();
+		bus.write(0x202, 0x69); // ADC #$01
+		bus.write(0x203, 0x01);
+		cpu.step();
+		assertEquals(0x00, cpu.getAccumulator());
+		assertTrue(cpu.getZeroFlag());
+		assertTrue(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		
+		cpu.reset();
+		
+		bus.write(0x200, 0xa9); // LDA #$01
+		bus.write(0x201, 0x01);
+		cpu.step();
+		bus.write(0x202, 0x69); // ADC #$01
+		bus.write(0x203, 0x01);
+		cpu.step();
+		assertEquals(0x02, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
 	}
 	
 	public void test_ADC_SetsNegativeFlagIfResultIsNegative() {
@@ -253,9 +288,12 @@ public class CpuImmediateModeTests extends TestCase {
 		bus.write(0x203, 0x01);
 		cpu.step();
 		assertEquals(0x80, cpu.getAccumulator());
-		assertTrue(cpu.getNegativeFlag());	
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getCarryFlag());
+		assertTrue(cpu.getNegativeFlag());
+		assertTrue(cpu.getOverflowFlag());
 	}
-	
+
 	public void test_ADC_SetsZeroFlagIfResultIsZero() {
 		bus.write(0x200, 0xa9); // LDA #$ff
 		bus.write(0x201, 0xff);
@@ -264,7 +302,10 @@ public class CpuImmediateModeTests extends TestCase {
 		bus.write(0x203, 0x01);
 		cpu.step();
 		assertEquals(0x00, cpu.getAccumulator());
-		assertTrue(cpu.getZeroFlag());		
+		assertTrue(cpu.getZeroFlag());	
+		assertTrue(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
 	}
 	
 	public void test_ADC_DoesNotSetNegativeFlagIfResultNotNegative() {
@@ -275,7 +316,10 @@ public class CpuImmediateModeTests extends TestCase {
 		bus.write(0x203, 0x01);
 		cpu.step();
 		assertEquals(0x7f, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getCarryFlag());
 		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
 	}
 	
 	public void test_ADC_DoesNotSetZeroFlagIfResultNotZero() {
@@ -286,7 +330,10 @@ public class CpuImmediateModeTests extends TestCase {
 		bus.write(0x203, 0x03);
 		cpu.step();
 		assertEquals(0x2, cpu.getAccumulator());
-		assertFalse(cpu.getZeroFlag());		
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
 	}
 	
 	/* LDY Immediate Mode Tests - 0xa0 */
