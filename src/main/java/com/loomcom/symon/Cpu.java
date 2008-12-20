@@ -162,7 +162,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x17: // n/a
 			break;
-		case 0x18: // n/a
+		case 0x18: // CLC - Clear Carry Flag, Implied
+			clearCarryFlag();
 			break;
 		case 0x19: // n/a
 			break;
@@ -230,7 +231,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x37: // n/a
 			break;
-		case 0x38: // n/a
+		case 0x38: // SEC - Set Carry Flag, Implied
+			setCarryFlag();
 			break;
 		case 0x39: // n/a
 			break;
@@ -299,7 +301,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x57: // n/a
 			break;
-		case 0x58: // n/a
+		case 0x58: // CLI - Clear Interrupt Disable, Implied
+			clearIrqDisableFlag();
 			break;
 		case 0x59: // n/a
 			break;
@@ -367,7 +370,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x77: // n/a
 			break;
-		case 0x78: // n/a
+		case 0x78: // SEI - Set Interrupt Disable, Implied
+			setIrqDisableFlag();
 			break;
 		case 0x79: // n/a
 			break;
@@ -505,7 +509,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xb7: // n/a
 			break;
-		case 0xb8: // n/a
+		case 0xb8: // CLV - Clear Overflow Flag, Implied
+			clearOverflowFlag();
 			break;
 		case 0xb9: // n/a
 			break;
@@ -573,7 +578,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xd7: // n/a
 			break;
-		case 0xd8: // n/a
+		case 0xd8: // CLD - Clear Decimal Mode, Implied
+			clearDecimalModeFlag();
 			break;
 		case 0xd9: // n/a
 			break;
@@ -642,7 +648,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xf7: // n/a
 			break;
-		case 0xf8: // n/a
+		case 0xf8: // SED - Set Decimal Flag, Implied
+			setDecimalModeFlag();
 			break;
 		case 0xf9: // n/a
 			break;
@@ -679,8 +686,8 @@ public class Cpu implements InstructionTable {
 	}
 
 	public int sbc(int acc, int operand) {
-		// Equivalent to ADC of the 2's complement of the operand
-		return adc(acc, (--operand) ^ 0xff);
+		// Equivalent to ADC of the 2's complement of the operand, minus the /carry
+		return adc(acc, (--operand ^ 0xff));
 	}
 
 	public void cmp(int reg, int operand) {
@@ -720,119 +727,214 @@ public class Cpu implements InstructionTable {
 	}
 
 	/**
-     * @return the carry flag
-     */
-    public boolean getCarryFlag() {
-    	return carryFlag;
-    }
+	 * @return the carry flag
+	 */
+	public boolean getCarryFlag() {
+		return carryFlag;
+	}
 
 	/**
-     * @param carryFlag the carry flag to set
-     */
-    public void setCarryFlag(boolean carryFlag) {
-    	this.carryFlag = carryFlag;
-    }
-
-    /**
-     * @return the zero flag
-     */
-    public boolean getZeroFlag() {
-    	return zeroFlag;
-    }
-
-    /**
-     * @param zeroFlag the zero flag to set
-     */
-    public void setZeroFlag(boolean zeroFlag) {
-    	this.zeroFlag = zeroFlag;
-    }
+	 * @param carryFlag the carry flag to set
+	 */
+	public void setCarryFlag(boolean carryFlag) {
+		this.carryFlag = carryFlag;
+	}
 
 	/**
-     * @return the irq disable flag
-     */
-    public boolean getIrqDisableFlag() {
-    	return irqDisableFlag;
-    }
+	 * Sets the Carry Flag
+	 */
+	public void setCarryFlag() {
+		this.carryFlag = true;
+	}
 
 	/**
-     * @param irqDisableFlag the irq disable flag to set
-     */
-    public void setIrqDisableFlag(boolean irqDisableFlag) {
-    	this.irqDisableFlag = irqDisableFlag;
-    }
+	 * Clears the Carry Flag
+	 */
+	public void clearCarryFlag() {
+		this.carryFlag = false;
+	}
 
 	/**
-     * @return the decimal mode flag
-     */
-    public boolean getDecimalModeFlag() {
-    	return decimalModeFlag;
-    }
+	 * @return the zero flag
+	 */
+	public boolean getZeroFlag() {
+		return zeroFlag;
+	}
 
 	/**
-     * @param decimalModeFlag the decimal mde flag to set
-     */
-    public void setDecimalModeFlag(boolean decimalModeFlag) {
-    	this.decimalModeFlag = decimalModeFlag;
-    }
+	 * @param zeroFlag the zero flag to set
+	 */
+	public void setZeroFlag(boolean zeroFlag) {
+		this.zeroFlag = zeroFlag;
+	}
 
 	/**
-     * @return the break flag
-     */
-    public boolean getBreakFlag() {
-    	return breakFlag;
-    }
+	 * Sets the Zero Flag
+	 */
+	public void setZeroFlag() {
+		this.zeroFlag = true;
+	}
 
 	/**
-     * @param breakFlag the break flag to set
-     */
-    public void setBreakFlag(boolean breakFlag) {
-    	this.breakFlag = breakFlag;
-    }
+	 * Clears the Zero Flag
+	 */
+	public void clearZeroFlag() {
+		this.zeroFlag = false;
+	}
 
 	/**
-     * @return the overflow flag
-     */
-    public boolean getOverflowFlag() {
-    	return overflowFlag;
-    }
+	 * @return the irq disable flag
+	 */
+	public boolean getIrqDisableFlag() {
+		return irqDisableFlag;
+	}
 
 	/**
-     * @param overflowFlag the overflow flag to set
-     */
-    public void setOverflowFlag(boolean overflowFlag) {
-    	this.overflowFlag = overflowFlag;
-    }
+	 * @param irqDisableFlag the irq disable flag to set
+	 */
+	public void setIrqDisableFlag(boolean irqDisableFlag) {
+		this.irqDisableFlag = irqDisableFlag;
+	}
 
-    public int getAccumulator() {
-    	return a;
-    }
+	public void setIrqDisableFlag() {
+		this.irqDisableFlag = true;
+	}
 
-    public int getXRegister() {
-    	return x;
-    }
+	public void clearIrqDisableFlag() {
+		this.irqDisableFlag = false;
+	}
 
-    public int getYRegister() {
-    	return y;
-    }
 
-    public int getProgramCounter() {
-    	return pc;
-    }
+	/**
+	 * @return the decimal mode flag
+	 */
+	public boolean getDecimalModeFlag() {
+		return decimalModeFlag;
+	}
 
-    /**
-     * @return A string representing the current status register state.
-     */
-    public String statusRegisterString() {
-    	StringBuffer sb = new StringBuffer();
-    	sb.append("(N:" + (getNegativeFlag() ? '1' : '0') + ", ");
-    	sb.append("V:" + (getOverflowFlag() ? '1' : '0') + ", ");
-    	sb.append("B:" + (getBreakFlag() ? '1' : '0') + ", ");
-    	sb.append("D:" + (getDecimalModeFlag() ? '1' : '0') + ", ");
-    	sb.append("I:" + (getIrqDisableFlag() ? '1' : '0') + ", ");
-    	sb.append("Z:" + (getZeroFlag() ? '1' : '0') + ", ");
-    	sb.append("C:" + (getCarryFlag() ? '1' : '0') + ")");
-    	return sb.toString();
-    }
+	/**
+	 * @param decimalModeFlag the decimal mode flag to set
+	 */
+	public void setDecimalModeFlag(boolean decimalModeFlag) {
+		this.decimalModeFlag = decimalModeFlag;
+	}
+
+	/**
+	 * Sets the Decimal Mode Flag to true.
+	 */
+	public void setDecimalModeFlag() {
+		this.decimalModeFlag = true;
+	}
+
+	/**
+	 * Clears the Decimal Mode Flag.
+	 */
+	public void clearDecimalModeFlag() {
+		this.decimalModeFlag = false;
+	}
+
+	/**
+	 * @return the break flag
+	 */
+	public boolean getBreakFlag() {
+		return breakFlag;
+	}
+
+	/**
+	 * @param breakFlag the break flag to set
+	 */
+	public void setBreakFlag(boolean breakFlag) {
+		this.breakFlag = breakFlag;
+	}
+
+	/**
+	 * Sets the Break Flag
+	 */
+	public void setBreakFlag() {
+		this.breakFlag = true;
+	}
+
+	/**
+	 * Clears the Break Flag
+	 */
+	public void clearBreakFlag() {
+		this.breakFlag = false;
+	}
+
+	/**
+	 * @return the overflow flag
+	 */
+	public boolean getOverflowFlag() {
+		return overflowFlag;
+	}
+
+	/**
+	 * @param overflowFlag the overflow flag to set
+	 */
+	public void setOverflowFlag(boolean overflowFlag) {
+		this.overflowFlag = overflowFlag;
+	}
+
+	/**
+	 * Sets the Overflow Flag
+	 */
+	public void setOverflowFlag() {
+		this.overflowFlag = true;
+	}
+
+	/**
+	 * Clears the Overflow Flag
+	 */
+	public void clearOverflowFlag() {
+		this.overflowFlag = false;
+	}
+
+	public int getAccumulator() {
+		return a;
+	}
+
+	public void setAccumulator(int val) {
+		this.a = val;
+	}
+
+	public int getXRegister() {
+		return x;
+	}
+
+	public void setXRegister(int val) {
+		this.x = val;
+	}
+
+	public int getYRegister() {
+		return y;
+	}
+
+	public void setYRegister(int val) {
+		this.y = val;
+	}
+
+	public int getProgramCounter() {
+		return pc;
+	}
+
+	public void setProgramCounter(int addr) {
+		this.pc = addr;
+	}
+
+	/**
+	 * @return A string representing the current status register state.
+	 */
+	public String statusRegisterString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("(N:" + (getNegativeFlag() ? '1' : '0') + ", ");
+		sb.append("V:" + (getOverflowFlag() ? '1' : '0') + ", ");
+		sb.append("B:" + (getBreakFlag() ? '1' : '0') + ", ");
+		sb.append("D:" + (getDecimalModeFlag() ? '1' : '0') + ", ");
+		sb.append("I:" + (getIrqDisableFlag() ? '1' : '0') + ", ");
+		sb.append("Z:" + (getZeroFlag() ? '1' : '0') + ", ");
+		sb.append("C:" + (getCarryFlag() ? '1' : '0') + ")");
+		return sb.toString();
+	}
 
 	/**
 	 * Returns a string representing the CPU state.

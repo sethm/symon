@@ -159,147 +159,99 @@ public class CpuImmediateModeTest extends TestCase {
 
 	/* ADC Immediate Mode Tests - 0x69 */
 
-	public void test_ADC_SetsAccumulator() {
-		bus.loadProgram(0x69, 0x01,  // ADC #$01
-										0x69, 0xa0,  // ADC #$a0
-										0x69, 0x02,  // ADC #$02
-										0x69, 0x06); // ADC #$06
-
-		cpu.step();
+	public void test_ADC() {
+		bus.loadProgram(0xa9, 0x00,  // LDA #$00
+										0x69, 0x01); // ADC #$01
+		cpu.step(2);
 		assertEquals(0x01, cpu.getAccumulator());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getCarryFlag());
 
-		cpu.step();
-		assertEquals(0xa1, cpu.getAccumulator());
+		cpu.reset();
+		bus.loadProgram(0xa9, 0x7f,  // LDA #$7f
+										0x69, 0x01); // ADC #$01
+		cpu.step(2);
+		assertEquals(0x80, cpu.getAccumulator());
+		assertTrue(cpu.getNegativeFlag());
+		assertTrue(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getCarryFlag());
 
-		cpu.step();
-		assertEquals(0xa3, cpu.getAccumulator());
+		cpu.reset();
+		bus.loadProgram(0xa9, 0x80,  // LDA #$80
+										0x69, 0x01); // ADC #$01
+		cpu.step(2);
+		assertEquals(0x81, cpu.getAccumulator());
+		assertTrue(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getCarryFlag());
 
-		cpu.step();
-		assertEquals(0xa9, cpu.getAccumulator());
+		cpu.reset();
+		bus.loadProgram(0xa9, 0xff,  // LDA #$ff
+										0x69, 0x01); // ADC #$01
+		cpu.step(2);
+		assertEquals(0x00, cpu.getAccumulator());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertTrue(cpu.getZeroFlag());
+		assertTrue(cpu.getCarryFlag());
+
+		cpu.reset();
+		bus.loadProgram(0xa9, 0x00,  // LDA #$00
+										0x69, 0xff); // ADC #$ff
+		cpu.step(2);
+		assertEquals(0xff, cpu.getAccumulator());
+		assertTrue(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getCarryFlag());
+
+		cpu.reset();
+		bus.loadProgram(0xa9, 0x7f,  // LDA #$7f
+										0x69, 0xff); // ADC #$ff
+		cpu.step(2);
+		assertEquals(0x7e, cpu.getAccumulator());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getCarryFlag());
+
+		cpu.reset();
+		bus.loadProgram(0xa9, 0x80,  // LDA #$80
+										0x69, 0xff); // ADC #$ff
+		cpu.step(2);
+		assertEquals(0x7f, cpu.getAccumulator());
+		assertFalse(cpu.getNegativeFlag());
+		assertTrue(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getCarryFlag());
+
+		cpu.reset();
+		bus.loadProgram(0xa9, 0xff,  // LDA #$ff
+										0x69, 0xff); // ADC #$ff
+		cpu.step(2);
+		assertEquals(0xfe, cpu.getAccumulator());
+		assertTrue(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getCarryFlag());
 	}
 
 	public void test_ADC_IncludesCarry() {
-		cpu.setCarryFlag(true);
-
-		bus.loadProgram(0x69, 0x01); // ADC #$01
-
-		cpu.step();
+		bus.loadProgram(0xa9, 0x00,  // LDA #$01
+										0x38,        // SEC
+										0x69, 0x01); // ADC #$01
+		cpu.step(3);
 		assertEquals(0x02, cpu.getAccumulator());
-	}
-
-	public void test_ADC_SetsCarryIfResultCarries() {
-		bus.loadProgram(0xa9, 0xff,  // LDA #$FE
-										0x69, 0x02);
-
-		cpu.step(2);
-
-		assertEquals(0x01, cpu.getAccumulator());
-		assertFalse(cpu.getZeroFlag());
-		assertTrue(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
 		assertFalse(cpu.getOverflowFlag());
-	}
-
-	public void test_ADC_SetsOverflowIfResultChangesSign() {
-		bus.loadProgram(0xa9, 0x7f,  // LDA #$7f
-										0x69, 0x01); // ADC #$01
-
-		cpu.step(2);
-
-		assertEquals(0x80, cpu.getAccumulator());
 		assertFalse(cpu.getZeroFlag());
 		assertFalse(cpu.getCarryFlag());
-		assertTrue(cpu.getOverflowFlag());
-
-		cpu.reset();
-
-		bus.loadProgram(0xa9, 0x80,  // LDA #$80
-										0x69, 0xff); // ADC #$ff
-
-		cpu.step(2);
-
-		assertEquals(0x7f, cpu.getAccumulator());
-		assertFalse(cpu.getZeroFlag());
-		assertTrue(cpu.getCarryFlag());
-		assertFalse(cpu.getNegativeFlag());
-		assertTrue(cpu.getOverflowFlag());
 	}
 
-	public void test_ADC_DoesNotSetOverflowIfNotNeeded() {
-		bus.loadProgram(0xa9, 0xff,  // LDA #$ff
-										0x69, 0x01); // ADC #$01
-
-		cpu.step(2);
-
-		assertEquals(0x00, cpu.getAccumulator());
-		assertTrue(cpu.getZeroFlag());
-		assertTrue(cpu.getCarryFlag());
-		assertFalse(cpu.getNegativeFlag());
-		assertFalse(cpu.getOverflowFlag());
-
-		cpu.reset();
-
-		bus.loadProgram(0xa9, 0x01,  // LDA #$01
-										0x69, 0x01); // ADC #$01
-
-		cpu.step(2);
-		assertEquals(0x02, cpu.getAccumulator());
-		assertFalse(cpu.getZeroFlag());
-		assertFalse(cpu.getCarryFlag());
-		assertFalse(cpu.getNegativeFlag());
-		assertFalse(cpu.getOverflowFlag());
-	}
-
-	public void test_ADC_SetsNegativeFlagIfResultIsNegative() {
-		bus.loadProgram(0xa9, 0x7f,  // LDA #$7F
-										0x69, 0x01); // ADC #$01
-
-		cpu.step(2);
-
-		assertEquals(0x80, cpu.getAccumulator());
-		assertFalse(cpu.getZeroFlag());
-		assertFalse(cpu.getCarryFlag());
-		assertTrue(cpu.getNegativeFlag());
-		assertTrue(cpu.getOverflowFlag());
-	}
-
-	public void test_ADC_SetsZeroFlagIfResultIsZero() {
-		bus.loadProgram(0xa9, 0xff,  // LDA #$FF
-										0x69, 0x01); // ADC #$01
-
-		cpu.step(2);
-
-		assertEquals(0x00, cpu.getAccumulator());
-		assertTrue(cpu.getZeroFlag());
-		assertTrue(cpu.getCarryFlag());
-		assertFalse(cpu.getNegativeFlag());
-		assertFalse(cpu.getOverflowFlag());
-	}
-
-	public void test_ADC_DoesNotSetNegativeFlagIfResultNotNegative() {
-		bus.loadProgram(0xa9, 0x7e,  // LDA #$7E
-										0x69, 0x01); // ADC #$01
-
-		cpu.step(2);
-
-		assertEquals(0x7f, cpu.getAccumulator());
-		assertFalse(cpu.getZeroFlag());
-		assertFalse(cpu.getCarryFlag());
-		assertFalse(cpu.getNegativeFlag());
-		assertFalse(cpu.getOverflowFlag());
-	}
-
-	public void test_ADC_DoesNotSetZeroFlagIfResultNotZero() {
-		bus.loadProgram(0xa9, 0xff,  // LDA #$ff
-										0x69, 0x03); // ADC #$03
-
-		cpu.step(2);
-
-		assertEquals(0x2, cpu.getAccumulator());
-		assertFalse(cpu.getZeroFlag());
-		assertTrue(cpu.getCarryFlag());
-		assertFalse(cpu.getNegativeFlag());
-		assertFalse(cpu.getOverflowFlag());
-	}
 
 	/* LDY Immediate Mode Tests - 0xa0 */
 
@@ -612,29 +564,63 @@ public class CpuImmediateModeTest extends TestCase {
 
 	/* SBC Immediate Mode Tests - 0xe9 */
 
-	public void test_SBC_SetsAccumulator() {
-		bus.loadProgram(0xa9, 0xff,  // LDA #$FF
-										0xe9, 0x01,  // SBC #$01
-										0xe9, 0x01,  // SBC #$a0
-										0xe9, 0x01,  // SBC #$02
-										0xe9, 0x01); // SBC #$06
-
+	public void test_SBC() {
+		bus.loadProgram(0xa9, 0x00,  // LDA #$00
+										0xe9, 0x01); // SBC #$01
+		cpu.step(2);
+		assertEquals(0xfe, cpu.getAccumulator());
+		assertTrue(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
 		assertFalse(cpu.getCarryFlag());
+
+		cpu.reset();
+		bus.loadProgram(0xa9, 0x7f,  // LDA #$7f
+										0xe9, 0x01); // SBC #$01
+		cpu.step(2);
+		assertEquals(0x7d, cpu.getAccumulator());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getCarryFlag());
+
+		cpu.reset();
+		bus.loadProgram(0xa9, 0x80,  // LDA #$80
+										0xe9, 0x01); // SBC #$01
+		cpu.step(2);
+		assertEquals(0x7e, cpu.getAccumulator());
+		assertFalse(cpu.getNegativeFlag());
+		assertTrue(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getCarryFlag());
+
+		cpu.reset();
+		bus.loadProgram(0xa9, 0xff,  // LDA #$ff
+										0xe9, 0x01); // SBC #$01
 		cpu.step(2);
 		assertEquals(0xfd, cpu.getAccumulator());
+		assertTrue(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
 		assertTrue(cpu.getCarryFlag());
 
-		cpu.step();
-		assertEquals(0xfc, cpu.getAccumulator());
-		assertTrue(cpu.getCarryFlag());
-
-		cpu.step();
-		assertEquals(0xfb, cpu.getAccumulator());
-		assertTrue(cpu.getCarryFlag());
-
-		cpu.step();
-		assertEquals(0xfa, cpu.getAccumulator());
+		cpu.reset();
+		bus.loadProgram(0xa9, 0x02,  // LDA #$02
+										0xe9, 0x01); // SBC #$01
+		cpu.step(2);
+		assertEquals(0x00, cpu.getAccumulator());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertTrue(cpu.getZeroFlag());
 		assertTrue(cpu.getCarryFlag());
 	}
 
+	public void test_SBC_IncludesNotOfCarry() {
+		cpu.reset();
+		bus.loadProgram(0x38,        // SEC
+										0xa9, 0x00,  // LDA #$00
+										0xe9, 0x01); // SBC #$01
+		cpu.step(3);
+		assertEquals(0xff, cpu.getAccumulator());
+	}
 }
