@@ -9,6 +9,16 @@ public class Cpu implements InstructionTable {
 
 	public static final int DEFAULT_BASE_ADDRESS = 0x200;
 
+	/* Process status register mnemonics */
+	public static final int P_CARRY       = 0x01;
+	public static final int P_ZERO        = 0x02;
+	public static final int P_IRQ_DISABLE = 0x04;
+	public static final int P_DECIMAL     = 0x08;
+	public static final int P_BREAK       = 0x10;
+	// Bit 5 is always '1'
+	public static final int P_OVERFLOW    = 0x40;
+	public static final int P_NEGATIVE    = 0x80;
+
 	/* The Bus */
 	private Bus bus;
 
@@ -19,7 +29,7 @@ public class Cpu implements InstructionTable {
 
 	/* Internal Registers */
 	private int pc;  // Program Counter register
-	private int sp;  // Stack Pointer register
+	private int sp;  // Stack Pointer register, offset into page 1
 	private int ir;  // Instruction register
 
 	/* Operands for the current instruction */
@@ -35,7 +45,6 @@ public class Cpu implements InstructionTable {
 	private boolean decimalModeFlag;
 	private boolean breakFlag;
 	private boolean overflowFlag;
-	// Note: Zero Flag and Negative Flag are read directly from Accumulator.
 
 	/**
 	 * Construct a new CPU.
@@ -61,7 +70,7 @@ public class Cpu implements InstructionTable {
 	 */
 	public void reset() {
 		// Registers
-		sp = 0x01ff;
+		sp = 0xff;
 
 		// Set the PC to the address stored in 0xfffc
 		pc = CpuUtils.address(bus.read(0xfffc), bus.read(0xfffd));
@@ -110,8 +119,15 @@ public class Cpu implements InstructionTable {
 		// Execute
 		switch(ir) {
 
-		case 0x00: // HLT
-			// TODO: Halt!
+		case 0x00: // BRK - Force Interrupt, Implied
+			if (!getIrqDisableFlag()) {
+				stackPush((pc >> 8) & 0xff); // PC high byte
+				stackPush(pc & 0xff);        // PC low byte
+				stackPush(getProcessorStatus());
+				// Load interrupt vector address into PC
+				pc = CpuUtils.address(bus.read(0xfffc), bus.read(0xfffd));
+				setBreakFlag();
+			}
 			break;
 		case 0x01: // n/a
 			break;
@@ -726,6 +742,14 @@ public class Cpu implements InstructionTable {
 		this.negativeFlag = negativeFlag;
 	}
 
+	public void setNegativeFlag() {
+		this.negativeFlag = true;
+	}
+
+	public void clearNegativeFlag() {
+		this.negativeFlag = false;
+	}
+
 	/**
 	 * @return the carry flag
 	 */
@@ -921,6 +945,69 @@ public class Cpu implements InstructionTable {
 		this.pc = addr;
 	}
 
+	public int getStackPointer() {
+		return sp;
+	}
+
+	public void setStackPointer(int offset) {
+		this.sp = offset;
+	}
+
+	/**
+	 * @value The value of the Process Status Register bits to be set.
+	 */
+	public void setProcessorStatus(int value) {
+		if ((value&P_CARRY) != 0)
+			setCarryFlag();
+		else
+			clearCarryFlag();
+
+		if ((value&P_ZERO) != 0)
+			setZeroFlag();
+		else
+			clearZeroFlag();
+
+		if ((value&P_IRQ_DISABLE) != 0)
+			setIrqDisableFlag();
+		else
+			clearIrqDisableFlag();
+
+		if ((value&P_DECIMAL) != 0)
+			setDecimalModeFlag();
+		else
+			clearDecimalModeFlag();
+
+		if ((value&P_BREAK) != 0)
+			setBreakFlag();
+		else
+			clearBreakFlag();
+
+		if ((value&P_OVERFLOW) != 0)
+			setOverflowFlag();
+		else
+			clearOverflowFlag();
+
+		if ((value&P_NEGATIVE) != 0)
+			setNegativeFlag();
+		else
+			clearNegativeFlag();
+	}
+
+	/**
+	 * @returns The value of the Process Status Register, as a byte.
+	 */
+	public int getProcessorStatus() {
+		int status = 0x20;
+		if (getCarryFlag())       { status |= P_CARRY;       }
+		if (getZeroFlag())        { status |= P_ZERO;        }
+		if (getIrqDisableFlag())  { status |= P_IRQ_DISABLE; }
+		if (getDecimalModeFlag()) { status |= P_DECIMAL;     }
+		if (getBreakFlag())       { status |= P_BREAK;       }
+		if (getOverflowFlag())    { status |= P_OVERFLOW;    }
+		if (getNegativeFlag())    { status |= P_NEGATIVE;    }
+		return status;
+	}
+
 	/**
 	 * @return A string representing the current status register state.
 	 */
@@ -955,22 +1042,36 @@ public class Cpu implements InstructionTable {
 	/**
 	 * Push an item onto the stack, and decrement the stack counter.
 	 * Silently fails to push onto the stack if SP is
-	 * TODO: Unit tests.
 	 */
-	protected void push(int data) {
-		bus.write(sp, data);
-		if (sp > 0x100) { sp--; }
+	void stackPush(int data) {
+		bus.write(0x100+sp, data);
+
+		if (sp == 0)
+			sp = 0xff;
+		else
+			--sp;
 	}
 
 
 	/**
-	 * Pop a byte off the user stack, and increment the stack counter.
-	 * TODO: Unit tests.
+	 * Pre-increment the stack pointer, and return the top of the stack.
 	 */
-	protected int pop() {
-		int data = bus.read(sp);
-		if (sp < 0x1ff) { sp++; }
+	int stackPop() {
+		if (sp == 0xff)
+			sp = 0x00;
+		else
+			++sp;
+
+		int data = bus.read(0x100+sp);
+
 		return data;
+	}
+
+	/**
+	 * Peek at the value currently at the top of the stack
+	 */
+	int stackPeek() {
+		return bus.read(0x100+sp+1);
 	}
 
 	/*
