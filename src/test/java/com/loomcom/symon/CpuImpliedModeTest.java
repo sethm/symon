@@ -386,7 +386,7 @@ public class CpuImpliedModeTest extends TestCase {
 		bus.loadProgram(0x60);
 		cpu.step();
 
-		assertEquals(0x0f10, cpu.getProgramCounter());
+		assertEquals(0x0f12, cpu.getProgramCounter());
 		assertEquals(0x20, cpu.getProcessorStatus());
 	}
 
@@ -414,9 +414,176 @@ public class CpuImpliedModeTest extends TestCase {
 		assertTrue(cpu.getIrqDisableFlag());
 	}
 
-	/* TAX - - $aa */
+	/* TAX - Transfer Accumulator to X Register - $aa */
 
 	public void test_TAX() {
+		cpu.setAccumulator(0x32);
+		bus.loadProgram(0xaa);
+		cpu.step();
+		assertEquals(0x32, cpu.getXRegister());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TAX_SetsZeroFlagIfXIsZero() {
+		cpu.setAccumulator(0x00);
+		bus.loadProgram(0xaa);
+		cpu.step();
+		assertEquals(0x00, cpu.getXRegister());
+		assertTrue(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TAX_SetsNegativeFlagIfXIsNegative() {
+		cpu.setAccumulator(0xff);
+		bus.loadProgram(0xaa);
+		cpu.step();
+		assertEquals(0xff, cpu.getXRegister());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getNegativeFlag());
+	}
+
+	/* TAY - Transfer Accumulator to Y Register - $a8 */
+
+	public void test_TAY() {
+		cpu.setAccumulator(0x32);
+		bus.loadProgram(0xa8);
+		cpu.step();
+		assertEquals(0x32, cpu.getYRegister());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TAY_SetsZeroFlagIfYIsZero() {
+		cpu.setAccumulator(0x00);
+		bus.loadProgram(0xa8);
+		cpu.step();
+		assertEquals(0x00, cpu.getYRegister());
+		assertTrue(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TAY_SetsNegativeFlagIfYIsNegative() {
+		cpu.setAccumulator(0xff);
+		bus.loadProgram(0xa8);
+		cpu.step();
+		assertEquals(0xff, cpu.getYRegister());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getNegativeFlag());
+	}
+
+	/* TSX - Transfer Stack Pointer to X Register - $ba */
+
+	public void test_TSX() {
+		cpu.setStackPointer(0x32);
+		bus.loadProgram(0xba);
+		cpu.step();
+		assertEquals(0x32, cpu.getXRegister());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TSX_SetsZeroFlagIfXIsZero() {
+		cpu.setStackPointer(0x00);
+		bus.loadProgram(0xba);
+		cpu.step();
+		assertEquals(0x00, cpu.getXRegister());
+		assertTrue(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TSX_SetsNegativeFlagIfXIsNegative() {
+		cpu.setStackPointer(0xff);
+		bus.loadProgram(0xba);
+		cpu.step();
+		assertEquals(0xff, cpu.getXRegister());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getNegativeFlag());
+	}
+
+	/* TXA - Transfer X Register to Accumulator - $8a */
+
+	public void test_TXA() {
+		cpu.setXRegister(0x32);
+		bus.loadProgram(0x8a);
+		cpu.step();
+		assertEquals(0x32, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TXA_SetsZeroFlagIfAccumulatorIsZero() {
+		cpu.setXRegister(0x00);
+		bus.loadProgram(0x8a);
+		cpu.step();
+		assertEquals(0x00, cpu.getAccumulator());
+		assertTrue(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TXA_SetsNegativeFlagIfAccumulatorIsNegative() {
+		cpu.setXRegister(0xff);
+		bus.loadProgram(0x8a);
+		cpu.step();
+		assertEquals(0xff, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getNegativeFlag());
+	}
+
+	/* TXS - Transfer X Register to Stack Pointer - $9a */
+
+	public void test_TXS() {
+		cpu.setXRegister(0x32);
+		bus.loadProgram(0x9a);
+		cpu.step();
+		assertEquals(0x32, cpu.getStackPointer());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TXS_DoesNotAffectProcessorStatus() {
+		cpu.setXRegister(0x00);
+		bus.loadProgram(0x9a);
+		cpu.step();
+		assertEquals(0x00, cpu.getStackPointer());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+
+		cpu.setXRegister(0x80);
+		bus.loadProgram(0x9a);
+		cpu.step();
+		assertEquals(0x80, cpu.getStackPointer());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	/* TYA - Transfer Y Register to Accumulator - $98 */
+
+	public void test_TYA() {
+		cpu.setYRegister(0x32);
+		bus.loadProgram(0x98);
+		cpu.step();
+		assertEquals(0x32, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TYA_SetsZeroFlagIfAccumulatorIsZero() {
+		cpu.setYRegister(0x00);
+		bus.loadProgram(0x98);
+		cpu.step();
+		assertEquals(0x00, cpu.getAccumulator());
+		assertTrue(cpu.getZeroFlag());
+		assertFalse(cpu.getNegativeFlag());
+	}
+
+	public void test_TYA_SetsNegativeFlagIfAccumulatorIsNegative() {
+		cpu.setYRegister(0xff);
+		bus.loadProgram(0x98);
+		cpu.step();
+		assertEquals(0xff, cpu.getAccumulator());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getNegativeFlag());
 	}
 
 }
