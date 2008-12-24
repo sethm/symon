@@ -96,6 +96,8 @@ public class Cpu implements InstructionTable {
 	 * Performs an individual machine cycle.
 	 */
 	public void step() {
+		int lo, hi; // Used in address calculation
+
 		// Store the address from which the IR was read, for debugging
 		addr = pc;
 
@@ -143,7 +145,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x07: // n/a
 			break;
-		case 0x08: // n/a
+		case 0x08: // PHP - Push Processor Status - Implied
+			stackPush(getProcessorStatus());
 			break;
 		case 0x09: // ORA - Immediate
 			a |= operands[0];
@@ -212,7 +215,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x27: // n/a
 			break;
-		case 0x28: // n/a
+		case 0x28: // PLP - Pull Processor Status - Implied
+			setProcessorStatus(stackPop());
 			break;
 		case 0x29: // n/a
 			a &= operands[0];
@@ -265,7 +269,11 @@ public class Cpu implements InstructionTable {
 		case 0x3f: // n/a
 			break;
 
-		case 0x40: // n/a
+		case 0x40: // RTI - Return from Interrupt - Implied
+			setProcessorStatus(stackPop());
+			lo = stackPop();
+			hi = stackPop();
+			setProgramCounter(CpuUtils.address(lo, hi));
 			break;
 		case 0x41: // n/a
 			break;
@@ -281,7 +289,8 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x47: // n/a
 			break;
-		case 0x48: // n/a
+		case 0x48: // PHA - Push Accumulator - Implied
+			stackPush(a);
 			break;
 		case 0x49: // EOR - Immediate
 			a ^= operands[0];
@@ -317,7 +326,7 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x57: // n/a
 			break;
-		case 0x58: // CLI - Clear Interrupt Disable, Implied
+		case 0x58: // CLI - Clear Interrupt Disable - Implied
 			clearIrqDisableFlag();
 			break;
 		case 0x59: // n/a
@@ -335,7 +344,11 @@ public class Cpu implements InstructionTable {
 		case 0x5f: // n/a
 			break;
 
-		case 0x60: // n/a
+		case 0x60: // RTS - Return from Subrouting - Implied
+			lo = stackPop();
+			hi = stackPop();
+			setProgramCounter((CpuUtils.address(lo, hi) - 1) & 0xffff);
+
 			break;
 		case 0x61: // n/a
 			break;
@@ -351,7 +364,9 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x67: // n/a
 			break;
-		case 0x68: // n/a
+		case 0x68: // PLA - Pull Accumulator - Implied
+			a = stackPop();
+			setArithmeticFlags(a);
 			break;
 		case 0x69: // ADC - Immediate Mode
 			a = adc(a, operands[0]);
@@ -420,7 +435,9 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x87: // n/a
 			break;
-		case 0x88: // n/a
+		case 0x88: // DEY - Decrement the Y Register - Implied
+			y = --y & 0xff;
+			setArithmeticFlags(y);
 			break;
 		case 0x89: // n/a
 			break;
@@ -560,12 +577,16 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xc7: // n/a
 			break;
-		case 0xc8: // n/a
+		case 0xc8: // INY - Increment the Y Register - Implied
+			y = ++y & 0xff;
+			setArithmeticFlags(y);
 			break;
 		case 0xc9: // CMP - Immediate
 			cmp(a, operands[0]);
 			break;
-		case 0xca: // n/a
+		case 0xca: // DEX - Decrement the X Register - Implied
+			x = --x & 0xff;
+			setArithmeticFlags(x);
 			break;
 		case 0xcb: // n/a
 			break;
@@ -629,9 +650,11 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xe7: // n/a
 			break;
-		case 0xe8: // n/a
+		case 0xe8: // INX - Increment X Register - Implied
+			x = ++x & 0xff;
+			setArithmeticFlags(x);
 			break;
-		case 0xe9: // n/a
+		case 0xe9: // SBC - Subtract with Carry (Borrow) - Immediate
 			a = sbc(a, operands[0]);
 			setArithmeticFlags(a);
 			break;
