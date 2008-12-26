@@ -78,10 +78,16 @@ public class CpuImpliedModeTest extends TestCase {
 		assertEquals(0x0200, cpu.getProgramCounter());
 		assertEquals(0xff, cpu.getStackPointer());
 
+		// Set the IRQ vector
+		bus.write(Cpu.IRQ_VECTOR_H, 0x12);
+		bus.write(Cpu.IRQ_VECTOR_L, 0x34);
+
 		bus.loadProgram(0xea,
 										0xea,
 										0xea,
-										0x00);
+										0x00,
+										0xea,
+										0xea);
 
 		cpu.step(3); // Three NOP instructions
 
@@ -89,19 +95,20 @@ public class CpuImpliedModeTest extends TestCase {
 
 		cpu.step(); // Triggers the BRK
 
-		// Was at PC = 0x204, which should now be on the stack
+		// Was at PC = 0x204.  PC+2 should now be on the stack
 		assertEquals(0x02, bus.read(0x1ff)); // PC high byte
-		assertEquals(0x04, bus.read(0x1fe)); // PC low byte
-		assertEquals(0x20|Cpu.P_CARRY|Cpu.P_OVERFLOW,
-								 bus.read(0x1fd));       // Processor Status
-
-		// Reset to original contents of PC
-		assertEquals(0x0200, cpu.getProgramCounter());
-		assertEquals(0xfc, cpu.getStackPointer());
+		assertEquals(0x06, bus.read(0x1fe)); // PC low byte
 		assertEquals(0x20|Cpu.P_CARRY|Cpu.P_OVERFLOW|Cpu.P_BREAK,
+								 bus.read(0x1fd));       // Processor Status, with B set
+
+		// Interrupt vector held 0x1234, so we should be there.
+		assertEquals(0x1234, cpu.getProgramCounter());
+		assertEquals(0xfc, cpu.getStackPointer());
+
+		// B and I flags should have been set on P
+		assertEquals(0x20|Cpu.P_CARRY|Cpu.P_OVERFLOW|Cpu.P_BREAK|
+		             Cpu.P_IRQ_DISABLE,
 								 cpu.getProcessorStatus());
-		assertEquals(0x20|Cpu.P_CARRY|Cpu.P_OVERFLOW,
-								 cpu.stackPeek());
 	}
 
 	public void test_BRK_HonorsIrqDisableFlag() {
