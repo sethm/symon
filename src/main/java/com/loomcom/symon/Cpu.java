@@ -18,7 +18,7 @@ public class Cpu implements InstructionTable {
 	// Bit 5 is always '1'
 	public static final int P_OVERFLOW    = 0x40;
 	public static final int P_NEGATIVE    = 0x80;
-	
+
 	// NMI vector
 	public static final int IRQ_VECTOR_L    = 0xfffa;
 	public static final int IRQ_VECTOR_H    = 0xfffb;
@@ -28,7 +28,7 @@ public class Cpu implements InstructionTable {
 	// IRQ vector
 	public static final int NMI_VECTOR_L    = 0xfffe;
 	public static final int NMI_VECTOR_H    = 0xffff;
-	
+
 	/* The Bus */
 	private Bus bus;
 
@@ -41,6 +41,11 @@ public class Cpu implements InstructionTable {
 	private int pc;  // Program Counter register
 	private int sp;  // Stack Pointer register, offset into page 1
 	private int ir;  // Instruction register
+
+	/* Internal scratch space */
+	private int lo = 0, hi = 0;  // Used in address calculation
+	private int j  = 0, k  = 0;  // Used for temporary storage
+
 
 	/* Operands for the current instruction */
 	private int[] operands = new int[2];
@@ -83,7 +88,7 @@ public class Cpu implements InstructionTable {
 		sp = 0xff;
 
 		// Set the PC to the address stored in the reset vector
-		pc = CpuUtils.address(bus.read(RST_VECTOR_L), bus.read(RST_VECTOR_H));
+		pc = address(bus.read(RST_VECTOR_L), bus.read(RST_VECTOR_H));
 
 		// Clear instruction register.
 		ir = 0;
@@ -106,8 +111,6 @@ public class Cpu implements InstructionTable {
 	 * Performs an individual machine cycle.
 	 */
 	public void step() {
-		int lo, hi; // Used in address calculation
-
 		// Store the address from which the IR was read, for debugging
 		addr = pc;
 
@@ -139,7 +142,7 @@ public class Cpu implements InstructionTable {
 				// Set the Interrupt Disabled flag.  RTI will clear it.
 				setIrqDisableFlag();
 				// Load interrupt vector address into PC
-				pc = CpuUtils.address(bus.read(IRQ_VECTOR_L), bus.read(IRQ_VECTOR_H));
+				pc = address(bus.read(IRQ_VECTOR_L), bus.read(IRQ_VECTOR_H));
 			}
 			break;
 		case 0x01: // n/a
@@ -150,9 +153,13 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x04: // n/a
 			break;
-		case 0x05: // n/a
+		case 0x05: // ORA - Logical Inclusive OR - Zero Page
+		  a |= bus.read(operands[0]);
+			setArithmeticFlags(a);
 			break;
-		case 0x06: // n/a
+		case 0x06: // ASL - Arithmetic Shift Left - Zero Page
+			bus.write(operands[0], asl(bus.read(operands[0])));
+			setArithmeticFlags(bus.read(operands[0]));
 			break;
 		case 0x07: // n/a
 			break;
@@ -218,7 +225,12 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x23: // n/a
 			break;
-		case 0x24: // n/a
+		case 0x24: // BIT - Bit Test - Zero Page
+			j = bus.read(operands[0]);
+			k = a & j;
+			setZeroFlag(k == 0);
+			setNegativeFlag((k & 0x80) != 0);
+			setOverflowFlag((k & 0x40) != 0);
 			break;
 		case 0x25: // n/a
 			break;
@@ -284,7 +296,7 @@ public class Cpu implements InstructionTable {
 			setProcessorStatus(stackPop());
 			lo = stackPop();
 			hi = stackPop();
-			setProgramCounter(CpuUtils.address(lo, hi));
+			setProgramCounter(address(lo, hi));
 			break;
 		case 0x41: // n/a
 			break;
@@ -312,7 +324,7 @@ public class Cpu implements InstructionTable {
 		case 0x4b: // n/a
 			break;
 		case 0x4c: // JMP - Jump - Absolute
-			pc = CpuUtils.address(operands[0], operands[1]);
+			pc = address(operands[0], operands[1]);
 			break;
 		case 0x4d: // n/a
 			break;
@@ -358,7 +370,7 @@ public class Cpu implements InstructionTable {
 		case 0x60: // RTS - Return from Subroutine - Implied
 			lo = stackPop();
 			hi = stackPop();
-			setProgramCounter((CpuUtils.address(lo, hi) + 1) & 0xffff);
+			setProgramCounter((address(lo, hi) + 1) & 0xffff);
 			break;
 		case 0x61: // n/a
 			break;
@@ -753,17 +765,17 @@ public class Cpu implements InstructionTable {
 		setArithmeticFlags(result);
 		return result;
 	}
-	
+
 	/**
 	 * Add with Carry (BCD).
 	 */
-	
+
 	public int adcDecimal(int acc, int operand) {
 		int l, h, result;
 	  l = (acc & 0x0f) + (operand & 0x0f) + getCarryBit();
 	  if ((l & 0xff) > 9) l += 6;
 	  h = (acc >> 4) + (operand >> 4) + (l > 15 ? 1 : 0);
-	  if ((h & 0xff) > 9) h += 6; 
+	  if ((h & 0xff) > 9) h += 6;
 	  result = (l & 0x0f) | (h << 4);
 	  result &= 0xff;
 	  setCarryFlag(h > 15);
@@ -771,13 +783,13 @@ public class Cpu implements InstructionTable {
 	  setNegativeFlag(false); // BCD is never negative
 	  setOverflowFlag(false); // BCD never sets overflow flag
 	  return result;
-	}	
-	
+	}
+
 	/**
 	 * Common code for Subtract with Carry.  Just calls ADC of the
 	 * one's complement of the operand.  This lets the N, V, C, and Z
 	 * flags work out nicely without any additional logic.
-	 * 
+	 *
 	 * @param acc
 	 * @param operand
 	 * @return
@@ -788,10 +800,10 @@ public class Cpu implements InstructionTable {
 		setArithmeticFlags(result);
 		return result;
 	}
-	
+
 	/**
 	 * Subtract with Carry, BCD mode.
-	 * 
+	 *
 	 * @param acc
 	 * @param operand
 	 * @return
@@ -813,7 +825,7 @@ public class Cpu implements InstructionTable {
 	/**
 	 * Compare two values, and set carry, zero, and negative flags
 	 * appropriately.
-	 * 
+	 *
 	 * @param reg
 	 * @param operand
 	 */
@@ -833,7 +845,28 @@ public class Cpu implements InstructionTable {
 		zeroFlag = (reg == 0);
 		negativeFlag = (reg & 0x80) != 0;
 	}
-	
+
+	/**
+	 * Shifts the given value left by one bit, and sets the carry
+	 * flag to the high bit of the initial value.
+	 *
+	 * @param m The value to shift left.
+	 * @return the left shifted value (m * 2).
+	 */
+  private int asl(int m) {
+		setCarryFlag((m & 0x80) != 0);
+		return (m << 1) & 0xff;
+	}
+
+	/**
+	 * Shifts the given value right by one bit, filling with zeros,
+	 * and sets the carry flag to the low bit of the initial value.
+	 */
+	private int lsr(int m) {
+		setCarryFlag((m & 0x01) != 0);
+		return (m >>> 1) & 0xff;
+	}
+
 	/**
 	 * @return the negative flag
 	 */
@@ -876,7 +909,7 @@ public class Cpu implements InstructionTable {
 	public boolean getCarryFlag() {
 		return carryFlag;
 	}
-	
+
 	/**
 	 * @return 1 if the carry flag is set, 0 if it is clear.
 	 */
@@ -946,7 +979,7 @@ public class Cpu implements InstructionTable {
 	public boolean getIrqDisableFlag() {
 		return irqDisableFlag;
 	}
-	
+
 	/**
 	 * @return 1 if the interrupt disable flag is set, 0 if it is clear.
 	 */
@@ -1011,7 +1044,7 @@ public class Cpu implements InstructionTable {
 	public boolean getBreakFlag() {
 		return breakFlag;
 	}
-	
+
 	/**
 	 * @return 1 if the break flag is set, 0 if it is clear.
 	 */
@@ -1046,7 +1079,7 @@ public class Cpu implements InstructionTable {
 	public boolean getOverflowFlag() {
 		return overflowFlag;
 	}
-	
+
 	/**
 	 * @return 1 if the overflow flag is set, 0 if it is clear.
 	 */
@@ -1191,7 +1224,7 @@ public class Cpu implements InstructionTable {
 	 * Returns a string representing the CPU state.
 	 */
 	public String toString() {
-		String opcode = CpuUtils.opcode(ir, operands[0], operands[1]);
+		String opcode = opcode(ir, operands[0], operands[1]);
 		StringBuffer sb = new StringBuffer(String.format("$%04X", addr) +
 		                                   "   ");
 		sb.append(String.format("%-14s", opcode));
@@ -1241,7 +1274,7 @@ public class Cpu implements InstructionTable {
 	/*
 	 * Increment the PC, rolling over if necessary.
 	 */
-	protected void incrementPC() {
+	void incrementPC() {
 		if (pc == 0xffff) {
 			pc = 0;
 		} else {
@@ -1249,4 +1282,34 @@ public class Cpu implements InstructionTable {
 		}
 	}
 
+	/**
+	 * Given two bytes, return an address.
+	 */
+	int address(int lowByte, int hiByte) {
+		return ((hiByte<<8)|lowByte);
+	}
+
+	/**
+	 * Given an opcode and its operands, return a formatted name.
+	 *
+	 * @param opcode
+	 * @param operands
+	 * @return
+	 */
+	String opcode(int opcode, int op1, int op2) {
+		String opcodeName = Cpu.opcodeNames[opcode];
+		if (opcodeName == null) { return "???"; }
+
+		StringBuffer sb = new StringBuffer(opcodeName);
+
+		switch (Cpu.instructionModes[opcode]) {
+		case ABS:
+			sb.append(String.format(" $%04X", address(op1, op2)));
+			break;
+		case IMM:
+			sb.append(String.format(" #$%02X", op1));
+		}
+
+		return sb.toString();
+	}
 }

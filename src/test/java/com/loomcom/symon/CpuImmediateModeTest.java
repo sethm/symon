@@ -30,7 +30,7 @@ public class CpuImmediateModeTest extends TestCase {
 		assertEquals(0xff, cpu.getStackPointer());
 		assertEquals(0x20, cpu.getProcessorStatus());
 	}
-	
+
 	/*
 	 * The following opcodes are tested for correctness in this file:
 	 *
@@ -39,19 +39,19 @@ public class CpuImmediateModeTest extends TestCase {
 	 * EOR - $49
 	 * ADC - $69
 	 * LDY - $a0
-	 * 
+	 *
 	 * LDX - $a2
 	 * LDA - $a9
 	 * CPY - $c0
 	 * CMP - $c9
 	 * CPX - $e0
-	 * 
+	 *
 	 * SBC - $e9
 	 */
 
 	/* ORA Immediate Mode Tests - 0x09 */
 
-	public void test_ORA_SetsAccumulator() {
+	public void test_ORA() {
 		bus.loadProgram(0x09, 0x00,  // ORA #$00
 		                0x09, 0x11,  // ORA #$11
 		                0x09, 0x22,  // ORA #$22
@@ -722,22 +722,22 @@ public class CpuImmediateModeTest extends TestCase {
 		bus.loadProgram(0x18,        // CLC
 		                0xa9, 0x05,  // LDA #$00
 		                0xe9, 0x01); // SBC #$01
-		
+
 		cpu.step(3);
 		assertEquals(0x03, cpu.getAccumulator());
-		
+
 		cpu.reset();
 
 		// Subtrace with Carry Flag cleared
 		bus.loadProgram(0x18,        // CLC
 		                0xa9, 0x00,  // LDA #$00
 		                0xe9, 0x01); // SBC #$01
-		
+
 		cpu.step(3);
 		assertEquals(0xfe, cpu.getAccumulator());
-	
+
 		cpu.reset();
-		
+
 		// Subtract with Carry Flag set
 		bus.loadProgram(0x38,        // SEC
 										0xa9, 0x05,  // LDA #$00
@@ -745,9 +745,9 @@ public class CpuImmediateModeTest extends TestCase {
 		cpu.step(3);
 		assertEquals(0x04, cpu.getAccumulator());
 		assertTrue(cpu.getCarryFlag());
-		
+
 		cpu.reset();
-		
+
 		// Subtract with Carry Flag set
 		bus.loadProgram(0x38,        // SEC
 										0xa9, 0x00,  // LDA #$00
@@ -757,7 +757,7 @@ public class CpuImmediateModeTest extends TestCase {
 		assertFalse(cpu.getCarryFlag());
 
 	}
-	
+
 	public void test_SBC_DecimalMode() {
 		bus.loadProgram(0xf8,
 		                0xa9, 0x00,
@@ -771,7 +771,7 @@ public class CpuImmediateModeTest extends TestCase {
 		assertTrue(cpu.getDecimalModeFlag());
 
 		cpu.reset();
-		
+
 		bus.loadProgram(0xf8,
 		                0xa9, 0x99,
 		                0xe9, 0x01);
@@ -784,7 +784,7 @@ public class CpuImmediateModeTest extends TestCase {
 		assertTrue(cpu.getDecimalModeFlag());
 
 		cpu.reset();
-		
+
 		bus.loadProgram(0xf8,
 		                0xa9, 0x50,
 		                0xe9, 0x01);
@@ -796,9 +796,9 @@ public class CpuImmediateModeTest extends TestCase {
 		assertFalse(cpu.getZeroFlag());
 		assertTrue(cpu.getDecimalModeFlag());
 
-	
+
 		cpu.reset();
-		
+
 		bus.loadProgram(0xf8,         // SED
 		                0xa9, 0x02,   // LDA #$02
 		                0xe9, 0x01);  // SBC #$01
@@ -809,9 +809,9 @@ public class CpuImmediateModeTest extends TestCase {
 		assertFalse(cpu.getOverflowFlag());
 		assertTrue(cpu.getZeroFlag());
 		assertTrue(cpu.getDecimalModeFlag());
-		
+
 		cpu.reset();
-		
+
 		bus.loadProgram(0xf8,         // SED
 		                0xa9, 0x10,   // LDA #$10
 		                0xe9, 0x11);  // SBC #$11
@@ -822,7 +822,7 @@ public class CpuImmediateModeTest extends TestCase {
 		assertFalse(cpu.getOverflowFlag());
 		assertFalse(cpu.getZeroFlag());
 		assertTrue(cpu.getDecimalModeFlag());
-		
+
 		cpu.reset();
 
 		bus.loadProgram(0x38,         // SEC
@@ -838,7 +838,7 @@ public class CpuImmediateModeTest extends TestCase {
 		assertTrue(cpu.getDecimalModeFlag());
 
 		cpu.reset();
-		
+
 		bus.loadProgram(0x38,         // SEC
 		                0xf8,         // SED
 		                0xa9, 0x00,   // LDA #$00
