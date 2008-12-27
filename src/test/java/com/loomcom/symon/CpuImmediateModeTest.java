@@ -22,7 +22,32 @@ public class CpuImmediateModeTest extends TestCase {
 		bus.write(0xfffd, (Cpu.DEFAULT_BASE_ADDRESS & 0xff00)>>>8);
 
 		cpu.reset();
+		// Assert initial state
+		assertEquals(0, cpu.getAccumulator());
+		assertEquals(0, cpu.getXRegister());
+		assertEquals(0, cpu.getYRegister());
+		assertEquals(0x200, cpu.getProgramCounter());
+		assertEquals(0xff, cpu.getStackPointer());
+		assertEquals(0x20, cpu.getProcessorStatus());
 	}
+	
+	/*
+	 * The following opcodes are tested for correctness in this file:
+	 *
+	 * ORA - $09
+	 * AND - $29
+	 * EOR - $49
+	 * ADC - $69
+	 * LDY - $a0
+	 * 
+	 * LDX - $a2
+	 * LDA - $a9
+	 * CPY - $c0
+	 * CMP - $c9
+	 * CPX - $e0
+	 * 
+	 * SBC - $e9
+	 */
 
 	/* ORA Immediate Mode Tests - 0x09 */
 
@@ -731,5 +756,99 @@ public class CpuImmediateModeTest extends TestCase {
 		assertEquals(0xff, cpu.getAccumulator());
 		assertFalse(cpu.getCarryFlag());
 
+	}
+	
+	public void test_SBC_DecimalMode() {
+		bus.loadProgram(0xf8,
+		                0xa9, 0x00,
+		                0xe9, 0x01);
+		cpu.step(3);
+		assertEquals(0x98, cpu.getAccumulator());
+		assertFalse(cpu.getCarryFlag()); // borrow = set flag
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getDecimalModeFlag());
+
+		cpu.reset();
+		
+		bus.loadProgram(0xf8,
+		                0xa9, 0x99,
+		                0xe9, 0x01);
+		cpu.step(3);
+		assertEquals(0x97, cpu.getAccumulator());
+		assertTrue(cpu.getCarryFlag()); // No borrow = clear flag
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getDecimalModeFlag());
+
+		cpu.reset();
+		
+		bus.loadProgram(0xf8,
+		                0xa9, 0x50,
+		                0xe9, 0x01);
+		cpu.step(3);
+		assertEquals(0x48, cpu.getAccumulator());
+		assertTrue(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getDecimalModeFlag());
+
+	
+		cpu.reset();
+		
+		bus.loadProgram(0xf8,         // SED
+		                0xa9, 0x02,   // LDA #$02
+		                0xe9, 0x01);  // SBC #$01
+		cpu.step(3);
+		assertEquals(0x00, cpu.getAccumulator());
+		assertTrue(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertTrue(cpu.getZeroFlag());
+		assertTrue(cpu.getDecimalModeFlag());
+		
+		cpu.reset();
+		
+		bus.loadProgram(0xf8,         // SED
+		                0xa9, 0x10,   // LDA #$10
+		                0xe9, 0x11);  // SBC #$11
+		cpu.step(3);
+		assertEquals(0x98, cpu.getAccumulator());
+		assertFalse(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getDecimalModeFlag());
+		
+		cpu.reset();
+
+		bus.loadProgram(0x38,         // SEC
+		                0xf8,         // SED
+		                0xa9, 0x05,   // LDA #$05
+		                0xe9, 0x01);  // SBC #$01
+		cpu.step(4);
+		assertEquals(0x04, cpu.getAccumulator());
+		assertTrue(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getDecimalModeFlag());
+
+		cpu.reset();
+		
+		bus.loadProgram(0x38,         // SEC
+		                0xf8,         // SED
+		                0xa9, 0x00,   // LDA #$00
+		                0xe9, 0x01);  // SBC #$01
+		cpu.step(4);
+		assertEquals(0x99, cpu.getAccumulator());
+		assertFalse(cpu.getCarryFlag());
+		assertFalse(cpu.getNegativeFlag());
+		assertFalse(cpu.getOverflowFlag());
+		assertFalse(cpu.getZeroFlag());
+		assertTrue(cpu.getDecimalModeFlag());
 	}
 }

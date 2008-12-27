@@ -381,11 +381,8 @@ public class Cpu implements InstructionTable {
 		case 0x69: // ADC - Add with Carry - Immediate
 			if (decimalModeFlag) {
 				a = adcDecimal(a, operands[0]);
-				clearNegativeFlag(); // All results of BCD math are positive
-				setZeroFlag(a == 0);
 			} else {
 				a = adc(a, operands[0]);
-				setArithmeticFlags(a);
 			}
 			break;
 		case 0x6a: // n/a
@@ -684,14 +681,12 @@ public class Cpu implements InstructionTable {
 		case 0xe9: // SBC - Subtract with Carry (Borrow) - Immediate
 			if (decimalModeFlag) {
 				a = sbcDecimal(a, operands[0]);
-				clearNegativeFlag();
-				setZeroFlag(a == 0);
 			} else {
 				a = sbc(a, operands[0]);
-				setArithmeticFlags(a);
 			}
 			break;
 		case 0xea: // NOP
+			// Does nothing.
 			break;
 		case 0xeb: // n/a
 			break;
@@ -754,33 +749,33 @@ public class Cpu implements InstructionTable {
 		int carry6 = (operand & 0x7f) + (acc & 0x7f) + getCarryBit();
 		setCarryFlag((result & 0x100) != 0);
 		setOverflowFlag(carryFlag ^ ((carry6 & 0x80) != 0));
-		result = result & 0xff;
+		result &= 0xff;
+		setArithmeticFlags(result);
 		return result;
 	}
 	
 	/**
 	 * Add with Carry (BCD).
 	 */
+	
 	public int adcDecimal(int acc, int operand) {
-		// Thank you to Doug Jones for this beautiful BCD algorithm. From:
-		// http://www.cs.uiowa.edu/~jones/bcd/bcd.html
-		acc += 0x066;
-		int t2 = acc + operand;
-		int t3 = acc ^ operand;
-		int t4 = t2 ^ t3;
-		int t5 = ~t4 & 0x110;
-		int t6 = (t5 >> 2) | (t5 >> 3);
-		int result = t2 - t6;
-		if (result > 0xff) {
-			result &= 0xff;
-			setCarryFlag();
-		}
-		return result;
-	}
+		int l, h, result;
+	  l = (acc & 0x0f) + (operand & 0x0f) + getCarryBit();
+	  if ((l & 0xff) > 9) l += 6;
+	  h = (acc >> 4) + (operand >> 4) + (l > 15 ? 1 : 0);
+	  if ((h & 0xff) > 9) h += 6; 
+	  result = (l & 0x0f) | (h << 4);
+	  result &= 0xff;
+	  setCarryFlag(h > 15);
+	  setZeroFlag(result == 0);
+	  setNegativeFlag(false); // BCD is never negative
+	  setOverflowFlag(false); // BCD never sets overflow flag
+	  return result;
+	}	
 	
 	/**
 	 * Common code for Subtract with Carry.  Just calls ADC of the
-	 * one's complement of the opeerand.  This lets the N, V, C, and Z
+	 * one's complement of the operand.  This lets the N, V, C, and Z
 	 * flags work out nicely without any additional logic.
 	 * 
 	 * @param acc
@@ -788,7 +783,10 @@ public class Cpu implements InstructionTable {
 	 * @return
 	 */
 	public int sbc(int acc, int operand) {
-		return adc(acc, ~operand);
+		int result;
+		result = adc(acc, ~operand);
+		setArithmeticFlags(result);
+		return result;
 	}
 	
 	/**
@@ -799,7 +797,17 @@ public class Cpu implements InstructionTable {
 	 * @return
 	 */
 	public int sbcDecimal(int acc, int operand) {
-		return adcDecimal(acc, tensComplement(operand));
+		int l, h, result;
+	  l = (acc & 0x0f) - (operand & 0x0f) - (carryFlag ? 0 : 1);
+	  if ((l & 0x10) != 0) l -= 6;
+	  h = (acc >> 4) - (operand >> 4) - ((l & 0x10) != 0 ? 1 : 0);
+	  if ((h & 0x10) != 0) h -= 6;
+	  result = (l & 0x0f) | (h << 4);
+	  setCarryFlag((h & 0xff) < 15);
+	  setZeroFlag(result == 0);
+	  setNegativeFlag(false); // BCD is never negative
+	  setOverflowFlag(false); // BCD never sets overflow flag
+	  return (result & 0xff);
 	}
 
 	/**
@@ -1239,21 +1247,6 @@ public class Cpu implements InstructionTable {
 		} else {
 			++pc;
 		}
-	}
-
-	/*
-	 * Calculate the 10's Complement of a byte.  Used in BCD mode SBC.
-	 */
-	private int tensComplement(int val) {
-		// Thank you to Doug Jones for this truly beautiful and obscure algorithm.
-		// http://www.cs.uiowa.edu/~jones/bcd/bcd.html
-	  int t1 = 0xfff - val;
-	  int t2 = -val;
-	  int t3 = t1 ^ 0x001;
-	  int t4 = t2 ^ t3;
-	  int t5 = ~t4 & 0x110;
-	  int t6 = (t5 >> 2) | (t5 >> 3);
-	  return t2 - t6;
 	}
 
 }
