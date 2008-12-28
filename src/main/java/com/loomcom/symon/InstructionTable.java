@@ -56,7 +56,7 @@ public interface InstructionTable {
 
     INY {
       public String toString() {
-        return "Indirect, Y-indexedY";
+        return "Indirect, Y-indexed";
       }
     },
 

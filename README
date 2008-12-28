@@ -3,8 +3,15 @@
                     SYMON - A 6502 System Simulator
 ====================================================================
 
-Version: 0.1.0
-Last Updated: 13 December, 2008
+NOTE: THIS IS PRE-RELEASE SOFTWARE UNDER ACTIVE DEVELOPMENT.  IT IS
+NOT YET FUNCTIONAL!  IT IS NOT INTENDED TO BE USED BY ANYONE BUT
+DEVELOPERS IMPLEMENTING CORE FUNCTIONALITY.  When the software is
+deemed ready for testing, it will be given a version number of "0.1".
+
+====================================================================
+
+Version: PRERELEASE
+Last Updated: 27 December, 2008
 Copyright (c) 2008,2009 Seth J. Morabito <sethm@loomcom.com>
 
 See the file COPYING for license.
@@ -15,9 +22,12 @@ See the file COPYING for license.
 
 Symon is a general purpose simulator for systems based on the NMOS
 Mostek 6502 microprocessor and compatibles.  Symon is implemented in
-Java.
+Java.  It's core goals are accuracy, ease of development, clear
+documentation, and extensive test suites for validating correctness.
 
-
+The initial goal is to simulate a system with an NMOS 6502 or CMOS
+65C02 central processor; one or more 6522 VIAs; and one or more 6551
+ACIAs.  More functionality may be considered as time goes on.
 
 2.0 Usage
 ---------
@@ -26,10 +36,39 @@ Java.
 
   - Java 1.5 or higher
   - Maven 2.0.x or higher (for building from source)
-  - JUnit 3.0 or higher
+  - JUnit 3.0 or higher (for testing)
 
+  (More to come!)
 
 3.0 To Do
 ---------
 
-- Implement CMOS 65C02 instructions 
+- Finish core functionality.
+- Implement remaining addressing modes.
+
+  COMPLETE:
+    o Implied
+    o Immediate
+    o Zero Page
+
+  INCOMPLETE:
+    o Accumulator
+    o Zero Page, X-indexed
+    o Zero Page, Y-indexed
+    o Relative
+    o Absolute
+    o Absolute, X-indexed
+    o Absolute, Y-indexed
+    o Indirect
+    o Indexed Indirect [ (Indirect ,X) ]
+    o Indirect Indexed [ (Indirect),Y ]
+
+- Clean up JavaDoc.
+- Implement CMOS 65C02 instructions and NMOS / CMOS mode flag.
+
+
+4.0 Licensing
+-------------
+
+Symon is free software.  It is distributed under the MIT License.
+Please see the file 'COPYING' for full details of the license.
