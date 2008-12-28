@@ -158,8 +158,10 @@ public class Cpu implements InstructionTable {
 			setArithmeticFlags(a);
 			break;
 		case 0x06: // ASL - Arithmetic Shift Left - Zero Page
-			bus.write(operands[0], asl(bus.read(operands[0])));
-			setArithmeticFlags(bus.read(operands[0]));
+			j = bus.read(operands[0]);
+			k = asl(j);
+			bus.write(operands[0], k);
+			setArithmeticFlags(k);
 			break;
 		case 0x07: // n/a
 			break;
@@ -232,9 +234,16 @@ public class Cpu implements InstructionTable {
 			setNegativeFlag((k & 0x80) != 0);
 			setOverflowFlag((k & 0x40) != 0);
 			break;
-		case 0x25: // n/a
+		case 0x25: // AND - Logical And - Zero Page
+			j = bus.read(operands[0]);
+			a &= j;
+			setArithmeticFlags(a);
 			break;
-		case 0x26: // n/a
+		case 0x26: // ROL - Rotate Left - Zero Page
+			j = bus.read(operands[0]);
+			k = rol(j);
+			bus.write(operands[0], k);
+			setArithmeticFlags(k);
 			break;
 		case 0x27: // n/a
 			break;
@@ -306,9 +315,16 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x44: // n/a
 			break;
-		case 0x45: // n/a
+		case 0x45: // EOR - Exclusive OR - Zero Page
+			j = bus.read(operands[0]);
+			a ^= j;
+			setArithmeticFlags(a);
 			break;
-		case 0x46: // n/a
+		case 0x46: // LSR - Logical Shift Right - Zero Page
+			j = bus.read(operands[0]);
+			k = lsr(j);
+			bus.write(operands[0], k);
+			setArithmeticFlags(k);
 			break;
 		case 0x47: // n/a
 			break;
@@ -380,9 +396,19 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x64: // n/a
 			break;
-		case 0x65: // n/a
+		case 0x65: // ADC - Add with Carry - Zero Page
+			j = bus.read(operands[0]);
+			if (decimalModeFlag) {
+				a = adcDecimal(a, j);
+			} else {
+				a = adc(a, j);
+			}
 			break;
-		case 0x66: // n/a
+		case 0x66: // ROR - Rotate Right - Zero Page
+			j = bus.read(operands[0]);
+			k = ror(j); 
+			bus.write(operands[0], k);
+			setArithmeticFlags(k);
 			break;
 		case 0x67: // n/a
 			break;
@@ -452,11 +478,17 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0x83: // n/a
 			break;
-		case 0x84: // n/a
+		case 0x84: // STY - Store Y Register - Zero Page
+			bus.write(operands[0], y);
+			setArithmeticFlags(y);
 			break;
-		case 0x85: // n/a
+		case 0x85: // STA - Store Accumulator - Zero Page
+			bus.write(operands[0], a);
+			setArithmeticFlags(a);
 			break;
-		case 0x86: // n/a
+		case 0x86: // STX - Store X Register - Zero Page
+			bus.write(operands[0], x);
+			setArithmeticFlags(x);
 			break;
 		case 0x87: // n/a
 			break;
@@ -529,11 +561,17 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xa3: // n/a
 			break;
-		case 0xa4: // n/a
+		case 0xa4: // LDY - Load Y Register - Zero Page
+			y = bus.read(operands[0]);
+			setArithmeticFlags(y);
 			break;
-		case 0xa5: // n/a
+		case 0xa5: // LDA - Load Accumulator - Zero Page
+			a = bus.read(operands[0]);
+			setArithmeticFlags(a);
 			break;
-		case 0xa6: // n/a
+		case 0xa6: // LDA - Load X Register - Zero Page
+			x = bus.read(operands[0]);
+			setArithmeticFlags(x);
 			break;
 		case 0xa7: // n/a
 			break;
@@ -596,7 +634,7 @@ public class Cpu implements InstructionTable {
 		case 0xbf: // n/a
 			break;
 
-		case 0xc0: // CPY - Immediate
+		case 0xc0: // CPY - Compare Y Register - Immediate
 			cmp(y, operands[0]);
 			break;
 		case 0xc1: // n/a
@@ -605,11 +643,17 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xc3: // n/a
 			break;
-		case 0xc4: // n/a
+		case 0xc4: // CPY - Compare Y Register - Zero Page
+			cmp(y, bus.read(operands[0]));
 			break;
-		case 0xc5: // n/a
+		case 0xc5: // CMP - Compare Accumulator - Zero Page
+			cmp(a, bus.read(operands[0]));
 			break;
-		case 0xc6: // n/a
+		case 0xc6: // DEC - Decrement Memory - Zero Page
+			j = bus.read(operands[0]);
+			k = --j & 0xff;
+			bus.write(operands[0], k);
+			setArithmeticFlags(k);
 			break;
 		case 0xc7: // n/a
 			break;
@@ -678,11 +722,22 @@ public class Cpu implements InstructionTable {
 			break;
 		case 0xe3: // n/a
 			break;
-		case 0xe4: // n/a
+		case 0xe4: // CPX - Compare X Register - Zero Page
+			cmp(x, bus.read(operands[0]));
 			break;
-		case 0xe5: // n/a
+		case 0xe5: // SBC - Subtract with Carry (Borrow) - Zero Page
+			j = bus.read(operands[0]);
+			if (decimalModeFlag) {
+				a = sbcDecimal(a, j);
+			} else {
+				a = sbc(a, j);
+			}
 			break;
-		case 0xe6: // n/a
+		case 0xe6: // INC - Increment Memory - Zero Page
+			j = bus.read(operands[0]);
+			k = ++j & 0xff;
+			bus.write(operands[0], k);
+			setArithmeticFlags(k);
 			break;
 		case 0xe7: // n/a
 			break;
@@ -865,6 +920,28 @@ public class Cpu implements InstructionTable {
 	private int lsr(int m) {
 		setCarryFlag((m & 0x01) != 0);
 		return (m >>> 1) & 0xff;
+	}
+	
+	/**
+	 * Rotates the given value left by one bit, setting bit 0 to the value
+	 * of the carry flag, and setting the carry flag to the original value 
+	 * of bit 7.
+	 */
+	private int rol(int m) {
+		int result = ((m << 1) | getCarryBit()) & 0xff;
+		setCarryFlag((m & 0x80) != 0);
+		return result;
+	}
+	
+	/**
+	 * Rotates the given value right by one bit, setting bit 7 to the value
+	 * of the carry flag, and setting the carry flag to the original value 
+	 * of bit 1.
+	 */
+	private int ror(int m) {
+		int result = ((m >>> 1) | (getCarryBit() << 7)) & 0xff;
+		setCarryFlag((m & 0x01) != 0);
+		return result;
 	}
 
 	/**

@@ -99,7 +99,7 @@ public class CpuImmediateModeTest extends TestCase {
 
 	/* AND Immediate Mode Tests - 0x29 */
 
-	public void test_AND_SetsAccumulator() {
+	public void test_AND() {
 		bus.loadProgram(0x29, 0x00,  // AND #$00
 										0x29, 0x11,  // AND #$11
 										0xa9, 0xaa,  // LDA #$AA
@@ -152,7 +152,7 @@ public class CpuImmediateModeTest extends TestCase {
 
 	/* EOR Immediate Mode Tests - 0x49 */
 
-	public void test_EOR_SetsAccumulator() {
+	public void test_EOR() {
 		bus.loadProgram(0xa9, 0x88,  // LDA #$88
 		                0x49, 0x00,  // EOR #$00
 		                0x49, 0xff,  // EOR #$ff
@@ -505,7 +505,7 @@ public class CpuImmediateModeTest extends TestCase {
 		assertTrue(cpu.getNegativeFlag());
 	}
 
-	public void test_CPY_DoesNotSetCarryFlagIfYGreaterThanMemory() {
+	public void test_CPY_DoesNotSetCarryFlagIfYLessThanThanMemory() {
 		bus.loadProgram(0xa0, 0x08,  // LDY #$08
 										0xc0, 0x0a); // CPY #$0A
 		cpu.step(2);
