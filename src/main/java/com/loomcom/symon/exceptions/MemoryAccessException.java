@@ -5,7 +5,7 @@ package com.loomcom.symon.exceptions;
  * accessed.
  */
 public class MemoryAccessException extends Exception {
-	public MemoryAccessException(String msg) {
-		super(msg);
-	}
+  public MemoryAccessException(String msg) {
+    super(msg);
+  }
 }
