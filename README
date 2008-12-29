@@ -46,13 +46,13 @@ ACIAs.  More functionality may be considered as time goes on.
 - Finish core functionality.
 - Implement remaining addressing modes.
 
-  COMPLETE:
+  COMPLETED ADDRESSING MODES:
     o Implied
     o Immediate
     o Zero Page
-
-  INCOMPLETE:
     o Accumulator
+
+  INCOMPLETE ADDRESSING MODES:
     o Zero Page, X-indexed
     o Zero Page, Y-indexed
     o Relative
