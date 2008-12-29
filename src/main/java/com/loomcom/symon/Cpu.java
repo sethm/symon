@@ -176,9 +176,16 @@ public class Cpu implements InstructionTable {
 			a = asl(a);
 			setArithmeticFlags(a);
       break;
-    case 0x0d: // TODO: implement
+    case 0x0d: // ORA - Logical Inclusive OR - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      a |= j;
+      setArithmeticFlags(a);
       break;
-    case 0x0e: // TODO: implement
+    case 0x0e: // ASL - Arithmetic Shift Left - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      k = asl(j);
+      bus.write(address(operands[0], operands[1]), k);
+      setArithmeticFlags(k);
       break;
 
     case 0x10: // TODO: implement
@@ -199,7 +206,10 @@ public class Cpu implements InstructionTable {
     case 0x1e: // TODO: implement
       break;
 
-    case 0x20: // TODO: implement
+    case 0x20: // JSR - Jump to Subroutine - $20
+      stackPush((pc-1 >> 8) & 0xff); // PC high byte
+      stackPush(pc-1 & 0xff);        // PC low byte
+      pc = address(operands[0], operands[1]);
       break;
     case 0x21: // TODO: implement
       break;
@@ -232,11 +242,23 @@ public class Cpu implements InstructionTable {
 			a = rol(a);
 			setArithmeticFlags(a);
       break;
-    case 0x2c: // TODO: implement
+    case 0x2c: // BIT - Bit Test - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      k = a & j;
+      setZeroFlag(k == 0);
+      setNegativeFlag((k & 0x80) != 0);
+      setOverflowFlag((k & 0x40) != 0);
       break;
-    case 0x2d: // TODO: implement
+    case 0x2d: // AND - Logical And - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      a &= j;
+      setArithmeticFlags(a);
       break;
-    case 0x2e: // TODO: implement
+    case 0x2e: // ROL - Rotate Shift Left - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      k = rol(j);
+      bus.write(address(operands[0], operands[1]), k);
+      setArithmeticFlags(k);
       break;
 
     case 0x30: // TODO: implement
@@ -290,9 +312,15 @@ public class Cpu implements InstructionTable {
     case 0x4c: // JMP - Jump - Absolute
       pc = address(operands[0], operands[1]);
       break;
-    case 0x4d: // TODO: implement
+    case 0x4d: // EOR - Exclusive OR - Absolute
+      a ^= bus.read(address(operands[0], operands[1]));
+      setArithmeticFlags(a);
       break;
-    case 0x4e: // TODO: implement
+    case 0x4e: // LSR - Logical Shift Right - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      k = lsr(j);
+      bus.write(address(operands[0], operands[1]), k);
+      setArithmeticFlags(k);
       break;
 
     case 0x50: // TODO: implement
@@ -351,9 +379,19 @@ public class Cpu implements InstructionTable {
       break;
     case 0x6c: // TODO: implement
       break;
-    case 0x6d: // TODO: implement
+    case 0x6d: // ADC - Add with Carry - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      if (decimalModeFlag) {
+        a = adcDecimal(a, j);
+      } else {
+        a = adc(a, j);
+      }
       break;
-    case 0x6e: // TODO: implement
+    case 0x6e: // ROR - Rotate Right - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      k = ror(j);
+      bus.write(address(operands[0], operands[1]), k);
+      setArithmeticFlags(k);
       break;
 
     case 0x70: // TODO: implement
@@ -396,11 +434,17 @@ public class Cpu implements InstructionTable {
       a = x;
       setArithmeticFlags(a);
       break;
-    case 0x8c: // TODO: implement
+    case 0x8c: // STY - Store Y Register - Absolute
+      bus.write(address(operands[0], operands[1]), y);
+      setArithmeticFlags(y);
       break;
-    case 0x8d: // TODO: implement
+    case 0x8d: // STA - Store Accumulator - Absolute
+      bus.write(address(operands[0], operands[1]), a);
+      setArithmeticFlags(a);
       break;
-    case 0x8e: // TODO: implement
+    case 0x8e: // STX - Store X Register - Absolute
+      bus.write(address(operands[0], operands[1]), x);
+      setArithmeticFlags(x);
       break;
 
     case 0x90: // TODO: implement
@@ -443,7 +487,7 @@ public class Cpu implements InstructionTable {
       a = bus.read(operands[0]);
       setArithmeticFlags(a);
       break;
-    case 0xa6: // LDA - Load X Register - Zero Page
+    case 0xa6: // LDX - Load X Register - Zero Page
       x = bus.read(operands[0]);
       setArithmeticFlags(x);
       break;
@@ -451,7 +495,7 @@ public class Cpu implements InstructionTable {
       y = a;
       setArithmeticFlags(y);
       break;
-    case 0xa9: // LDA - Immediate
+    case 0xa9: // LDA - Load Accumulator - Immediate
       a = operands[0];
       setArithmeticFlags(a);
       break;
@@ -461,9 +505,13 @@ public class Cpu implements InstructionTable {
       break;
     case 0xac: // TODO: implement
       break;
-    case 0xad: // TODO: implement
+    case 0xad: // LDA - Load Accumulator - Absolute
+      a = bus.read(address(operands[0], operands[1]));
+      setArithmeticFlags(a);
       break;
-    case 0xae: // TODO: implement
+    case 0xae: // LDX - Load X Register - Absolute
+      x = bus.read(address(operands[0], operands[1]));
+      setArithmeticFlags(x);
       break;
 
     case 0xb0: // TODO: implement
@@ -485,7 +533,9 @@ public class Cpu implements InstructionTable {
       x = getStackPointer();
       setArithmeticFlags(x);
       break;
-    case 0xbc: // TODO: implement
+    case 0xbc: // LDY - Load Y Register - Absolute
+      y = bus.read(address(operands[0], operands[1]));
+      setArithmeticFlags(y);
       break;
     case 0xbd: // TODO: implement
       break;
@@ -520,11 +570,17 @@ public class Cpu implements InstructionTable {
       x = --x & 0xff;
       setArithmeticFlags(x);
       break;
-    case 0xcc: // TODO: implement
+    case 0xcc: // CPY - Compare Y Register - Absolute
+      cmp(y, bus.read(address(operands[0], operands[1])));
       break;
-    case 0xcd: // TODO: implement
+    case 0xcd: // CMP - Compare Accumulator - Absolute
+      cmp(a, bus.read(address(operands[0], operands[1])));
       break;
-    case 0xce: // TODO: implement
+    case 0xce: // DEC - Decrement Memory - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      k = --j & 0xff;
+      bus.write(address(operands[0], operands[1]), k);
+      setArithmeticFlags(k);
       break;
 
     case 0xd0: // TODO: implement
@@ -581,11 +637,22 @@ public class Cpu implements InstructionTable {
     case 0xea: // NOP
       // Do nothing.
       break;
-    case 0xec: // TODO: implement
+    case 0xec: // CPX - Compare X Register - Absolute
+      cmp(x, bus.read(address(operands[0], operands[1])));
       break;
-    case 0xed: // TODO: implement
+    case 0xed: // SBC - Subtract with Carry - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      if (decimalModeFlag) {
+        a = sbcDecimal(a, j);
+      } else {
+        a = sbc(a, j);
+      }
       break;
-    case 0xee: // TODO: implement
+    case 0xee: // INC - Increment Memory - Absolute
+      j = bus.read(address(operands[0], operands[1]));
+      k = ++j & 0xff;
+      bus.write(address(operands[0], operands[1]), k);
+      setArithmeticFlags(k);
       break;
 
     case 0xf0: // TODO: implement
