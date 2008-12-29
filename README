@@ -51,12 +51,12 @@ ACIAs.  More functionality may be considered as time goes on.
     o Immediate
     o Zero Page
     o Accumulator
+    o Absolute
 
   INCOMPLETE ADDRESSING MODES:
     o Zero Page, X-indexed
     o Zero Page, Y-indexed
     o Relative
-    o Absolute
     o Absolute, X-indexed
     o Absolute, Y-indexed
     o Indirect
