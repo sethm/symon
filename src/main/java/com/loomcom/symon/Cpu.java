@@ -46,6 +46,8 @@ public class Cpu implements InstructionTable {
   private int lo = 0, hi = 0;  // Used in address calculation
   private int j  = 0, k  = 0;  // Used for temporary storage
 
+	/* Unimplemented instruction flag */
+	private boolean opTrap = false;
 
   /* Operands for the current instruction */
   private int[] operands = new int[2];
@@ -99,6 +101,9 @@ public class Cpu implements InstructionTable {
     decimalModeFlag = false;
     breakFlag = false;
     overflowFlag = false;
+
+		// Clear illegal opcode trap.
+		opTrap = false;
   }
 
   public void step(int num) {
@@ -119,6 +124,9 @@ public class Cpu implements InstructionTable {
 
     // Increment PC
     incrementPC();
+
+		// Clear the illegal opcode trap.
+		clearOpTrap();
 
     // Decode the instruction and operands
     int size = Cpu.instructionSizes[ir];
@@ -145,13 +153,7 @@ public class Cpu implements InstructionTable {
         pc = address(bus.read(IRQ_VECTOR_L), bus.read(IRQ_VECTOR_H));
       }
       break;
-    case 0x01: // n/a
-      break;
-    case 0x02: // n/a
-      break;
-    case 0x03: // n/a
-      break;
-    case 0x04: // n/a
+    case 0x01: // TODO: implement
       break;
     case 0x05: // ORA - Logical Inclusive OR - Zero Page
       a |= bus.read(operands[0]);
@@ -163,8 +165,6 @@ public class Cpu implements InstructionTable {
       bus.write(operands[0], k);
       setArithmeticFlags(k);
       break;
-    case 0x07: // n/a
-      break;
     case 0x08: // PHP - Push Processor Status - Implied
       stackPush(getProcessorStatus());
       break;
@@ -172,60 +172,36 @@ public class Cpu implements InstructionTable {
       a |= operands[0];
       setArithmeticFlags(a);
       break;
-    case 0x0a: // n/a
+    case 0x0a: // ASL - Arithmetic Shift Left - Accumulator
+			a = asl(a);
+			setArithmeticFlags(a);
       break;
-    case 0x0b: // n/a
+    case 0x0d: // TODO: implement
       break;
-    case 0x0c: // n/a
-      break;
-    case 0x0d: // n/a
-      break;
-    case 0x0e: // n/a
-      break;
-    case 0x0f: // n/a
+    case 0x0e: // TODO: implement
       break;
 
-    case 0x10: // n/a
+    case 0x10: // TODO: implement
       break;
-    case 0x11: // n/a
+    case 0x11: // TODO: implement
       break;
-    case 0x12: // n/a
+    case 0x15: // TODO: implement
       break;
-    case 0x13: // n/a
-      break;
-    case 0x14: // n/a
-      break;
-    case 0x15: // n/a
-      break;
-    case 0x16: // n/a
-      break;
-    case 0x17: // n/a
+    case 0x16: // TODO: implement
       break;
     case 0x18: // CLC - Clear Carry Flag - Implied
       clearCarryFlag();
       break;
-    case 0x19: // n/a
+    case 0x19: // TODO: implement
       break;
-    case 0x1a: // n/a
+    case 0x1d: // TODO: implement
       break;
-    case 0x1b: // n/a
-      break;
-    case 0x1c: // n/a
-      break;
-    case 0x1d: // n/a
-      break;
-    case 0x1e: // n/a
-      break;
-    case 0x1f: // n/a
+    case 0x1e: // TODO: implement
       break;
 
-    case 0x20: // n/a
+    case 0x20: // TODO: implement
       break;
-    case 0x21: // n/a
-      break;
-    case 0x22: // n/a
-      break;
-    case 0x23: // n/a
+    case 0x21: // TODO: implement
       break;
     case 0x24: // BIT - Bit Test - Zero Page
       j = bus.read(operands[0]);
@@ -245,8 +221,6 @@ public class Cpu implements InstructionTable {
       bus.write(operands[0], k);
       setArithmeticFlags(k);
       break;
-    case 0x27: // n/a
-      break;
     case 0x28: // PLP - Pull Processor Status - Implied
       setProcessorStatus(stackPop());
       break;
@@ -254,51 +228,33 @@ public class Cpu implements InstructionTable {
       a &= operands[0];
       setArithmeticFlags(a);
       break;
-    case 0x2a: // n/a
+    case 0x2a: // ROL - Rotate Left - Accumulator
+			a = rol(a);
+			setArithmeticFlags(a);
       break;
-    case 0x2b: // n/a
+    case 0x2c: // TODO: implement
       break;
-    case 0x2c: // n/a
+    case 0x2d: // TODO: implement
       break;
-    case 0x2d: // n/a
-      break;
-    case 0x2e: // n/a
-      break;
-    case 0x2f: // n/a
+    case 0x2e: // TODO: implement
       break;
 
-    case 0x30: // n/a
+    case 0x30: // TODO: implement
       break;
-    case 0x31: // n/a
+    case 0x31: // TODO: implement
       break;
-    case 0x32: // n/a
+    case 0x35: // TODO: implement
       break;
-    case 0x33: // n/a
-      break;
-    case 0x34: // n/a
-      break;
-    case 0x35: // n/a
-      break;
-    case 0x36: // n/a
-      break;
-    case 0x37: // n/a
+    case 0x36: // TODO: implement
       break;
     case 0x38: // SEC - Set Carry Flag - Implied
       setCarryFlag();
       break;
-    case 0x39: // n/a
+    case 0x39: // TODO: implement
       break;
-    case 0x3a: // n/a
+    case 0x3d: // TODO: implement
       break;
-    case 0x3b: // n/a
-      break;
-    case 0x3c: // n/a
-      break;
-    case 0x3d: // n/a
-      break;
-    case 0x3e: // n/a
-      break;
-    case 0x3f: // n/a
+    case 0x3e: // TODO: implement
       break;
 
     case 0x40: // RTI - Return from Interrupt - Implied
@@ -307,13 +263,7 @@ public class Cpu implements InstructionTable {
       hi = stackPop();
       setProgramCounter(address(lo, hi));
       break;
-    case 0x41: // n/a
-      break;
-    case 0x42: // n/a
-      break;
-    case 0x43: // n/a
-      break;
-    case 0x44: // n/a
+    case 0x41: // TODO: implement
       break;
     case 0x45: // EOR - Exclusive OR - Zero Page
       j = bus.read(operands[0]);
@@ -326,8 +276,6 @@ public class Cpu implements InstructionTable {
       bus.write(operands[0], k);
       setArithmeticFlags(k);
       break;
-    case 0x47: // n/a
-      break;
     case 0x48: // PHA - Push Accumulator - Implied
       stackPush(a);
       break;
@@ -335,52 +283,34 @@ public class Cpu implements InstructionTable {
       a ^= operands[0];
       setArithmeticFlags(a);
       break;
-    case 0x4a: // n/a
-      break;
-    case 0x4b: // n/a
+    case 0x4a: // LSR - Logical Shift Right - Accumulator
+			a = lsr(a);
+			setArithmeticFlags(a);
       break;
     case 0x4c: // JMP - Jump - Absolute
       pc = address(operands[0], operands[1]);
       break;
-    case 0x4d: // n/a
+    case 0x4d: // TODO: implement
       break;
-    case 0x4e: // n/a
-      break;
-    case 0x4f: // n/a
+    case 0x4e: // TODO: implement
       break;
 
-    case 0x50: // n/a
+    case 0x50: // TODO: implement
       break;
-    case 0x51: // n/a
+    case 0x51: // TODO: implement
       break;
-    case 0x52: // n/a
+    case 0x55: // TODO: implement
       break;
-    case 0x53: // n/a
-      break;
-    case 0x54: // n/a
-      break;
-    case 0x55: // n/a
-      break;
-    case 0x56: // n/a
-      break;
-    case 0x57: // n/a
+    case 0x56: // TODO: implement
       break;
     case 0x58: // CLI - Clear Interrupt Disable - Implied
       clearIrqDisableFlag();
       break;
-    case 0x59: // n/a
+    case 0x59: // TODO: implement
       break;
-    case 0x5a: // n/a
+    case 0x5d: // TODO: implement
       break;
-    case 0x5b: // n/a
-      break;
-    case 0x5c: // n/a
-      break;
-    case 0x5d: // n/a
-      break;
-    case 0x5e: // n/a
-      break;
-    case 0x5f: // n/a
+    case 0x5e: // TODO: implement
       break;
 
     case 0x60: // RTS - Return from Subroutine - Implied
@@ -388,13 +318,7 @@ public class Cpu implements InstructionTable {
       hi = stackPop();
       setProgramCounter((address(lo, hi) + 1) & 0xffff);
       break;
-    case 0x61: // n/a
-      break;
-    case 0x62: // n/a
-      break;
-    case 0x63: // n/a
-      break;
-    case 0x64: // n/a
+    case 0x61: // TODO: implement
       break;
     case 0x65: // ADC - Add with Carry - Zero Page
       j = bus.read(operands[0]);
@@ -410,8 +334,6 @@ public class Cpu implements InstructionTable {
       bus.write(operands[0], k);
       setArithmeticFlags(k);
       break;
-    case 0x67: // n/a
-      break;
     case 0x68: // PLA - Pull Accumulator - Implied
       a = stackPop();
       setArithmeticFlags(a);
@@ -423,60 +345,36 @@ public class Cpu implements InstructionTable {
         a = adc(a, operands[0]);
       }
       break;
-    case 0x6a: // n/a
+    case 0x6a: // ROR - Rotate Right - Accumulator
+			a = ror(a);
+			setArithmeticFlags(a);
       break;
-    case 0x6b: // n/a
+    case 0x6c: // TODO: implement
       break;
-    case 0x6c: // n/a
+    case 0x6d: // TODO: implement
       break;
-    case 0x6d: // n/a
-      break;
-    case 0x6e: // n/a
-      break;
-    case 0x6f: // n/a
+    case 0x6e: // TODO: implement
       break;
 
-    case 0x70: // n/a
+    case 0x70: // TODO: implement
       break;
-    case 0x71: // n/a
+    case 0x71: // TODO: implement
       break;
-    case 0x72: // n/a
+    case 0x75: // TODO: implement
       break;
-    case 0x73: // n/a
-      break;
-    case 0x74: // n/a
-      break;
-    case 0x75: // n/a
-      break;
-    case 0x76: // n/a
-      break;
-    case 0x77: // n/a
+    case 0x76: // TODO: implement
       break;
     case 0x78: // SEI - Set Interrupt Disable - Implied
       setIrqDisableFlag();
       break;
-    case 0x79: // n/a
+    case 0x79: // TODO: implement
       break;
-    case 0x7a: // n/a
+    case 0x7d: // TODO: implement
       break;
-    case 0x7b: // n/a
-      break;
-    case 0x7c: // n/a
-      break;
-    case 0x7d: // n/a
-      break;
-    case 0x7e: // n/a
-      break;
-    case 0x7f: // n/a
+    case 0x7e: // TODO: implement
       break;
 
-    case 0x80: // n/a
-      break;
-    case 0x81: // n/a
-      break;
-    case 0x82: // n/a
-      break;
-    case 0x83: // n/a
+    case 0x81: // TODO: implement
       break;
     case 0x84: // STY - Store Y Register - Zero Page
       bus.write(operands[0], y);
@@ -490,76 +388,52 @@ public class Cpu implements InstructionTable {
       bus.write(operands[0], x);
       setArithmeticFlags(x);
       break;
-    case 0x87: // n/a
-      break;
     case 0x88: // DEY - Decrement Y Register - Implied
       y = --y & 0xff;
       setArithmeticFlags(y);
-      break;
-    case 0x89: // n/a
       break;
     case 0x8a: // TXA - Transfer X to Accumulator - Implied
       a = x;
       setArithmeticFlags(a);
       break;
-    case 0x8b: // n/a
+    case 0x8c: // TODO: implement
       break;
-    case 0x8c: // n/a
+    case 0x8d: // TODO: implement
       break;
-    case 0x8d: // n/a
-      break;
-    case 0x8e: // n/a
-      break;
-    case 0x8f: // n/a
+    case 0x8e: // TODO: implement
       break;
 
-    case 0x90: // n/a
+    case 0x90: // TODO: implement
       break;
-    case 0x91: // n/a
+    case 0x91: // TODO: implement
       break;
-    case 0x92: // n/a
+    case 0x94: // TODO: implement
       break;
-    case 0x93: // n/a
+    case 0x95: // TODO: implement
       break;
-    case 0x94: // n/a
-      break;
-    case 0x95: // n/a
-      break;
-    case 0x96: // n/a
-      break;
-    case 0x97: // n/a
+    case 0x96: // TODO: implement
       break;
     case 0x98: // TYA - Transfer Y to Accumulator - Implied
       a = y;
       setArithmeticFlags(a);
       break;
-    case 0x99: // n/a
+    case 0x99: // TODO: implement
       break;
     case 0x9a: // TXS - Transfer X to Stack Pointer - Implied
       setStackPointer(x);
       break;
-    case 0x9b: // n/a
-      break;
-    case 0x9c: // n/a
-      break;
-    case 0x9d: // n/a
-      break;
-    case 0x9e: // n/a
-      break;
-    case 0x9f: // n/a
+    case 0x9d: // TODO: implement
       break;
 
     case 0xa0: // LDY - Load Y Register - Immediate
       y = operands[0];
       setArithmeticFlags(y);
       break;
-    case 0xa1: // n/a
+    case 0xa1: // TODO: implement
       break;
     case 0xa2: // LDX - Load X Register - Immediate
       x = operands[0];
       setArithmeticFlags(x);
-      break;
-    case 0xa3: // n/a
       break;
     case 0xa4: // LDY - Load Y Register - Zero Page
       y = bus.read(operands[0]);
@@ -573,8 +447,6 @@ public class Cpu implements InstructionTable {
       x = bus.read(operands[0]);
       setArithmeticFlags(x);
       break;
-    case 0xa7: // n/a
-      break;
     case 0xa8: // TAY - Transfer Accumulator to Y - Implied
       y = a;
       setArithmeticFlags(y);
@@ -587,61 +459,43 @@ public class Cpu implements InstructionTable {
       x = a;
       setArithmeticFlags(x);
       break;
-    case 0xab: // n/a
+    case 0xac: // TODO: implement
       break;
-    case 0xac: // n/a
+    case 0xad: // TODO: implement
       break;
-    case 0xad: // n/a
-      break;
-    case 0xae: // n/a
-      break;
-    case 0xaf: // n/a
+    case 0xae: // TODO: implement
       break;
 
-    case 0xb0: // n/a
+    case 0xb0: // TODO: implement
       break;
-    case 0xb1: // n/a
+    case 0xb1: // TODO: implement
       break;
-    case 0xb2: // n/a
+    case 0xb4: // TODO: implement
       break;
-    case 0xb3: // n/a
+    case 0xb5: // TODO: implement
       break;
-    case 0xb4: // n/a
-      break;
-    case 0xb5: // n/a
-      break;
-    case 0xb6: // n/a
-      break;
-    case 0xb7: // n/a
+    case 0xb6: // TODO: implement
       break;
     case 0xb8: // CLV - Clear Overflow Flag - Implied
       clearOverflowFlag();
       break;
-    case 0xb9: // n/a
+    case 0xb9: // TODO: implement
       break;
     case 0xba: // TSX - Transfer Stack Pointer to X - Implied
       x = getStackPointer();
       setArithmeticFlags(x);
       break;
-    case 0xbb: // n/a
+    case 0xbc: // TODO: implement
       break;
-    case 0xbc: // n/a
+    case 0xbd: // TODO: implement
       break;
-    case 0xbd: // n/a
-      break;
-    case 0xbe: // n/a
-      break;
-    case 0xbf: // n/a
+    case 0xbe: // TODO: implement
       break;
 
     case 0xc0: // CPY - Compare Y Register - Immediate
       cmp(y, operands[0]);
       break;
-    case 0xc1: // n/a
-      break;
-    case 0xc2: // n/a
-      break;
-    case 0xc3: // n/a
+    case 0xc1: // TODO: implement
       break;
     case 0xc4: // CPY - Compare Y Register - Zero Page
       cmp(y, bus.read(operands[0]));
@@ -655,8 +509,6 @@ public class Cpu implements InstructionTable {
       bus.write(operands[0], k);
       setArithmeticFlags(k);
       break;
-    case 0xc7: // n/a
-      break;
     case 0xc8: // INY - Increment Y Register - Implied
       y = ++y & 0xff;
       setArithmeticFlags(y);
@@ -668,59 +520,35 @@ public class Cpu implements InstructionTable {
       x = --x & 0xff;
       setArithmeticFlags(x);
       break;
-    case 0xcb: // n/a
+    case 0xcc: // TODO: implement
       break;
-    case 0xcc: // n/a
+    case 0xcd: // TODO: implement
       break;
-    case 0xcd: // n/a
-      break;
-    case 0xce: // n/a
-      break;
-    case 0xcf: // n/a
+    case 0xce: // TODO: implement
       break;
 
-    case 0xd0: // n/a
+    case 0xd0: // TODO: implement
       break;
-    case 0xd1: // n/a
+    case 0xd1: // TODO: implement
       break;
-    case 0xd2: // n/a
+    case 0xd5: // TODO: implement
       break;
-    case 0xd3: // n/a
-      break;
-    case 0xd4: // n/a
-      break;
-    case 0xd5: // n/a
-      break;
-    case 0xd6: // n/a
-      break;
-    case 0xd7: // n/a
+    case 0xd6: // TODO: implement
       break;
     case 0xd8: // CLD - Clear Decimal Mode - Implied
       clearDecimalModeFlag();
       break;
-    case 0xd9: // n/a
+    case 0xd9: // TODO: implement
       break;
-    case 0xda: // n/a
+    case 0xdd: // TODO: implement
       break;
-    case 0xdb: // n/a
-      break;
-    case 0xdc: // n/a
-      break;
-    case 0xdd: // n/a
-      break;
-    case 0xde: // n/a
-      break;
-    case 0xdf: // n/a
+    case 0xde: // TODO: implement
       break;
 
     case 0xe0: // CPX - Compare X Register - Immediate
       cmp(x, operands[0]);
       break;
-    case 0xe1: // n/a
-      break;
-    case 0xe2: // n/a
-      break;
-    case 0xe3: // n/a
+    case 0xe1: // TODO: implement
       break;
     case 0xe4: // CPX - Compare X Register - Zero Page
       cmp(x, bus.read(operands[0]));
@@ -739,8 +567,6 @@ public class Cpu implements InstructionTable {
       bus.write(operands[0], k);
       setArithmeticFlags(k);
       break;
-    case 0xe7: // n/a
-      break;
     case 0xe8: // INX - Increment X Register - Implied
       x = ++x & 0xff;
       setArithmeticFlags(x);
@@ -753,52 +579,159 @@ public class Cpu implements InstructionTable {
       }
       break;
     case 0xea: // NOP
-      // Does nothing.
+      // Do nothing.
       break;
-    case 0xeb: // n/a
+    case 0xec: // TODO: implement
       break;
-    case 0xec: // n/a
+    case 0xed: // TODO: implement
       break;
-    case 0xed: // n/a
-      break;
-    case 0xee: // n/a
-      break;
-    case 0xef: // n/a
+    case 0xee: // TODO: implement
       break;
 
-    case 0xf0: // n/a
+    case 0xf0: // TODO: implement
       break;
-    case 0xf1: // n/a
+    case 0xf1: // TODO: implement
       break;
-    case 0xf2: // n/a
+    case 0xf5: // TODO: implement
       break;
-    case 0xf3: // n/a
-      break;
-    case 0xf4: // n/a
-      break;
-    case 0xf5: // n/a
-      break;
-    case 0xf6: // n/a
-      break;
-    case 0xf7: // n/a
+    case 0xf6: // TODO: implement
       break;
     case 0xf8: // SED - Set Decimal Flag - Implied
       setDecimalModeFlag();
       break;
-    case 0xf9: // n/a
+    case 0xf9: // TODO: implement
       break;
-    case 0xfa: // n/a
+    case 0xfd: // TODO: implement
       break;
-    case 0xfb: // n/a
+    case 0xfe: // TODO: implement
       break;
-    case 0xfc: // n/a
-      break;
-    case 0xfd: // n/a
-      break;
-    case 0xfe: // n/a
-      break;
-    case 0xff: // n/a
-      break;
+
+			/* Unimplemented Instructions */
+
+    case 0x02:
+    case 0x03:
+    case 0x04:
+		case 0x07:
+		case 0x0b:
+		case 0x0c:
+		case 0x0f:
+
+		case 0x12:
+		case 0x13:
+		case 0x14:
+		case 0x17:
+		case 0x1a:
+		case 0x1b:
+		case 0x1c:
+		case 0x1f:
+
+		case 0x22:
+		case 0x23:
+		case 0x27:
+		case 0x2b:
+		case 0x2f:
+
+		case 0x32:
+		case 0x33:
+		case 0x34:
+		case 0x37:
+		case 0x3a:
+		case 0x3b:
+		case 0x3c:
+		case 0x3f:
+
+		case 0x42:
+		case 0x43:
+		case 0x44:
+		case 0x47:
+		case 0x4b:
+		case 0x4f:
+
+		case 0x52:
+		case 0x53:
+		case 0x54:
+		case 0x57:
+		case 0x5a:
+		case 0x5b:
+		case 0x5c:
+		case 0x5f:
+
+		case 0x62:
+		case 0x63:
+		case 0x64:
+		case 0x67:
+		case 0x6b:
+		case 0x6f:
+
+		case 0x72:
+		case 0x73:
+		case 0x74:
+		case 0x77:
+		case 0x7a:
+		case 0x7b:
+		case 0x7c:
+		case 0x7f:
+
+		case 0x80:
+		case 0x82:
+		case 0x83:
+		case 0x87:
+		case 0x89:
+		case 0x8b:
+		case 0x8f:
+
+		case 0x92:
+		case 0x93:
+		case 0x97:
+		case 0x9b:
+		case 0x9c:
+		case 0x9e:
+		case 0x9f:
+
+		case 0xa3:
+		case 0xa7:
+		case 0xab:
+		case 0xaf:
+
+		case 0xb2:
+		case 0xb3:
+		case 0xb7:
+		case 0xbb:
+		case 0xbf:
+
+		case 0xc2:
+		case 0xc3:
+		case 0xc7:
+		case 0xcb:
+		case 0xcf:
+
+		case 0xd2:
+		case 0xd3:
+		case 0xd4:
+		case 0xd7:
+		case 0xda:
+		case 0xdb:
+		case 0xdc:
+		case 0xdf:
+
+		case 0xe2:
+		case 0xe3:
+		case 0xe7:
+		case 0xeb:
+		case 0xef:
+
+		case 0xf2:
+		case 0xf3:
+		case 0xf4:
+		case 0xf7:
+		case 0xfa:
+		case 0xfb:
+		case 0xfc:
+		case 0xff:
+
+			setOpTrap();
+			break;
+
     }
   }
 
@@ -1184,6 +1117,27 @@ public class Cpu implements InstructionTable {
   public void clearOverflowFlag() {
     this.overflowFlag = false;
   }
+
+	/**
+	 * Set the illegal instruction trap.
+	 */
+	public void setOpTrap() {
+		this.opTrap = true;
+	}
+
+	/**
+	 * Clear the illegal instruction trap.
+	 */
+	public void clearOpTrap() {
+		this.opTrap = false;
+	}
+
+	/**
+	 * Get the status of the illegal instruction trap.
+	 */
+	public boolean getOpTrap() {
+		return this.opTrap;
+	}
 
   public int getAccumulator() {
     return a;
