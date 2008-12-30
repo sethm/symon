@@ -355,4 +355,44 @@ public class CpuTest extends TestCase {
     assertEquals(0xffff, cpu.address(0xff, 0xff));
   }
 
+  public void testZpxAddress() {
+    cpu.setXRegister(0x00);
+    assertEquals(0x10, cpu.zpxAddress(0x10));
+    cpu.setXRegister(0x10);
+    assertEquals(0x20, cpu.zpxAddress(0x10));
+    cpu.setXRegister(0x25);
+    assertEquals(0x35, cpu.zpxAddress(0x10));
+    cpu.setXRegister(0xf5);
+    assertEquals(0x05, cpu.zpxAddress(0x10));
+
+    cpu.setXRegister(0x00);
+    assertEquals(0x80, cpu.zpxAddress(0x80));
+    cpu.setXRegister(0x10);
+    assertEquals(0x90, cpu.zpxAddress(0x80));
+    cpu.setXRegister(0x25);
+    assertEquals(0xa5, cpu.zpxAddress(0x80));
+    cpu.setXRegister(0x95);
+    assertEquals(0x15, cpu.zpxAddress(0x80));
+  }
+
+  public void testZpyAddress() {
+    cpu.setYRegister(0x00);
+    assertEquals(0x10, cpu.zpyAddress(0x10));
+    cpu.setYRegister(0x10);
+    assertEquals(0x20, cpu.zpyAddress(0x10));
+    cpu.setYRegister(0x25);
+    assertEquals(0x35, cpu.zpyAddress(0x10));
+    cpu.setYRegister(0xf5);
+    assertEquals(0x05, cpu.zpyAddress(0x10));
+
+    cpu.setYRegister(0x00);
+    assertEquals(0x80, cpu.zpyAddress(0x80));
+    cpu.setYRegister(0x10);
+    assertEquals(0x90, cpu.zpyAddress(0x80));
+    cpu.setYRegister(0x25);
+    assertEquals(0xa5, cpu.zpyAddress(0x80));
+    cpu.setYRegister(0x95);
+    assertEquals(0x15, cpu.zpyAddress(0x80));
+  }
+
 }

@@ -192,9 +192,15 @@ public class Cpu implements InstructionTable {
       break;
     case 0x11: // TODO: implement
       break;
-    case 0x15: // TODO: implement
+    case 0x15: // ORA - Logical Inclusive OR - Zero Page,X
+      a |= bus.read(zpxAddress(operands[0]));
+      setArithmeticFlags(a);
       break;
-    case 0x16: // TODO: implement
+    case 0x16: // ASL - Arithmetic Shift Left - Zero Page,X
+      j = bus.read(zpxAddress(operands[0]));
+      k = asl(j);
+      bus.write(zpxAddress(operands[0]), k);
+      setArithmeticFlags(k);
       break;
     case 0x18: // CLC - Clear Carry Flag - Implied
       clearCarryFlag();
@@ -265,9 +271,16 @@ public class Cpu implements InstructionTable {
       break;
     case 0x31: // TODO: implement
       break;
-    case 0x35: // TODO: implement
+    case 0x35: // AND - Logical And - Zero Page,X
+      j = bus.read(zpxAddress(operands[0]));
+      a &= j;
+      setArithmeticFlags(a);
       break;
-    case 0x36: // TODO: implement
+    case 0x36: // ROL - Rotate Shift Left - Zero Page,X
+      j = bus.read(zpxAddress(operands[0]));
+      k = rol(j);
+      bus.write(zpxAddress(operands[0]), k);
+      setArithmeticFlags(k);
       break;
     case 0x38: // SEC - Set Carry Flag - Implied
       setCarryFlag();
@@ -327,9 +340,15 @@ public class Cpu implements InstructionTable {
       break;
     case 0x51: // TODO: implement
       break;
-    case 0x55: // TODO: implement
+    case 0x55: // EOR - Exclusive OR - Zero Page,X
+      a ^= bus.read(zpxAddress(operands[0]));
+      setArithmeticFlags(a);
       break;
-    case 0x56: // TODO: implement
+    case 0x56: // LSR - Logical Shift Right - Zero Page,X
+      j = bus.read(zpxAddress(operands[0]));
+      k = lsr(j);
+      bus.write(zpxAddress(operands[0]), k);
+      setArithmeticFlags(k);
       break;
     case 0x58: // CLI - Clear Interrupt Disable - Implied
       clearIrqDisableFlag();
@@ -377,7 +396,25 @@ public class Cpu implements InstructionTable {
 			a = ror(a);
 			setArithmeticFlags(a);
       break;
-    case 0x6c: // TODO: implement
+    case 0x6c: // JMP - Jump - Indirect
+      lo = address(operands[0], operands[1]); // Address of low byte
+      hi = lo+1; // Address of high byte
+
+      pc = address(bus.read(lo), bus.read(hi));
+
+      /* TODO: For accuracy, allow a flag to enable broken behavior
+       * of early 6502s:
+       *
+       * "An original 6502 has does not correctly fetch the target
+       * address if the indirect vector falls on a page boundary
+       * (e.g. $xxFF where xx is and value from $00 to $FF). In this
+       * case fetches the LSB from $xxFF as expected but takes the MSB
+       * from $xx00. This is fixed in some later chips like the 65SC02
+       * so for compatibility always ensure the indirect vector is not
+       * at the end of the page."
+       * (http://www.obelisk.demon.co.uk/6502/reference.html#JMP)
+       */
+
       break;
     case 0x6d: // ADC - Add with Carry - Absolute
       j = bus.read(address(operands[0], operands[1]));
@@ -398,9 +435,19 @@ public class Cpu implements InstructionTable {
       break;
     case 0x71: // TODO: implement
       break;
-    case 0x75: // TODO: implement
+    case 0x75: // ADC - Add with Carry - Zero Page,X
+      j = bus.read(zpxAddress(operands[0]));
+      if (decimalModeFlag) {
+        a = adcDecimal(a, j);
+      } else {
+        a = adc(a, j);
+      }
       break;
-    case 0x76: // TODO: implement
+    case 0x76: // ROR - Rotate Right - Zero Page,X
+      j = bus.read(zpxAddress(operands[0]));
+      k = ror(j);
+      bus.write(zpxAddress(operands[0]), k);
+      setArithmeticFlags(k);
       break;
     case 0x78: // SEI - Set Interrupt Disable - Implied
       setIrqDisableFlag();
@@ -451,11 +498,17 @@ public class Cpu implements InstructionTable {
       break;
     case 0x91: // TODO: implement
       break;
-    case 0x94: // TODO: implement
+    case 0x94: // STY - Store Y Register - Zero Page,X
+      bus.write(zpxAddress(operands[0]), y);
+      setArithmeticFlags(y);
       break;
-    case 0x95: // TODO: implement
+    case 0x95: // STA - Store Accumulator - Zero Page,X
+      bus.write(zpxAddress(operands[0]), a);
+      setArithmeticFlags(a);
       break;
-    case 0x96: // TODO: implement
+    case 0x96: // STX - Store X Register - Zero Page,Y
+      bus.write(zpyAddress(operands[0]), x);
+      setArithmeticFlags(x);
       break;
     case 0x98: // TYA - Transfer Y to Accumulator - Implied
       a = y;
@@ -518,11 +571,17 @@ public class Cpu implements InstructionTable {
       break;
     case 0xb1: // TODO: implement
       break;
-    case 0xb4: // TODO: implement
+    case 0xb4: // LDY - Load Y Register - Zero Page,X
+      y = bus.read(zpxAddress(operands[0]));
+      setArithmeticFlags(y);
       break;
-    case 0xb5: // TODO: implement
+    case 0xb5: // LDA - Load Accumulator - Zero Page,X
+      a = bus.read(zpxAddress(operands[0]));
+      setArithmeticFlags(a);
       break;
-    case 0xb6: // TODO: implement
+    case 0xb6: // LDX - Load X Register - Zero Page,Y
+      x = bus.read(zpyAddress(operands[0]));
+      setArithmeticFlags(x);
       break;
     case 0xb8: // CLV - Clear Overflow Flag - Implied
       clearOverflowFlag();
@@ -587,9 +646,14 @@ public class Cpu implements InstructionTable {
       break;
     case 0xd1: // TODO: implement
       break;
-    case 0xd5: // TODO: implement
+    case 0xd5: // CMP - Compare Accumulator - Zero Page,X
+      cmp(a, bus.read(zpxAddress(operands[0])));
       break;
-    case 0xd6: // TODO: implement
+    case 0xd6: // DEC - Decrement Memory - Zero Page, X
+      j = bus.read(zpxAddress(operands[0]));
+      k = --j & 0xff;
+      bus.write(zpxAddress(operands[0]), k);
+      setArithmeticFlags(k);
       break;
     case 0xd8: // CLD - Clear Decimal Mode - Implied
       clearDecimalModeFlag();
@@ -659,9 +723,19 @@ public class Cpu implements InstructionTable {
       break;
     case 0xf1: // TODO: implement
       break;
-    case 0xf5: // TODO: implement
+    case 0xf5: // SBC - Subtract with Carry - Zero Page,X
+      j = bus.read(zpxAddress(operands[0]));
+      if (decimalModeFlag) {
+        a = sbcDecimal(a, j);
+      } else {
+        a = sbc(a, j);
+      }
       break;
-    case 0xf6: // TODO: implement
+    case 0xf6: // INC - Increment Memory Location - Zero Page,X
+      j = bus.read(zpxAddress(operands[0]));
+      k = ++j & 0xff;
+      bus.write(zpxAddress(operands[0]), k);
+      setArithmeticFlags(k);
       break;
     case 0xf8: // SED - Set Decimal Flag - Implied
       setDecimalModeFlag();
@@ -1385,6 +1459,20 @@ public class Cpu implements InstructionTable {
    */
   int address(int lowByte, int hiByte) {
     return ((hiByte<<8)|lowByte);
+  }
+
+  /**
+   * Given a single byte, compute the Zero Page,X offset address.
+   */
+  int zpxAddress(int zp) {
+    return (zp+getXRegister())&0xff;
+  }
+
+  /**
+   * Given a single byte, compute the Zero Page,Y offset address.
+   */
+  int zpyAddress(int zp) {
+    return (zp+getYRegister())&0xff;
   }
 
   /**
