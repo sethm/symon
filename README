@@ -55,10 +55,10 @@ ACIAs.  More functionality may be considered as time goes on.
     o Indirect [used only by JMP]
     o Zero Page, X-indexed
     o Zero Page, Y-indexed
+    o Absolute, X-indexed
 
   INCOMPLETE ADDRESSING MODES:
     o Relative
-    o Absolute, X-indexed
     o Absolute, Y-indexed
     o Indexed Indirect [ (Indirect ,X) ]
     o Indirect Indexed [ (Indirect),Y ]
