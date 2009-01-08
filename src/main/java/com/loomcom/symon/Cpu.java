@@ -205,7 +205,10 @@ public class Cpu implements InstructionTable {
     case 0x18: // CLC - Clear Carry Flag - Implied
       clearCarryFlag();
       break;
-    case 0x19: // TODO: implement
+    case 0x19: // ORA - Logical Inclusive Or - Absolute,Y
+      j = bus.read(yAddress(operands[0], operands[1]));
+      a |= j;
+      setArithmeticFlags(a);
       break;
     case 0x1d: // ORA - Logical Inclusive OR - Absolute,X
       j = bus.read(xAddress(operands[0], operands[1]));
@@ -292,7 +295,10 @@ public class Cpu implements InstructionTable {
     case 0x38: // SEC - Set Carry Flag - Implied
       setCarryFlag();
       break;
-    case 0x39: // TODO: implement
+    case 0x39: // AND - Logical AND - Absolute,Y
+      j = bus.read(yAddress(operands[0], operands[1]));
+      a &= j;
+      setArithmeticFlags(a);
       break;
     case 0x3d: // AND - Logical AND - Absolute,X
       j = bus.read(xAddress(operands[0], operands[1]));
@@ -367,7 +373,9 @@ public class Cpu implements InstructionTable {
     case 0x58: // CLI - Clear Interrupt Disable - Implied
       clearIrqDisableFlag();
       break;
-    case 0x59: // TODO: implement
+    case 0x59: // EOR - Exclusive OR - Absolute,Y
+      a ^= bus.read(yAddress(operands[0], operands[1]));
+      setArithmeticFlags(a);
       break;
     case 0x5d: // EOR - Exclusive OR - Absolute,X
       a ^= bus.read(xAddress(operands[0], operands[1]));
@@ -472,7 +480,13 @@ public class Cpu implements InstructionTable {
     case 0x78: // SEI - Set Interrupt Disable - Implied
       setIrqDisableFlag();
       break;
-    case 0x79: // TODO: implement
+    case 0x79: // ADC - Add with Carry - Absolute,Y
+      j = bus.read(yAddress(operands[0], operands[1]));
+      if (decimalModeFlag) {
+        a = adcDecimal(a, j);
+      } else {
+        a = adc(a, j);
+      }
       break;
     case 0x7d: // ADC - Add with Carry - Absolute,X
       j = bus.read(xAddress(operands[0], operands[1]));
@@ -544,7 +558,9 @@ public class Cpu implements InstructionTable {
       a = y;
       setArithmeticFlags(a);
       break;
-    case 0x99: // TODO: implement
+    case 0x99: // STA - Store Accumulator - Absolute,Y
+      bus.write(yAddress(operands[0], operands[1]), a);
+      setArithmeticFlags(a);
       break;
     case 0x9a: // TXS - Transfer X to Stack Pointer - Implied
       setStackPointer(x);
@@ -620,7 +636,9 @@ public class Cpu implements InstructionTable {
     case 0xb8: // CLV - Clear Overflow Flag - Implied
       clearOverflowFlag();
       break;
-    case 0xb9: // TODO: implement
+    case 0xb9: // LDA - Load Accumulator - Absolute,Y
+      a = bus.read(yAddress(operands[0], operands[1]));
+      setArithmeticFlags(a);
       break;
     case 0xba: // TSX - Transfer Stack Pointer to X - Implied
       x = getStackPointer();
@@ -634,7 +652,9 @@ public class Cpu implements InstructionTable {
       a = bus.read(xAddress(operands[0], operands[1]));
       setArithmeticFlags(a);
       break;
-    case 0xbe: // TODO: implement
+    case 0xbe: // LDX - Load X Register - Absolute,Y
+      x = bus.read(yAddress(operands[0], operands[1]));
+      setArithmeticFlags(x);
       break;
 
     case 0xc0: // CPY - Compare Y Register - Immediate
@@ -694,7 +714,8 @@ public class Cpu implements InstructionTable {
     case 0xd8: // CLD - Clear Decimal Mode - Implied
       clearDecimalModeFlag();
       break;
-    case 0xd9: // TODO: implement
+    case 0xd9: // CMP - Compare Accumulator - Absolute,Y
+      cmp(a, bus.read(yAddress(operands[0], operands[1])));
       break;
     case 0xdd: // CMP - Compare Accumulator - Absolute,X
       cmp(a, bus.read(xAddress(operands[0], operands[1])));
@@ -781,7 +802,13 @@ public class Cpu implements InstructionTable {
     case 0xf8: // SED - Set Decimal Flag - Implied
       setDecimalModeFlag();
       break;
-    case 0xf9: // TODO: implement
+    case 0xf9: // SBC - Subtract with Carry - Absolute,Y
+      j = bus.read(yAddress(operands[0], operands[1]));
+      if (decimalModeFlag) {
+        a = sbcDecimal(a, j);
+      } else {
+        a = sbc(a, j);
+      }
       break;
     case 0xfd: // SBC - Subtract with Carry - Absolute,X
       j = bus.read(xAddress(operands[0], operands[1]));
