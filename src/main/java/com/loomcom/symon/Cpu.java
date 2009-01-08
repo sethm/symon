@@ -188,7 +188,10 @@ public class Cpu implements InstructionTable {
       setArithmeticFlags(k);
       break;
 
-    case 0x10: // TODO: implement
+    case 0x10: // BPL - Branch if Positive - Relative
+      if (!getNegativeFlag()) {
+        pc = relAddress(operands[0]);
+      }
       break;
     case 0x11: // TODO: implement
       break;
@@ -277,7 +280,10 @@ public class Cpu implements InstructionTable {
       setArithmeticFlags(k);
       break;
 
-    case 0x30: // TODO: implement
+    case 0x30: // BMI - Branch if Minus - Relative
+      if (getNegativeFlag()) {
+        pc = relAddress(operands[0]);
+      }
       break;
     case 0x31: // TODO: implement
       break;
@@ -356,7 +362,10 @@ public class Cpu implements InstructionTable {
       setArithmeticFlags(k);
       break;
 
-    case 0x50: // TODO: implement
+    case 0x50: // BVC - Branch if Overflow Clear - Relative
+      if (!getOverflowFlag()) {
+        pc = relAddress(operands[0]);
+      }
       break;
     case 0x51: // TODO: implement
       break;
@@ -459,7 +468,10 @@ public class Cpu implements InstructionTable {
       setArithmeticFlags(k);
       break;
 
-    case 0x70: // TODO: implement
+    case 0x70: // BVS - Branch if Overflow Set - Relative
+      if (getOverflowFlag()) {
+        pc = relAddress(operands[0]);
+      }
       break;
     case 0x71: // TODO: implement
       break;
@@ -538,7 +550,10 @@ public class Cpu implements InstructionTable {
       setArithmeticFlags(x);
       break;
 
-    case 0x90: // TODO: implement
+    case 0x90: // BCC - Branch if Carry Clear - Relative
+      if (!getCarryFlag()) {
+        pc = relAddress(operands[0]);
+      }
       break;
     case 0x91: // TODO: implement
       break;
@@ -617,7 +632,10 @@ public class Cpu implements InstructionTable {
       setArithmeticFlags(x);
       break;
 
-    case 0xb0: // TODO: implement
+    case 0xb0: // BCS - Branch if Carry Set - Relative
+      if (getCarryFlag()) {
+        pc = relAddress(operands[0]);
+      }
       break;
     case 0xb1: // TODO: implement
       break;
@@ -698,7 +716,10 @@ public class Cpu implements InstructionTable {
       setArithmeticFlags(k);
       break;
 
-    case 0xd0: // TODO: implement
+    case 0xd0: // BNE - Branch if Not Equal to Zero - Relative
+      if (!getZeroFlag()) {
+        pc = relAddress(operands[0]);
+      }
       break;
     case 0xd1: // TODO: implement
       break;
@@ -781,7 +802,10 @@ public class Cpu implements InstructionTable {
       setArithmeticFlags(k);
       break;
 
-    case 0xf0: // TODO: implement
+    case 0xf0: // BEQ - Branch if Equal to Zero - Relative
+      if (getZeroFlag()) {
+        pc = relAddress(operands[0]);
+      }
       break;
     case 0xf1: // TODO: implement
       break;
@@ -1560,6 +1584,14 @@ public class Cpu implements InstructionTable {
    */
   int zpxAddress(int zp) {
     return (zp+getXRegister())&0xff;
+  }
+
+  /**
+   * Given a single byte, compute the offset address.
+   */
+  int relAddress(int offset) {
+    // Cast the offset to a signed byte to handle negative offsets
+    return (pc + (byte)offset) & 0xffff;
   }
 
   /**
