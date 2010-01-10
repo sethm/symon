@@ -1,7 +1,8 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.exceptions.MemoryRangeException;
+import com.loomcom.symon.exceptions.MemoryAccessException;
+
 import junit.framework.TestCase;
 
 public class CpuIndirectModeTest extends TestCase {
@@ -40,7 +41,7 @@ public class CpuIndirectModeTest extends TestCase {
 
   /* JMP - Jump - $6c */
 
-  public void test_JMP() {
+  public void test_JMP() throws MemoryAccessException {
     bus.write(0x3400, 0x00);
     bus.write(0x3401, 0x54);
     bus.loadProgram(0x6c, 0x00, 0x34);

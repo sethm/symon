@@ -1,7 +1,8 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.exceptions.MemoryRangeException;
+import com.loomcom.symon.exceptions.MemoryAccessException;
+
 import junit.framework.TestCase;
 
 public class CpuZeroPageYModeTest extends TestCase {
@@ -41,7 +42,7 @@ public class CpuZeroPageYModeTest extends TestCase {
 
   /* STX - Store X Register - $96 */
 
-  public void test_STX() {
+  public void test_STX() throws MemoryAccessException {
     cpu.setYRegister(0x30);
     cpu.setXRegister(0x00);
     bus.loadProgram(0x96, 0x10);  // STX $10,Y
@@ -71,7 +72,7 @@ public class CpuZeroPageYModeTest extends TestCase {
 
   /* LDX - Load X Register - $b6 */
 
-  public void test_LDX() {
+  public void test_LDX() throws MemoryAccessException {
     bus.write(0x40, 0x00);
     bus.write(0x41, 0x0f);
     bus.write(0x42, 0x80);

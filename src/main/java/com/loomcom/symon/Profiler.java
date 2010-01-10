@@ -10,7 +10,7 @@ import com.loomcom.symon.exceptions.*;
 
 public class Profiler implements InstructionTable {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws MemoryAccessException {
     // new Profiler().profileMemoryReads();
     // new Profiler().dumpOpCodes();
     new Profiler().profileProgram();
@@ -31,7 +31,7 @@ public class Profiler implements InstructionTable {
     }
   }
 
-  public void profileProgram() {
+  public void profileProgram() throws MemoryAccessException {
     Bus bus = new Bus(0, 65535);
     Cpu cpu = new Cpu();
 
@@ -96,7 +96,6 @@ public class Profiler implements InstructionTable {
       sum += diff;
     }
 
-    long average    = sum / iters;
     long totalSteps = steps * iters;
     long avgStep    = sum / totalSteps;
 
@@ -108,7 +107,7 @@ public class Profiler implements InstructionTable {
                        avgStep + " ns ");
   }
 
-  public void profileMemoryReads() {
+  public void profileMemoryReads() throws MemoryAccessException {
     // Create a bus.
     Bus b = new Bus(0, 65535);
 

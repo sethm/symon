@@ -1,6 +1,7 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
+import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import junit.framework.*;
 
@@ -10,7 +11,7 @@ public class CpuImpliedModeTest extends TestCase {
   protected Bus bus;
   protected Memory mem;
 
-  public void setUp() throws MemoryRangeException {
+  public void setUp() throws MemoryRangeException, MemoryAccessException {
     this.cpu = new Cpu();
     this.bus = new Bus(0x0000, 0xffff);
     this.mem = new Memory(0x0000, 0x10000);
@@ -68,7 +69,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* BRK Tests - 0x00 */
 
-  public void test_BRK() {
+  public void test_BRK() throws MemoryAccessException {
     cpu.setCarryFlag();
     cpu.setOverflowFlag();
     assertEquals(0x20|Cpu.P_CARRY|Cpu.P_OVERFLOW,
@@ -111,7 +112,7 @@ public class CpuImpliedModeTest extends TestCase {
                  cpu.getProcessorStatus());
   }
 
-  public void test_BRK_HonorsIrqDisableFlag() {
+  public void test_BRK_HonorsIrqDisableFlag() throws MemoryAccessException {
     cpu.setIrqDisableFlag();
 
     bus.loadProgram(0xea,
@@ -143,7 +144,7 @@ public class CpuImpliedModeTest extends TestCase {
   }
 
   /* CLC - Clear Carry Flag - $18 */
-  public void test_CLC() {
+  public void test_CLC() throws MemoryAccessException {
     cpu.setCarryFlag();
     assertTrue(cpu.getCarryFlag());
 
@@ -154,7 +155,7 @@ public class CpuImpliedModeTest extends TestCase {
   }
 
   /* CLD - Clear Decimal Mode Flag - $d8 */
-  public void test_CLD() {
+  public void test_CLD() throws MemoryAccessException {
     cpu.setDecimalModeFlag();
     assertTrue(cpu.getDecimalModeFlag());
 
@@ -165,7 +166,7 @@ public class CpuImpliedModeTest extends TestCase {
   }
 
   /* CLI - Clear Interrupt Disabled Flag - $58 */
-  public void test_CLI() {
+  public void test_CLI() throws MemoryAccessException {
     cpu.setIrqDisableFlag();
     assertTrue(cpu.getIrqDisableFlag());
 
@@ -176,7 +177,7 @@ public class CpuImpliedModeTest extends TestCase {
   }
 
   /* CLV - Clear Overflow Flag - $b8 */
-  public void test_CLV() {
+  public void test_CLV() throws MemoryAccessException {
     cpu.setOverflowFlag();
     assertTrue(cpu.getOverflowFlag());
 
@@ -188,7 +189,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* DEX - Decrement the X register - $ca */
 
-  public void test_DEX() {
+  public void test_DEX() throws MemoryAccessException {
     bus.loadProgram(0xca);
     cpu.setXRegister(0x02);
     cpu.step();
@@ -197,7 +198,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_DEX_SetsZeroFlagWhenZero() {
+  public void test_DEX_SetsZeroFlagWhenZero() throws MemoryAccessException {
     bus.loadProgram(0xca);
     cpu.setXRegister(0x01);
     cpu.step();
@@ -206,7 +207,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_DEX_SetsNegativeFlagWhen() {
+  public void test_DEX_SetsNegativeFlagWhen() throws MemoryAccessException {
     bus.loadProgram(0xca);
     cpu.step();
     assertEquals(0xff, cpu.getXRegister());
@@ -216,7 +217,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* DEY - Decrement the Y register - $88 */
 
-  public void test_DEY() {
+  public void test_DEY() throws MemoryAccessException {
     bus.loadProgram(0x88);
     cpu.setYRegister(0x02);
     cpu.step();
@@ -225,7 +226,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_DEY_SetsZeroFlagWhenZero() {
+  public void test_DEY_SetsZeroFlagWhenZero() throws MemoryAccessException {
     bus.loadProgram(0x88);
     cpu.setYRegister(0x01);
     cpu.step();
@@ -234,7 +235,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_DEY_SetsNegativeFlagWhen() {
+  public void test_DEY_SetsNegativeFlagWhen() throws MemoryAccessException {
     bus.loadProgram(0x88);
     cpu.step();
     assertEquals(0xff, cpu.getYRegister());
@@ -244,7 +245,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* INX - Increment the X register - $e8 */
 
-  public void test_INX() {
+  public void test_INX() throws MemoryAccessException {
     bus.loadProgram(0xe8);
     cpu.step();
     assertEquals(0x01, cpu.getXRegister());
@@ -252,7 +253,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_INX_SetsNegativeFlagWhenNegative() {
+  public void test_INX_SetsNegativeFlagWhenNegative() throws MemoryAccessException {
     bus.loadProgram(0xe8);
     cpu.setXRegister(0x7f);
     cpu.step();
@@ -261,7 +262,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertTrue(cpu.getNegativeFlag());
   }
 
-  public void test_INX_SetsZeroFlagWhenZero() {
+  public void test_INX_SetsZeroFlagWhenZero() throws MemoryAccessException {
     bus.loadProgram(0xe8);
     cpu.setXRegister(0xff);
     cpu.step();
@@ -272,7 +273,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* INY - Increment the Y register - $c8 */
 
-  public void test_INY() {
+  public void test_INY() throws MemoryAccessException {
     bus.loadProgram(0xc8);
     cpu.step();
     assertEquals(0x01, cpu.getYRegister());
@@ -280,7 +281,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_INY_SetsNegativeFlagWhenNegative() {
+  public void test_INY_SetsNegativeFlagWhenNegative() throws MemoryAccessException {
     bus.loadProgram(0xc8);
     cpu.setYRegister(0x7f);
     cpu.step();
@@ -289,7 +290,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertTrue(cpu.getNegativeFlag());
   }
 
-  public void test_INY_SetsZeroFlagWhenZero() {
+  public void test_INY_SetsZeroFlagWhenZero() throws MemoryAccessException {
     bus.loadProgram(0xc8);
     cpu.setYRegister(0xff);
     cpu.step();
@@ -300,7 +301,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* NOP - No Operation - $ea */
 
-  public void test_NOP() {
+  public void test_NOP() throws MemoryAccessException {
     bus.loadProgram(0xea);
     cpu.step();
     // Should just not change anything except PC
@@ -314,7 +315,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* PHA - Push Accumulator - $48 */
 
-  public void test_PHA() {
+  public void test_PHA() throws MemoryAccessException {
     bus.loadProgram(0x48);
     cpu.setAccumulator(0x3a);
     cpu.step();
@@ -324,7 +325,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* PHP - Push Processor Status - $08 */
 
-  public void test_PHP() {
+  public void test_PHP() throws MemoryAccessException {
     bus.loadProgram(0x08);
     cpu.setProcessorStatus(0x27);
     cpu.step();
@@ -334,7 +335,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* PLA - Pul Accumulator - $68 */
 
-  public void test_PLA() {
+  public void test_PLA() throws MemoryAccessException {
     cpu.stackPush(0x32);
     bus.loadProgram(0x68);
     cpu.step();
@@ -343,7 +344,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getZeroFlag());
   }
 
-  public void test_PLA_SetsZeroIfAccumulatorIsZero() {
+  public void test_PLA_SetsZeroIfAccumulatorIsZero() throws MemoryAccessException {
     cpu.stackPush(0x00);
     bus.loadProgram(0x68);
     cpu.step();
@@ -352,7 +353,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertTrue(cpu.getZeroFlag());
   }
 
-  public void test_PLA_SetsNegativeIfAccumulatorIsNegative() {
+  public void test_PLA_SetsNegativeIfAccumulatorIsNegative() throws MemoryAccessException {
     cpu.stackPush(0xff);
     bus.loadProgram(0x68);
     cpu.step();
@@ -363,7 +364,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* PLP - Pull Processor Status - $28 */
 
-  public void test_PLP() {
+  public void test_PLP() throws MemoryAccessException {
     cpu.stackPush(0x2f);
     bus.loadProgram(0x28);
     cpu.step();
@@ -372,7 +373,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* RTI - Return from Interrupt - $40 */
 
-  public void test_RTI() {
+  public void test_RTI() throws MemoryAccessException {
     cpu.stackPush(0x0f); // PC hi
     cpu.stackPush(0x11); // PC lo
     cpu.stackPush(0x29); // status
@@ -386,7 +387,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* RTS - Return from Subroutine - $60 */
 
-  public void test_RTS() {
+  public void test_RTS() throws MemoryAccessException {
     cpu.stackPush(0x0f); // PC hi
     cpu.stackPush(0x11); // PC lo
 
@@ -399,7 +400,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* SEC - Set Carry Flag - $38 */
 
-  public void test_SEC() {
+  public void test_SEC() throws MemoryAccessException {
     bus.loadProgram(0x38);
     cpu.step();
     assertTrue(cpu.getCarryFlag());
@@ -407,7 +408,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* SED - Set Decimal Mode Flag - $f8 */
 
-  public void test_SED() {
+  public void test_SED() throws MemoryAccessException {
     bus.loadProgram(0xf8);
     cpu.step();
     assertTrue(cpu.getDecimalModeFlag());
@@ -415,7 +416,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* SEI - Set Interrupt Disable Flag - $78 */
 
-  public void test_SEI() {
+  public void test_SEI() throws MemoryAccessException {
     bus.loadProgram(0x78);
     cpu.step();
     assertTrue(cpu.getIrqDisableFlag());
@@ -423,7 +424,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* TAX - Transfer Accumulator to X Register - $aa */
 
-  public void test_TAX() {
+  public void test_TAX() throws MemoryAccessException {
     cpu.setAccumulator(0x32);
     bus.loadProgram(0xaa);
     cpu.step();
@@ -432,7 +433,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TAX_SetsZeroFlagIfXIsZero() {
+  public void test_TAX_SetsZeroFlagIfXIsZero() throws MemoryAccessException {
     cpu.setAccumulator(0x00);
     bus.loadProgram(0xaa);
     cpu.step();
@@ -441,7 +442,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TAX_SetsNegativeFlagIfXIsNegative() {
+  public void test_TAX_SetsNegativeFlagIfXIsNegative() throws MemoryAccessException {
     cpu.setAccumulator(0xff);
     bus.loadProgram(0xaa);
     cpu.step();
@@ -452,7 +453,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* TAY - Transfer Accumulator to Y Register - $a8 */
 
-  public void test_TAY() {
+  public void test_TAY() throws MemoryAccessException {
     cpu.setAccumulator(0x32);
     bus.loadProgram(0xa8);
     cpu.step();
@@ -461,7 +462,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TAY_SetsZeroFlagIfYIsZero() {
+  public void test_TAY_SetsZeroFlagIfYIsZero() throws MemoryAccessException {
     cpu.setAccumulator(0x00);
     bus.loadProgram(0xa8);
     cpu.step();
@@ -470,7 +471,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TAY_SetsNegativeFlagIfYIsNegative() {
+  public void test_TAY_SetsNegativeFlagIfYIsNegative() throws MemoryAccessException {
     cpu.setAccumulator(0xff);
     bus.loadProgram(0xa8);
     cpu.step();
@@ -481,7 +482,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* TSX - Transfer Stack Pointer to X Register - $ba */
 
-  public void test_TSX() {
+  public void test_TSX() throws MemoryAccessException {
     cpu.setStackPointer(0x32);
     bus.loadProgram(0xba);
     cpu.step();
@@ -490,7 +491,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TSX_SetsZeroFlagIfXIsZero() {
+  public void test_TSX_SetsZeroFlagIfXIsZero() throws MemoryAccessException {
     cpu.setStackPointer(0x00);
     bus.loadProgram(0xba);
     cpu.step();
@@ -499,7 +500,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TSX_SetsNegativeFlagIfXIsNegative() {
+  public void test_TSX_SetsNegativeFlagIfXIsNegative() throws MemoryAccessException {
     cpu.setStackPointer(0xff);
     bus.loadProgram(0xba);
     cpu.step();
@@ -510,7 +511,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* TXA - Transfer X Register to Accumulator - $8a */
 
-  public void test_TXA() {
+  public void test_TXA() throws MemoryAccessException {
     cpu.setXRegister(0x32);
     bus.loadProgram(0x8a);
     cpu.step();
@@ -519,7 +520,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TXA_SetsZeroFlagIfAccumulatorIsZero() {
+  public void test_TXA_SetsZeroFlagIfAccumulatorIsZero() throws MemoryAccessException {
     cpu.setXRegister(0x00);
     bus.loadProgram(0x8a);
     cpu.step();
@@ -528,7 +529,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TXA_SetsNegativeFlagIfAccumulatorIsNegative() {
+  public void test_TXA_SetsNegativeFlagIfAccumulatorIsNegative() throws MemoryAccessException {
     cpu.setXRegister(0xff);
     bus.loadProgram(0x8a);
     cpu.step();
@@ -539,7 +540,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* TXS - Transfer X Register to Stack Pointer - $9a */
 
-  public void test_TXS() {
+  public void test_TXS() throws MemoryAccessException {
     cpu.setXRegister(0x32);
     bus.loadProgram(0x9a);
     cpu.step();
@@ -548,7 +549,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TXS_DoesNotAffectProcessorStatus() {
+  public void test_TXS_DoesNotAffectProcessorStatus() throws MemoryAccessException {
     cpu.setXRegister(0x00);
     bus.loadProgram(0x9a);
     cpu.step();
@@ -566,7 +567,7 @@ public class CpuImpliedModeTest extends TestCase {
 
   /* TYA - Transfer Y Register to Accumulator - $98 */
 
-  public void test_TYA() {
+  public void test_TYA() throws MemoryAccessException {
     cpu.setYRegister(0x32);
     bus.loadProgram(0x98);
     cpu.step();
@@ -575,7 +576,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TYA_SetsZeroFlagIfAccumulatorIsZero() {
+  public void test_TYA_SetsZeroFlagIfAccumulatorIsZero() throws MemoryAccessException {
     cpu.setYRegister(0x00);
     bus.loadProgram(0x98);
     cpu.step();
@@ -584,7 +585,7 @@ public class CpuImpliedModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void test_TYA_SetsNegativeFlagIfAccumulatorIsNegative() {
+  public void test_TYA_SetsNegativeFlagIfAccumulatorIsNegative() throws MemoryAccessException {
     cpu.setYRegister(0xff);
     bus.loadProgram(0x98);
     cpu.step();

@@ -29,6 +29,14 @@ public class CommandParser {
       System.exit(1);
     }
   }
+  
+  public void setSimulator(Simulator sim) {
+    this.simulator = sim;
+  }
+  
+  public Simulator getSimulator() {
+    return this.simulator;
+  }
 
   /**
    * Dispatch the command.

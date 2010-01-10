@@ -5,8 +5,6 @@ import junit.framework.*;
 import com.loomcom.symon.devices.*;
 import com.loomcom.symon.exceptions.*;
 
-import java.util.*;
-
 /**
  *
  */

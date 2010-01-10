@@ -46,7 +46,7 @@ public class Simulator {
   public void write(int address, int value) {
   }
 
-  public void loadProgram(int address, int[] program) {
+  public void loadProgram(int address, int[] program) throws MemoryAccessException {
     // Reset interrupt vector
     int hi = (address&0xff00)>>>8;
     int lo = address&0x00ff;
@@ -63,7 +63,7 @@ public class Simulator {
    * A test method.
    */
 
-  public void runTest() {
+  public void runTest() throws MemoryAccessException {
     int[] program = {
       0xa9, // LDA #$FF
       0xff,
@@ -103,7 +103,7 @@ public class Simulator {
   /**
    * Main simulator routine.
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws MemoryAccessException {
     try {
       new Simulator().runTest();
     } catch (MemoryRangeException ex) {

@@ -1,7 +1,8 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.exceptions.MemoryRangeException;
+import com.loomcom.symon.exceptions.*;
+
 import junit.framework.*;
 
 public class CpuAccumulatorModeTest extends TestCase {
@@ -10,7 +11,7 @@ public class CpuAccumulatorModeTest extends TestCase {
   protected Bus bus;
   protected Memory mem;
 
-  public void setUp() throws MemoryRangeException {
+  public void setUp() throws MemoryRangeException, MemoryAccessException {
     this.cpu = new Cpu();
     this.bus = new Bus(0x0000, 0xffff);
     this.mem = new Memory(0x0000, 0x10000);
@@ -43,7 +44,7 @@ public class CpuAccumulatorModeTest extends TestCase {
 
 	/* ASL - Arithmetic Shift Left - $0a */
 
-	public void test_ASL() {
+	public void test_ASL() throws MemoryAccessException {
 		bus.loadProgram(0xa9, 0x00,  // LDA #$00
 										0x0a,        // ASL A
 
@@ -92,7 +93,7 @@ public class CpuAccumulatorModeTest extends TestCase {
 
 	/* ROL - Rotate Left - $2a */
 
-	public void test_ROL() {
+	public void test_ROL() throws MemoryAccessException {
     bus.loadProgram(0xa9, 0x00,  // LDA #$00
 										0x2a,        // ROL A   (m=%00000000, c=0)
                     0xa9, 0x01,  // LDA #$01
@@ -170,7 +171,7 @@ public class CpuAccumulatorModeTest extends TestCase {
 
 	/* LSR - Logical Shift Right - $4a */
 
-	public void test_LSR() {
+	public void test_LSR() throws MemoryAccessException {
     bus.loadProgram(0xa9, 0x00,  // LDA #$00
 										0x4a,        // LSR A
 
@@ -230,7 +231,7 @@ public class CpuAccumulatorModeTest extends TestCase {
 
 	/* ROR - Rotate Right - $6a */
 
-	public void test_ROR() {
+	public void test_ROR() throws MemoryAccessException {
     bus.loadProgram(0xa9, 0x00,  // LDA #$00
 										0x6a,        // ROR A   (m=%00000000, c=0)
 										0xa9, 0x10,  // LDA #$10

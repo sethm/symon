@@ -1,7 +1,8 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.exceptions.MemoryRangeException;
+import com.loomcom.symon.exceptions.MemoryAccessException;
+
 import junit.framework.TestCase;
 
 public class CpuRelativeModeTest extends TestCase {
@@ -47,7 +48,7 @@ public class CpuRelativeModeTest extends TestCase {
 
   /* BPL - Branch if Positive          - 0x10 */
 
-  public void test_BPL() {
+  public void test_BPL() throws MemoryAccessException {
     // Positive Offset
     bus.loadProgram(0x10, 0x05);  // BPL $05 ; *=$0202+$05 ($0207)
     cpu.setNegativeFlag();
@@ -76,7 +77,7 @@ public class CpuRelativeModeTest extends TestCase {
 
   /* BMI - Branch if Minus             - 0x30 */
 
-  public void test_BMI() {
+  public void test_BMI() throws MemoryAccessException {
     // Positive Offset
     bus.loadProgram(0x30, 0x05);  // BMI $05 ; *=$0202+$05 ($0207)
     cpu.setNegativeFlag();
@@ -105,7 +106,7 @@ public class CpuRelativeModeTest extends TestCase {
 
   /* BVC - Branch if Overflow Clear    - 0x50 */
 
-  public void test_BVC() {
+  public void test_BVC() throws MemoryAccessException {
     // Positive Offset
     bus.loadProgram(0x50, 0x05);  // BVC $05 ; *=$0202+$05 ($0207)
     cpu.setOverflowFlag();
@@ -134,7 +135,7 @@ public class CpuRelativeModeTest extends TestCase {
 
   /* BVS - Branch if Overflow Set      - 0x70 */
 
-  public void test_BVS() {
+  public void test_BVS() throws MemoryAccessException {
     // Positive Offset
     bus.loadProgram(0x70, 0x05);  // BVS $05 ; *=$0202+$05 ($0207)
     cpu.setOverflowFlag();
@@ -163,7 +164,7 @@ public class CpuRelativeModeTest extends TestCase {
 
   /* BCC - Branch if Carry Clear       - 0x90 */
 
-  public void test_BCC() {
+  public void test_BCC() throws MemoryAccessException {
     // Positive Offset
     bus.loadProgram(0x90, 0x05);  // BCC $05 ; *=$0202+$05 ($0207)
     cpu.setCarryFlag();
@@ -192,7 +193,7 @@ public class CpuRelativeModeTest extends TestCase {
 
   /* BCS - Branch if Carry Set         - 0xb0 */
 
-  public void test_BCS() {
+  public void test_BCS() throws MemoryAccessException {
     // Positive Offset
     bus.loadProgram(0xb0, 0x05);  // BCS $05 ; *=$0202+$05 ($0207)
     cpu.setCarryFlag();
@@ -221,7 +222,7 @@ public class CpuRelativeModeTest extends TestCase {
 
   /* BNE - Branch if Not Equal to Zero - 0xd0 */
 
-  public void test_BNE() {
+  public void test_BNE() throws MemoryAccessException {
      // Positive Offset
     bus.loadProgram(0xd0, 0x05);  // BNE $05 ; *=$0202+$05 ($0207)
     cpu.setZeroFlag();
@@ -250,7 +251,7 @@ public class CpuRelativeModeTest extends TestCase {
 
   /* BEQ - Branch if Equal to Zero     - 0xf0 */
 
-  public void test_BEQ() {
+  public void test_BEQ() throws MemoryAccessException {
      // Positive Offset
     bus.loadProgram(0xf0, 0x05);  // BEQ $05 ; *=$0202+$05 ($0207)
     cpu.setZeroFlag();

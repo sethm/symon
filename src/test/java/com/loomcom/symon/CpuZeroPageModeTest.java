@@ -1,7 +1,8 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.exceptions.MemoryRangeException;
+import com.loomcom.symon.exceptions.MemoryAccessException;
+
 import junit.framework.TestCase;
 
 public class CpuZeroPageModeTest extends TestCase {
@@ -63,7 +64,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* ORA - Logical Inclusive OR - $05 */
 
-  public void test_ORA() {
+  public void test_ORA() throws MemoryAccessException {
     // Set some initial values in zero page.
     bus.write(0x0000, 0x00);
     bus.write(0x0002, 0x11);
@@ -104,7 +105,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* ASL - Arithmetic Shift Left - $06 */
 
-  public void test_ASL() {
+  public void test_ASL() throws MemoryAccessException {
     bus.write(0x0000, 0x00);
     bus.write(0x0001, 0x01);
     bus.write(0x0002, 0x02);
@@ -150,7 +151,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* BIT - Bit Test - $24 */
 
-  public void test_BIT() {
+  public void test_BIT() throws MemoryAccessException {
     bus.write(0x0000, 0xc0);
 
     bus.loadProgram(0xa9, 0x01,  // LDA #$01
@@ -204,7 +205,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* AND - Logical AND - $25 */
 
-  public void test_AND() {
+  public void test_AND() throws MemoryAccessException {
     bus.write(0x0000, 0x00);
     bus.write(0x0001, 0x11);
     bus.write(0x0002, 0xff);
@@ -253,7 +254,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* ROL - Rotate Shift Left - $26 */
 
-  public void test_ROL() {
+  public void test_ROL() throws MemoryAccessException {
 
     bus.write(0x0000, 0x00);
     bus.write(0x0001, 0x01);
@@ -333,7 +334,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* EOR - Exclusive OR - $45 */
 
-  public void test_EOR() {
+  public void test_EOR() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0xff);
     bus.write(0x12, 0x33);
@@ -367,7 +368,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* LSR - Logical Shift Right - $46 */
 
-  public void test_LSR() {
+  public void test_LSR() throws MemoryAccessException {
     bus.write(0x0000, 0x00);
     bus.write(0x0001, 0x01);
     bus.write(0x0002, 0x02);
@@ -423,7 +424,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* ADC - Add with Carry - $65 */
 
-  public void test_ADC() {
+  public void test_ADC() throws MemoryAccessException {
     bus.write(0x10, 0x01);
     bus.write(0x11, 0xff);
 
@@ -507,7 +508,7 @@ public class CpuZeroPageModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
   }
 
-  public void test_ADC_IncludesCarry() {
+  public void test_ADC_IncludesCarry() throws MemoryAccessException {
     bus.write(0x10, 0x01);
 
     bus.loadProgram(0xa9, 0x00,  // LDA #$00
@@ -521,7 +522,7 @@ public class CpuZeroPageModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
   }
 
-  public void test_ADC_DecimalMode() {
+  public void test_ADC_DecimalMode() throws MemoryAccessException {
     bus.write(0x10, 0x01);
     bus.write(0x11, 0x99);
 
@@ -604,8 +605,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* ROR - Rotate Right - $66 */
 
-  public void test_ROR() {
-
+  public void test_ROR() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0x10);
 
@@ -683,7 +683,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* STY - Store Y Register - $84 */
 
-  public void test_STY() {
+  public void test_STY() throws MemoryAccessException {
     cpu.setYRegister(0x00);
     bus.loadProgram(0x84, 0x10);
     cpu.step();
@@ -712,7 +712,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* STA - Store Accumulator - $85 */
 
-  public void test_STA() {
+  public void test_STA() throws MemoryAccessException {
     cpu.setAccumulator(0x00);
     bus.loadProgram(0x85, 0x10);
     cpu.step();
@@ -741,7 +741,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* STX - Store X Register - $86 */
 
-  public void test_STX() {
+  public void test_STX() throws MemoryAccessException {
     cpu.setXRegister(0x00);
     bus.loadProgram(0x86, 0x10);
     cpu.step();
@@ -770,7 +770,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* LDY - Load Y Register - $a4 */
 
-  public void test_LDY() {
+  public void test_LDY() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0x0f);
     bus.write(0x12, 0x80);
@@ -797,7 +797,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* LDA - Load Accumulator - $a5 */
 
-  public void test_LDA() {
+  public void test_LDA() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0x0f);
     bus.write(0x12, 0x80);
@@ -824,7 +824,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* LDX - Load X Register - $a6 */
 
-  public void test_LDX() {
+  public void test_LDX() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0x0f);
     bus.write(0x12, 0x80);
@@ -851,7 +851,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* CPY - Compare Y Register - $c4 */
 
-  public void test_CPY() {
+  public void test_CPY() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0x80);
     bus.write(0x12, 0xff);
@@ -880,7 +880,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* CMP - Compare Accumulator - $c5 */
 
-  public void test_CMP() {
+  public void test_CMP() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0x80);
     bus.write(0x12, 0xff);
@@ -909,7 +909,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* DEC - Decrement Memory Location - $c6 */
 
-  public void test_DEC() {
+  public void test_DEC() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0x01);
     bus.write(0x12, 0x80);
@@ -943,7 +943,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* CPX - Compare X Register - $e4 */
 
-  public void test_CPX() {
+  public void test_CPX() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0x80);
     bus.write(0x12, 0xff);
@@ -972,7 +972,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* SBC - Subtract with Carry - $e5 */
 
-  public void test_SBC() {
+  public void test_SBC() throws MemoryAccessException {
     bus.write(0x10, 0x01);
 
     bus.loadProgram(0xa9, 0x00,  // LDA #$00
@@ -1025,7 +1025,7 @@ public class CpuZeroPageModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
   }
 
-  public void test_SBC_IncludesNotOfCarry() {
+  public void test_SBC_IncludesNotOfCarry() throws MemoryAccessException {
     bus.write(0x10, 0x01);
 
     // Subtrace with Carry Flag cleared
@@ -1068,7 +1068,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   }
 
-  public void test_SBC_DecimalMode() {
+  public void test_SBC_DecimalMode() throws MemoryAccessException {
     bus.write(0x10, 0x01);
     bus.write(0x20, 0x11);
 
@@ -1167,7 +1167,7 @@ public class CpuZeroPageModeTest extends TestCase {
 
   /* INC - Increment Memory Location - $e6 */
 
-  public void test_INC() {
+  public void test_INC() throws MemoryAccessException {
     bus.write(0x10, 0x00);
     bus.write(0x11, 0x7f);
     bus.write(0x12, 0xff);

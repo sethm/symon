@@ -1,7 +1,8 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.exceptions.MemoryRangeException;
+import com.loomcom.symon.exceptions.MemoryAccessException;
+
 import junit.framework.TestCase;
 
 public class CpuAbsoluteXModeTest extends TestCase {
@@ -53,7 +54,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* ORA - Logical Inclusive OR - $1d */
 
-  public void test_ORA() {
+  public void test_ORA() throws MemoryAccessException {
     // Set some initial values in memory
     bus.write(0x2c30, 0x00);
     bus.write(0x2c32, 0x11);
@@ -99,7 +100,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* ASL - Arithmetic Shift Left - $1e */
 
-  public void test_ASL() {
+  public void test_ASL() throws MemoryAccessException {
     bus.write(0x2c30, 0x00);
     bus.write(0x2c31, 0x01);
     bus.write(0x2c32, 0x02);
@@ -148,7 +149,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* AND - Logical AND - $3d */
 
-  public void test_AND() {
+  public void test_AND() throws MemoryAccessException {
     bus.write(0x1a30, 0x00);
     bus.write(0x1a31, 0x11);
     bus.write(0x1a32, 0xff);
@@ -208,8 +209,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* ROL - Rotate Shift Left - $3e */
 
-  public void test_ROL() {
-
+  public void test_ROL() throws MemoryAccessException {
     bus.write(0x1070, 0x00);
     bus.write(0x1071, 0x01);
 
@@ -291,7 +291,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* EOR - Exclusive OR - $5d */
 
-  public void test_EOR() {
+  public void test_EOR() throws MemoryAccessException {
     bus.write(0xab40, 0x00);
     bus.write(0xab41, 0xff);
     bus.write(0xab42, 0x33);
@@ -327,7 +327,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* LSR - Logical Shift Right - $5e */
 
-  public void test_LSR() {
+  public void test_LSR() throws MemoryAccessException {
     bus.write(0xab30, 0x00);
     bus.write(0xab31, 0x01);
     bus.write(0xab32, 0x02);
@@ -385,7 +385,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* ADC - Add with Carry - $7d */
 
-  public void test_ADC() {
+  public void test_ADC() throws MemoryAccessException {
     bus.write(0xab40, 0x01);
     bus.write(0xab41, 0xff);
 
@@ -471,7 +471,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
   }
 
-  public void test_ADC_IncludesCarry() {
+  public void test_ADC_IncludesCarry() throws MemoryAccessException {
     bus.write(0xab40, 0x01);
 
     bus.loadProgram(0xa9, 0x00,        // LDA #$00
@@ -488,7 +488,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
   }
 
-  public void test_ADC_DecimalMode() {
+  public void test_ADC_DecimalMode() throws MemoryAccessException {
     bus.write(0xab40, 0x01);
     bus.write(0xab41, 0x99);
 
@@ -574,7 +574,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* ROR - Rotate Right - $7e */
 
-  public void test_ROR() {
+  public void test_ROR() throws MemoryAccessException {
 
     bus.write(0xab40, 0x00);
     bus.write(0xab41, 0x10);
@@ -655,7 +655,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* STA - Store Accumulator - $9d */
 
-  public void test_STA() {
+  public void test_STA() throws MemoryAccessException {
     cpu.setXRegister(0x30);
 
     cpu.setAccumulator(0x00);
@@ -686,7 +686,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* LDY - Load Y Register - $bc */
 
-  public void test_LDY() {
+  public void test_LDY() throws MemoryAccessException {
     bus.write(0xab45, 0x00);
     bus.write(0xab46, 0x0f);
     bus.write(0xab47, 0x80);
@@ -715,7 +715,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* LDA - Load Accumulator - $bd */
 
-  public void test_LDA() {
+  public void test_LDA() throws MemoryAccessException {
     bus.write(0xab42, 0x00);
     bus.write(0xab43, 0x0f);
     bus.write(0xab44, 0x80);
@@ -744,7 +744,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* CMP - Compare Accumulator - $dd */
 
-  public void test_CMP() {
+  public void test_CMP() throws MemoryAccessException {
     bus.write(0xab40, 0x00);
     bus.write(0xab41, 0x80);
     bus.write(0xab42, 0xff);
@@ -775,7 +775,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* DEC - Decrement Memory Location - $de */
 
-  public void test_DEC() {
+  public void test_DEC() throws MemoryAccessException {
     bus.write(0xab40, 0x00);
     bus.write(0xab41, 0x01);
     bus.write(0xab42, 0x80);
@@ -811,7 +811,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* SBC - Subtract with Carry - $fd */
 
-  public void test_SBC() {
+  public void test_SBC() throws MemoryAccessException {
     bus.write(0xab40, 0x01);
 
     bus.loadProgram(0xa9, 0x00,        // LDA #$00
@@ -869,7 +869,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
   }
 
-  public void test_SBC_IncludesNotOfCarry() {
+  public void test_SBC_IncludesNotOfCarry() throws MemoryAccessException {
     bus.write(0xab40, 0x01);
 
     // Subtrace with Carry Flag cleared
@@ -914,7 +914,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   }
 
-  public void test_SBC_DecimalMode() {
+  public void test_SBC_DecimalMode() throws MemoryAccessException {
     bus.write(0xab40, 0x01);
     bus.write(0xab50, 0x11);
 
@@ -1020,7 +1020,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
 
   /* INC - Increment Memory Location - $fe */
 
-  public void test_INC() {
+  public void test_INC() throws MemoryAccessException {
     bus.write(0xab30, 0x00);
     bus.write(0xab31, 0x7f);
     bus.write(0xab32, 0xff);

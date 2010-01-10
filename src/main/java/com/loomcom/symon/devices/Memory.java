@@ -2,7 +2,6 @@ package com.loomcom.symon.devices;
 
 import java.util.*;
 
-import com.loomcom.symon.*;
 import com.loomcom.symon.exceptions.*;
 
 public class Memory extends Device {
@@ -24,11 +23,15 @@ public class Memory extends Device {
     this(address, size, false);
   }
 
-  public void write(int address, int data) {
-    this.mem[address] = data;
+  public void write(int address, int data) throws MemoryAccessException {
+    if (readOnly) {
+      throw new MemoryAccessException("Cannot write to read-only memory at address " + address);
+    } else {
+      this.mem[address] = data;
+    }
   }
 
-  public int read(int address) {
+  public int read(int address) throws MemoryAccessException {
     return this.mem[address];
   }
 

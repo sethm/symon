@@ -2,9 +2,6 @@ package com.loomcom.symon;
 
 import junit.framework.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.loomcom.symon.exceptions.*;
 
 /**

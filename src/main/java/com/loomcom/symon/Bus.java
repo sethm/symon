@@ -98,7 +98,7 @@ public class Bus {
     return true;
   }
 
-  public int read(int address) {
+  public int read(int address) throws MemoryAccessException {
     for (Device d : devices) {
       MemoryRange range = d.getMemoryRange();
       if (range.includes(address)) {
@@ -111,7 +111,7 @@ public class Bus {
     throw new RuntimeException("Read failed!  Device not found.");
   }
 
-  public void write(int address, int value) {
+  public void write(int address, int value) throws MemoryAccessException {
     for (Device d : devices) {
       MemoryRange range = d.getMemoryRange();
       if (range.includes(address)) {
@@ -134,7 +134,7 @@ public class Bus {
     return cpu;
   }
 
-  public void loadProgram(int... program) {
+  public void loadProgram(int... program) throws MemoryAccessException {
     int address = getCpu().getProgramCounter();
     int i = 0;
     for (int d : program) {

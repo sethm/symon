@@ -1,7 +1,8 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.exceptions.MemoryRangeException;
+import com.loomcom.symon.exceptions.MemoryAccessException;
+
 import junit.framework.TestCase;
 
 public class CpuAbsoluteModeTest extends TestCase {
@@ -65,7 +66,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* ORA - Logical Inclusive OR - $0d */
 
-  public void test_ORA() {
+  public void test_ORA() throws MemoryAccessException {
     // Set some initial values in memory
     bus.write(0x7f00, 0x00);
     bus.write(0x7f02, 0x11);
@@ -78,27 +79,27 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0x0d, 0x04, 0x35,  // ORA $3504
                     0x0d, 0x08, 0x35,  // ORA $3508
                     0x0d, 0x10, 0x12); // ORA $1210
-    cpu.step();
+    extracted();
     assertEquals(0x00, cpu.getAccumulator());
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x11, cpu.getAccumulator());
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x33, cpu.getAccumulator());
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x77, cpu.getAccumulator());
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0xff, cpu.getAccumulator());
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
@@ -106,7 +107,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* ASL - Arithmetic Shift Left - $0e */
 
-  public void test_ASL() {
+  public void test_ASL() throws MemoryAccessException {
     bus.write(0x7f00, 0x00);
     bus.write(0x7f01, 0x01);
     bus.write(0x3502, 0x02);
@@ -119,31 +120,31 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0x0e, 0x03, 0x35,  // ASL $3503
                     0x0e, 0x04, 0x12); // ASL $1204
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x7f00));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x02, bus.read(0x7f01));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x04, bus.read(0x3502));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x88, bus.read(0x3503));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1204));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -152,7 +153,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* JSR - Jump to Subroutine - $20 */
 
-  public void test_JSR() {
+  public void test_JSR() throws MemoryAccessException {
     bus.loadProgram(0xea,              // NOP
                     0xea,              // NOP
                     0x20, 0x00, 0x34); // JSR $3400
@@ -173,7 +174,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* BIT - Bit Test - $2c */
 
-  public void test_BIT() {
+  public void test_BIT() throws MemoryAccessException {
     bus.write(0x1200, 0xc0);
 
     bus.loadProgram(0xa9, 0x01,        // LDA #$01
@@ -227,7 +228,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* AND - Logical AND - $2d */
 
-  public void test_AND() {
+  public void test_AND() throws MemoryAccessException {
     bus.write(0x1200, 0x00);
     bus.write(0x1201, 0x11);
     bus.write(0x1202, 0xff);
@@ -243,12 +244,12 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0x2d, 0x04, 0x12,  // AND $1204
                     0xa9, 0xff,        // LDA #$ff
                     0x2d, 0x05, 0x12); // AND $1205
-    cpu.step();
+    extracted();
     assertEquals(0x00, cpu.getAccumulator());
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, cpu.getAccumulator());
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -258,12 +259,12 @@ public class CpuAbsoluteModeTest extends TestCase {
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x88, cpu.getAccumulator());
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, cpu.getAccumulator());
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -276,7 +277,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* ROL - Rotate Shift Left - $2e */
 
-  public void test_ROL() {
+  public void test_ROL() throws MemoryAccessException {
 
     bus.write(0x1200, 0x00);
     bus.write(0x1201, 0x01);
@@ -293,13 +294,13 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0x2e, 0x01, 0x12,  // ROL $1201 (m=%01000000, c=1)
                     0x2e, 0x01, 0x12); // ROL $1201 (m=%10000001, c=0)
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1200));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x02, bus.read(0x1201));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -311,43 +312,43 @@ public class CpuAbsoluteModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x0a, bus.read(0x1201));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x14, bus.read(0x1201));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x28, bus.read(0x1201));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x50, bus.read(0x1201));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0xa0, bus.read(0x1201));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x40, bus.read(0x1201));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertTrue(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x81, bus.read(0x1201));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
@@ -356,17 +357,21 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* JMP - Jump - $4c */
 
-  public void test_JMP() {
+  public void test_JMP() throws MemoryAccessException {
     bus.loadProgram(0x4c, 0x00, 0x34);
-    cpu.step();
+    extracted();
     assertEquals(0x3400, cpu.getProgramCounter());
     // No change to status flags.
     assertEquals(0x20, cpu.getProcessorStatus());
   }
 
+  private void extracted() throws MemoryAccessException {
+    cpu.step();
+  }
+
   /* EOR - Exclusive OR - $4d */
 
-  public void test_EOR() {
+  public void test_EOR() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0xff);
     bus.write(0x1212, 0x33);
@@ -382,17 +387,17 @@ public class CpuAbsoluteModeTest extends TestCase {
     assertTrue(cpu.getNegativeFlag());
     assertFalse(cpu.getZeroFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x77, cpu.getAccumulator());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getZeroFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x44, cpu.getAccumulator());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getZeroFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, cpu.getAccumulator());
     assertFalse(cpu.getNegativeFlag());
     assertTrue(cpu.getZeroFlag());
@@ -400,7 +405,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* LSR - Logical Shift Right - $4e */
 
-  public void test_LSR() {
+  public void test_LSR() throws MemoryAccessException {
     bus.write(0x1200, 0x00);
     bus.write(0x1201, 0x01);
     bus.write(0x1202, 0x02);
@@ -416,31 +421,31 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0x38,              // SEC
                     0x4e, 0x05, 0x12); // LSR $1205
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1200));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1201));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertTrue(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x01, bus.read(0x1202));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x22, bus.read(0x1203));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x40, bus.read(0x1204));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -456,7 +461,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* ADC - Add with Carry - $6d */
 
-  public void test_ADC() {
+  public void test_ADC() throws MemoryAccessException {
     bus.write(0x1210, 0x01);
     bus.write(0x1211, 0xff);
 
@@ -540,7 +545,7 @@ public class CpuAbsoluteModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
   }
 
-  public void test_ADC_IncludesCarry() {
+  public void test_ADC_IncludesCarry() throws MemoryAccessException {
     bus.write(0x1210, 0x01);
 
     bus.loadProgram(0xa9, 0x00,        // LDA #$00
@@ -554,7 +559,7 @@ public class CpuAbsoluteModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
   }
 
-  public void test_ADC_DecimalMode() {
+  public void test_ADC_DecimalMode() throws MemoryAccessException {
     bus.write(0x1210, 0x01);
     bus.write(0x1211, 0x99);
 
@@ -637,7 +642,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* ROR - Rotate Right - $6e */
 
-  public void test_ROR() {
+  public void test_ROR() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0x10);
 
@@ -652,61 +657,61 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0x6e, 0x11, 0x12,  // ROR $1201 (m=%00100000, c=0)
                     0x6e, 0x11, 0x12); // ROR $1201 (m=%00010000, c=0)
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1210));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x08, bus.read(0x1211));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x04, bus.read(0x1211));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x02, bus.read(0x1211));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x01, bus.read(0x1211));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1211));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertTrue(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x80, bus.read(0x1211));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x40, bus.read(0x1211));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x20, bus.read(0x1211));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
     assertFalse(cpu.getCarryFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x10, bus.read(0x1211));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -715,10 +720,10 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* STY - Store Y Register - $8c */
 
-  public void test_STY() {
+  public void test_STY() throws MemoryAccessException {
     cpu.setYRegister(0x00);
     bus.loadProgram(0x8c, 0x10, 0x12);
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1210));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -727,7 +732,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
     cpu.setYRegister(0x0f);
     bus.loadProgram(0x8c, 0x10, 0x12);
-    cpu.step();
+    extracted();
     assertEquals(0x0f, bus.read(0x1210));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -736,7 +741,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
     cpu.setYRegister(0x80);
     bus.loadProgram(0x8c, 0x10, 0x12);
-    cpu.step();
+    extracted();
     assertEquals(0x80, bus.read(0x1210));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
@@ -744,10 +749,10 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* STA - Store Accumulator - $8d */
 
-  public void test_STA() {
+  public void test_STA() throws MemoryAccessException {
     cpu.setAccumulator(0x00);
     bus.loadProgram(0x8d, 0x10, 0x12);
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1210));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -756,7 +761,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
     cpu.setAccumulator(0x0f);
     bus.loadProgram(0x8d, 0x10, 0x12);
-    cpu.step();
+    extracted();
     assertEquals(0x0f, bus.read(0x1210));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -765,7 +770,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
     cpu.setAccumulator(0x80);
     bus.loadProgram(0x8d, 0x10, 0x12);
-    cpu.step();
+    extracted();
     assertEquals(0x80, bus.read(0x1210));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
@@ -773,10 +778,10 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* STX - Store X Register - $8e */
 
-  public void test_STX() {
+  public void test_STX() throws MemoryAccessException {
     cpu.setXRegister(0x00);
     bus.loadProgram(0x8e, 0x10, 0x12);
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1210));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -785,7 +790,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
     cpu.setXRegister(0x0f);
     bus.loadProgram(0x8e, 0x10, 0x12);
-    cpu.step();
+    extracted();
     assertEquals(0x0f, bus.read(0x1210));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
@@ -794,7 +799,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
     cpu.setXRegister(0x80);
     bus.loadProgram(0x8e, 0x10, 0x12);
-    cpu.step();
+    extracted();
     assertEquals(0x80, bus.read(0x1210));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
@@ -802,7 +807,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* LDA - Load Accumulator - $ad */
 
-  public void test_LDA() {
+  public void test_LDA() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0x0f);
     bus.write(0x1212, 0x80);
@@ -811,17 +816,17 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0xad, 0x11, 0x12,  // LDA $1211
                     0xad, 0x12, 0x12); // LDA $1212
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, cpu.getAccumulator());
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x0f, cpu.getAccumulator());
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x80, cpu.getAccumulator());
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
@@ -829,7 +834,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* LDX - Load X Register - $ae */
 
-  public void test_LDX() {
+  public void test_LDX() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0x0f);
     bus.write(0x1212, 0x80);
@@ -838,17 +843,17 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0xae, 0x11, 0x12,  // LDX $1211
                     0xae, 0x12, 0x12); // LDX $1212
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, cpu.getXRegister());
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x0f, cpu.getXRegister());
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x80, cpu.getXRegister());
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
@@ -856,7 +861,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* LDY - Load Y Register - $bc */
 
-  public void test_LDY() {
+  public void test_LDY() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0x0f);
     bus.write(0x1212, 0x80);
@@ -865,17 +870,17 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0xbc, 0x11, 0x12,  // LDY $1211
                     0xbc, 0x12, 0x12); // LDY $1212
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, cpu.getYRegister());
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x0f, cpu.getYRegister());
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x80, cpu.getYRegister());
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
@@ -883,7 +888,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* CMP - Compare Accumulator - $cd */
 
-  public void test_CMP() {
+  public void test_CMP() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0x80);
     bus.write(0x1212, 0xff);
@@ -894,17 +899,17 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0xcd, 0x11, 0x12,  // CMP $1211
                     0xcd, 0x12, 0x12); // CMP $1212
 
-    cpu.step();
+    extracted();
     assertTrue(cpu.getCarryFlag());    // m > y
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag()); // m - y < 0
 
-    cpu.step();
+    extracted();
     assertTrue(cpu.getCarryFlag());    // m = y
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag()); // m - y == 0
 
-    cpu.step();
+    extracted();
     assertFalse(cpu.getCarryFlag());    // m < y
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag()); // m - y > 0
@@ -912,7 +917,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* CPY - Compare Y Register - $cc */
 
-  public void test_CPY() {
+  public void test_CPY() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0x80);
     bus.write(0x1212, 0xff);
@@ -923,17 +928,17 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0xcc, 0x11, 0x12,  // CPY $1211
                     0xcc, 0x12, 0x12); // CPY $1212
 
-    cpu.step();
+    extracted();
     assertTrue(cpu.getCarryFlag());    // m > y
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag()); // m - y < 0
 
-    cpu.step();
+    extracted();
     assertTrue(cpu.getCarryFlag());    // m = y
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag()); // m - y == 0
 
-    cpu.step();
+    extracted();
     assertFalse(cpu.getCarryFlag());    // m < y
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag()); // m - y > 0
@@ -941,7 +946,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* DEC - Decrement Memory Location - $ce */
 
-  public void test_DEC() {
+  public void test_DEC() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0x01);
     bus.write(0x1212, 0x80);
@@ -952,22 +957,22 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0xce, 0x12, 0x12,  // DEC $1212
                     0xce, 0x13, 0x12); // DEC $1213
 
-    cpu.step();
+    extracted();
     assertEquals(0xff, bus.read(0x1210));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1211));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x7f, bus.read(0x1212));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0xfe, bus.read(0x1213));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
@@ -975,7 +980,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* CPX - Compare X Register - $ec */
 
-  public void test_CPX() {
+  public void test_CPX() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0x80);
     bus.write(0x1212, 0xff);
@@ -986,17 +991,17 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0xec, 0x11, 0x12,  // CPX $1211
                     0xec, 0x12, 0x12); // CPX $1212
 
-    cpu.step();
+    extracted();
     assertTrue(cpu.getCarryFlag());    // m > y
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag()); // m - y < 0
 
-    cpu.step();
+    extracted();
     assertTrue(cpu.getCarryFlag());    // m = y
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag()); // m - y == 0
 
-    cpu.step();
+    extracted();
     assertFalse(cpu.getCarryFlag());    // m < y
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag()); // m - y > 0
@@ -1004,7 +1009,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* SBC - Subtract with Carry (borrow) - $ed */
 
-  public void test_SBC() {
+  public void test_SBC() throws MemoryAccessException {
     bus.write(0x1210, 0x01);
 
     bus.loadProgram(0xa9, 0x00,        // LDA #$00
@@ -1057,7 +1062,7 @@ public class CpuAbsoluteModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
   }
 
-  public void test_SBC_IncludesNotOfCarry() {
+  public void test_SBC_IncludesNotOfCarry() throws MemoryAccessException {
     bus.write(0x1210, 0x01);
 
     // Subtrace with Carry Flag cleared
@@ -1100,7 +1105,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   }
 
-  public void test_SBC_DecimalMode() {
+  public void test_SBC_DecimalMode() throws MemoryAccessException {
     bus.write(0x1210, 0x01);
     bus.write(0x1220, 0x11);
 
@@ -1199,7 +1204,7 @@ public class CpuAbsoluteModeTest extends TestCase {
 
   /* INC - Increment Memory Location - $ee */
 
-  public void test_INC() {
+  public void test_INC() throws MemoryAccessException {
     bus.write(0x1210, 0x00);
     bus.write(0x1211, 0x7f);
     bus.write(0x1212, 0xff);
@@ -1208,17 +1213,17 @@ public class CpuAbsoluteModeTest extends TestCase {
                     0xee, 0x11, 0x12,  // INC $1211
                     0xee, 0x12, 0x12); // INC $1212
 
-    cpu.step();
+    extracted();
     assertEquals(0x01, bus.read(0x1210));
     assertFalse(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x80, bus.read(0x1211));
     assertFalse(cpu.getZeroFlag());
     assertTrue(cpu.getNegativeFlag());
 
-    cpu.step();
+    extracted();
     assertEquals(0x00, bus.read(0x1212));
     assertTrue(cpu.getZeroFlag());
     assertFalse(cpu.getNegativeFlag());

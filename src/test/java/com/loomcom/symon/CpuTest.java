@@ -22,7 +22,7 @@ public class CpuTest extends TestCase {
     return new TestSuite(CpuTest.class);
   }
 
-  public void setUp() throws MemoryRangeException {
+  public void setUp() throws MemoryRangeException, MemoryAccessException {
     this.cpu = new Cpu();
     this.bus = new Bus(0x0000, 0xffff);
     this.mem = new Memory(0x0000, 0x10000);
@@ -50,7 +50,7 @@ public class CpuTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
   }
 
-  public void testStack() {
+  public void testStack() throws MemoryAccessException {
 
     cpu.stackPush(0x13);
     assertEquals(0x13, cpu.stackPop());
@@ -68,7 +68,7 @@ public class CpuTest extends TestCase {
 
   }
 
-  public void testStackPush() {
+  public void testStackPush() throws MemoryAccessException {
     assertEquals(0xff, cpu.getStackPointer());
     assertEquals(0xff, bus.read(0x1ff));
 
@@ -112,7 +112,7 @@ public class CpuTest extends TestCase {
     assertEquals(0x01, bus.read(0x1fa));
   }
 
-  public void testStackPushWrapsAroundToStackTop() {
+  public void testStackPushWrapsAroundToStackTop() throws MemoryAccessException {
     cpu.setStackPointer(0x01);
 
     cpu.stackPush(0x01);
@@ -129,7 +129,7 @@ public class CpuTest extends TestCase {
   }
 
 
-  public void testStackPop() {
+  public void testStackPop() throws MemoryAccessException {
     bus.write(0x1ff, 0x06);
     bus.write(0x1fe, 0x05);
     bus.write(0x1fd, 0x04);
@@ -157,7 +157,7 @@ public class CpuTest extends TestCase {
     assertEquals(0xff, cpu.getStackPointer());
   }
 
-  public void testStackPopWrapsAroundToStackBottom() {
+  public void testStackPopWrapsAroundToStackBottom() throws MemoryAccessException {
     bus.write(0x1ff, 0x0f); // top of stack
     bus.write(0x100, 0xf0); // bottom of stack
     bus.write(0x101, 0xf1);
@@ -178,9 +178,7 @@ public class CpuTest extends TestCase {
     assertEquals(0x02, cpu.getStackPointer());
   }
 
-  public void testStackPeekDoesNotAlterStackPointer() {
-    int val = 0;
-
+  public void testStackPeekDoesNotAlterStackPointer() throws MemoryAccessException {
     assertEquals(0xff, cpu.stackPeek());
     assertEquals(0xff, cpu.getStackPointer());
 
