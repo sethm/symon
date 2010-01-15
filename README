@@ -11,8 +11,8 @@ deemed ready for testing, it will be given a version number of "0.1".
 ====================================================================
 
 Version: PRERELEASE
-Last Updated: 07 January, 2009
-Copyright (c) 2008,2009 Seth J. Morabito <sethm@loomcom.com>
+Last Updated: 10 January, 2010
+Copyright (c) 2008-2010 Seth J. Morabito <sethm@loomcom.com>
 
 See the file COPYING for license.
 
@@ -36,7 +36,7 @@ ACIAs.  More functionality may be considered as time goes on.
 
   - Java 1.5 or higher
   - Maven 2.0.x or higher (for building from source)
-  - JUnit 3.0 or higher (for testing)
+  - JUnit 4 or higher (for testing)
 
   (More to come!)
 
@@ -44,25 +44,8 @@ ACIAs.  More functionality may be considered as time goes on.
 ---------
 
 - Finish core functionality.
-- Implement remaining addressing modes.
-
-  COMPLETED ADDRESSING MODES:
-    o Implied
-    o Immediate
-    o Zero Page
-    o Accumulator
-    o Absolute
-    o Indirect [used only by JMP]
-    o Zero Page, X-indexed
-    o Zero Page, Y-indexed
-    o Absolute, X-indexed
-    o Absolute, Y-indexed
-    o Relative
-
-  INCOMPLETE ADDRESSING MODES:
-    o Indexed Indirect [ (Indirect ,X) ]
-    o Indirect Indexed [ (Indirect),Y ]
-
+- Finish command monitor.
+- Refactor address decoding (second refactor to DRY up more).
 - Clean up JavaDoc.
 - Implement CMOS 65C02 instructions and NMOS / CMOS mode flag.
 

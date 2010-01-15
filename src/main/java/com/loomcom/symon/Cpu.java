@@ -192,8 +192,8 @@ public class Cpu implements InstructionTable {
     case 1:
       switch(irAddressMode) {
       case 0: // (Zero Page,X)
-        // TODO: UNIT TESTS
-        effectiveAddress = bus.read(zpxAddress(args[0]));
+        tmp = args[0] + getXRegister();
+        effectiveAddress = address(bus.read(tmp), bus.read(tmp + 1));
         effectiveData = bus.read(effectiveAddress);
         break;
       case 1: // Zero Page
@@ -209,11 +209,12 @@ public class Cpu implements InstructionTable {
         effectiveData = bus.read(effectiveAddress);
         break;
       case 4: // (Zero Page),Y
-        // TODO: UNIT TESTS
-        effectiveAddress = yAddress(bus.read(args[0]), getYRegister());
+        tmp = address(bus.read(args[0]),
+                      bus.read((args[0]+1)&0xff));
+        effectiveAddress = (tmp + getYRegister())&0xffff;
         effectiveData = bus.read(effectiveAddress);
         break;
-      case 5: // Zero Page, X
+      case 5: // Zero Page,X
         effectiveAddress = zpxAddress(args[0]);
         effectiveData = bus.read(effectiveAddress);
         break;
@@ -418,14 +419,14 @@ public class Cpu implements InstructionTable {
 
 
     /** ASL - Arithmetic Shift Left *****************************************/
-    case 0x0a: // ASL - Accumulator
+    case 0x0a: // Accumulator
 			a = asl(a);
 			setArithmeticFlags(a);
       break;
-    case 0x06: // ASL - Zero Page
-    case 0x0e: // ASL - Absolute
-    case 0x16: // ASL - Zero Page,X
-    case 0x1e: // ASL - Absolute,X
+    case 0x06: // Zero Page
+    case 0x0e: // Absolute
+    case 0x16: // Zero Page,X
+    case 0x1e: // Absolute,X
       tmp = asl(effectiveData);
       bus.write(effectiveAddress, tmp);
       setArithmeticFlags(tmp);
@@ -457,14 +458,14 @@ public class Cpu implements InstructionTable {
 
 
     /** ROL - Rotate Left ***************************************************/
-    case 0x2a: // ROL - Accumulator
+    case 0x2a: // Accumulator
       a = rol(a);
       setArithmeticFlags(a);
       break;
-    case 0x26: // ROL - Zero Page
-    case 0x2e: // ROL - Absolute
-    case 0x36: // ROL - Zero Page,X
-    case 0x3e: // ROL - Absolute,X
+    case 0x26: // Zero Page
+    case 0x2e: // Absolute
+    case 0x36: // Zero Page,X
+    case 0x3e: // Absolute,X
       tmp = rol(effectiveData);
       bus.write(effectiveAddress, tmp);
       setArithmeticFlags(tmp);
@@ -472,28 +473,28 @@ public class Cpu implements InstructionTable {
 
 
     /** EOR - Exclusive OR **************************************************/
-    case 0x41: // EOR - (Zero Page, X)
-    case 0x45: // EOR - Zero Page
-    case 0x49: // EOR - Immediate
-    case 0x4d: // EOR - Absolute
-    case 0x51: // EOR - (Zero Page,Y)
-    case 0x55: // EOR - Zero Page,X
-    case 0x59: // EOR - Absolute,Y
-    case 0x5d: // EOR - Absolute,X
+    case 0x41: // (Zero Page,X)
+    case 0x45: // Zero Page
+    case 0x49: // Immediate
+    case 0x4d: // Absolute
+    case 0x51: // (Zero Page,Y)
+    case 0x55: // Zero Page,X
+    case 0x59: // Absolute,Y
+    case 0x5d: // Absolute,X
       a ^= effectiveData;
       setArithmeticFlags(a);
       break;
 
 
     /** LSR - Logical Shift Right *******************************************/
-    case 0x4a: // LSR - Accumulator
+    case 0x4a: // Accumulator
       a = lsr(a);
       setArithmeticFlags(a);
       break;
-    case 0x46: // LSR - Zero Page
-    case 0x4e: // LSR - Absolute
-    case 0x56: // LSR - Zero Page,X
-    case 0x5e: // LSR - Absolute,X
+    case 0x46: // Zero Page
+    case 0x4e: // Absolute
+    case 0x56: // Zero Page,X
+    case 0x5e: // Absolute,X
       tmp = lsr(effectiveData);
       bus.write(effectiveAddress, tmp);
       setArithmeticFlags(tmp);
@@ -533,7 +534,7 @@ public class Cpu implements InstructionTable {
 
 
     /** STA - Store Accumulator *********************************************/
-    case 0x81: // (Zero Page, X)
+    case 0x81: // (Zero Page,X)
     case 0x85: // Zero Page
     case 0x8d: // Absolute
     case 0x91: // (Zero Page),Y
@@ -564,11 +565,11 @@ public class Cpu implements InstructionTable {
 
 
     /** LDY - Load Y Register ***********************************************/
-    case 0xa0: // LDY - Immediate
-    case 0xa4: // LDY - Zero Page
-    case 0xac: // LDY - Absolute
-    case 0xb4: // LDY - Zero Page,X
-    case 0xbc: // LDY - Absolute,X
+    case 0xa0: // Immediate
+    case 0xa4: // Zero Page
+    case 0xac: // Absolute
+    case 0xb4: // Zero Page,X
+    case 0xbc: // Absolute,X
       y = effectiveData;
       setArithmeticFlags(y);
       break;
@@ -586,7 +587,7 @@ public class Cpu implements InstructionTable {
 
 
     /** LDA - Load Accumulator **********************************************/
-    case 0xa1: // Zero Page, X)
+    case 0xa1: // (Zero Page,X)
     case 0xa5: // Zero Page
     case 0xa9: // Immediate
     case 0xad: // Absolute
@@ -608,11 +609,11 @@ public class Cpu implements InstructionTable {
 
 
     /** CMP - Compare Accumulator *******************************************/
-    case 0xc1: // (Zero Page, X)
+    case 0xc1: // (Zero Page,X)
     case 0xc5: // Zero Page
     case 0xc9: // #Immediate
     case 0xcd: // Absolute
-    case 0xd1: // (Zero Page), Y
+    case 0xd1: // (Zero Page),Y
     case 0xd5: // Zero Page,X
     case 0xd9: // Absolute,Y
     case 0xdd: // Absolute,X
@@ -623,7 +624,7 @@ public class Cpu implements InstructionTable {
     /** DEC - Decrement Memory **********************************************/
     case 0xc6: // Zero Page
     case 0xce: // Absolute
-    case 0xd6: // Zero Page, X
+    case 0xd6: // Zero Page,X
     case 0xde: // Absolute,X
       tmp = --effectiveData & 0xff;
       bus.write(effectiveAddress, tmp);
@@ -640,11 +641,11 @@ public class Cpu implements InstructionTable {
 
 
     /** SBC - Subtract with Carry (Borrow) **********************************/
-    case 0xe1: // (Zero Page, X)
+    case 0xe1: // (Zero Page,X)
     case 0xe5: // Zero Page
     case 0xe9: // Immediate
     case 0xed: // Absolute
-    case 0xf1: // (Zero Page), Y
+    case 0xf1: // (Zero Page),Y
     case 0xf5: // Zero Page,X
     case 0xf9: // Absolute,Y
     case 0xfd: // Absolute,X
@@ -1255,7 +1256,7 @@ public class Cpu implements InstructionTable {
    * Given two bytes, return an address.
    */
   int address(int lowByte, int hiByte) {
-    return ((hiByte<<8)|lowByte);
+    return ((hiByte<<8)|lowByte) & 0xffff;
   }
 
   /**
@@ -1313,8 +1314,34 @@ public class Cpu implements InstructionTable {
     case ABS:
       sb.append(String.format(" $%04X", address(op1, op2)));
       break;
+    case ABX:
+      sb.append(String.format(" $%04X,X", address(op1, op2)));
+      break;
+    case ABY:
+      sb.append(String.format(" $%04X,Y", address(op1, op2)));
+      break;
     case IMM:
       sb.append(String.format(" #$%02X", op1));
+      break;
+    case IND:
+      sb.append(String.format(" ($%04X)", address(op1, op2)));
+      break;
+    case XIN:
+      sb.append(String.format(" ($%02X),X", op1));
+      break;
+    case INY:
+      sb.append(String.format(" ($%02X,Y)", op1));
+      break;
+    case REL:
+    case ZPG:
+      sb.append(String.format(" $%02X", op1));
+      break;
+    case ZPX:
+      sb.append(String.format(" $%02X,X", op1));
+      break;
+    case ZPY:
+      sb.append(String.format(" $%02X,Y", op1));
+      break;
     }
 
     return sb.toString();

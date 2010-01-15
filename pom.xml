@@ -11,21 +11,21 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.7</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
-      <!-- Set Java version to 6 -->
+      <!-- Set Java version to Java 1.5 -->
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-compiler-plugin</artifactId>
 	<!-- best lock down version of the plugin too -->
 	<configuration>
-	  <source>5</source>
-	  <target>5</target>
+	  <source>1.5</source>
+	  <target>1.5</target>
 	</configuration>
       </plugin>
 
