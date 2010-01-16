@@ -32,27 +32,16 @@ public class Simulator {
     parser = new CommandParser(System.in, System.out, this);
   }
 
-  public void run() {
+  public String getState() throws MemoryAccessException {
+    return cpu.toString();
+  }
+
+  public void run() throws MemoryAccessException {
     parser.run();
   }
 
-  public void step() {
-  }
-
-  public int read(int address) {
-    return 0;
-  }
-
-  public void write(int address, int value) {
-  }
-
-  public void loadProgram(int address, int[] program) throws MemoryAccessException {
-    // Reset interrupt vector
-    int hi = (address&0xff00)>>>8;
-    int lo = address&0x00ff;
-    bus.write(0xfffc, lo);
-    bus.write(0xfffd, hi);
-
+  public void load(int address, int[] program)
+    throws MemoryAccessException {
     int i = 0;
     for (int d : program) {
       bus.write(address + i++, d);
@@ -62,42 +51,43 @@ public class Simulator {
   /**
    * A test method.
    */
-
   public void runTest() throws MemoryAccessException {
-    int[] program = {
-      0xa9, // LDA #$FF
-      0xff,
-      0xa0, // LDY #$1A
-      0x1a,
-      0xa2, // LDX #$90
-      0x90,
-      0xa2, // LDX #$02
-      0x02,
-      0x49, // EOR #$FF
-      0xff,
-      0xa9, // LDA #$00
-      0x00,
-      0xa2, // LDX #$00
-      0x00,
-      0x29, // AND #$FF
-      0xff,
-      0xa0, // LDY #$00
-      0x00,
-      0x4c, // JMP #$0300
-      0x00,
-      0x03
+    int[] zpData = {
+      0x39,             // $0000
+      0x21,             // $0001
+      0x12              // $0002
     };
+    int[] data = {
+      0xae,             // $c800
+      0x13,             // $c801
+      0x29              // $c802
+    };
+    int[] program = {
+      0xa9, 0xff,       // LDA #$FF
+      0xa0, 0x1a,       // LDY #$1A
+      0xa2, 0x90,       // LDX #$90
+      0xa2, 0x02,       // LDX #$02
+      0x49, 0xff,       // EOR #$FF
+      0xa9, 0x00,       // LDA #$00
+      0xa2, 0x00,       // LDX #$00
+      0x29, 0xff,       // AND #$FF
+      0xa0, 0x00,       // LDY #$00
+      0xa5, 0x00,       // LDA $00
+      0xad, 0x00, 0xc8, // LDA $c800
+      0x4c, 0x00, 0x03  // JMP #$0300
+    };
+    int programLength = 12;
 
-    loadProgram(0x0300, program);
+    load(0x0000, zpData);
+    load(0x0300, program);
+    load(0xc800, data);
+    cpu.setResetVector(0x0300);
     cpu.reset();
 
-    int steps = program.length;
-
-    for (int i = 0; i <= steps; i++) {
+    for (int i = 0; i <= programLength; i++) {
       cpu.step();
       System.out.println(cpu.toString());
     }
-
   }
 
   /**
@@ -105,7 +95,7 @@ public class Simulator {
    */
   public static void main(String[] args) throws MemoryAccessException {
     try {
-      new Simulator().runTest();
+      new Simulator().run();
     } catch (MemoryRangeException ex) {
       System.err.println("Error: " + ex.toString());
     }

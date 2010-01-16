@@ -158,7 +158,6 @@ public class Cpu implements InstructionTable {
     case 2:
       switch(irAddressMode) {
       case 0: // #Immediate
-        effectiveAddress = -1;
         effectiveData = args[0];
         break;
       case 1: // Zero Page
@@ -1295,6 +1294,11 @@ public class Cpu implements InstructionTable {
    */
   int zpyAddress(int zp) {
     return (zp+getYRegister())&0xff;
+  }
+
+  void setResetVector(int address) throws MemoryAccessException {
+    bus.write(RST_VECTOR_H, (address&0xff00)>>>8);
+    bus.write(RST_VECTOR_L, address&0x00ff);
   }
 
   /**

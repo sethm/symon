@@ -1,6 +1,9 @@
 package com.loomcom.symon;
 
 import java.io.*;
+import com.loomcom.symon.devices.*;
+import com.loomcom.symon.exceptions.*;
+
 
 public class CommandParser {
 
@@ -14,7 +17,7 @@ public class CommandParser {
     this.simulator = s;
   }
 
-  public void run() {
+  public void run() throws MemoryAccessException {
     try {
       String command = null;
       greeting();
@@ -41,8 +44,17 @@ public class CommandParser {
   /**
    * Dispatch the command.
    */
-  public void dispatch(String command) throws IOException {
-    writeLine("You entered: " + command);
+  public void dispatch(String command)
+      throws MemoryAccessException, IOException {
+    // TODO: Real implementation. This first one is just
+    // for testing.
+    if ("test".equals(command)) {
+      simulator.runTest();
+    } else if ("ex".equals(command)) {
+      writeLine(simulator.getState());
+    } else {
+      writeLine("Huh?");
+    }
   }
 
   /*******************************************************************
