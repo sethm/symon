@@ -148,10 +148,8 @@ public class Cpu implements InstructionTable {
 
     // Get the data from the effective address (if any)
 
-    // TODO: Proper initialization.
-    // Using 0xfffffff is to help catch bugs by reading out of bounds.
-    effectiveAddress = 0xffffff;
-    effectiveData = -1;
+    effectiveAddress = 0;
+    effectiveData = 0;
 
     switch(irOpMode) {
     case 0:

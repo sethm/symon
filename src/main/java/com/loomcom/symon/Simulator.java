@@ -1,13 +1,6 @@
 package com.loomcom.symon;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.List;
+import java.io.*;
 import java.util.StringTokenizer;
 
 import com.loomcom.symon.devices.*;
@@ -34,6 +27,7 @@ public class Simulator {
   
   /* If true, trace execution of the CPU */
   private boolean trace = false;
+  private int nextExamineAddress = 0;
 
   public Simulator() throws MemoryRangeException {
     cpu = new Cpu();
@@ -57,7 +51,7 @@ public class Simulator {
         }
         prompt();
       }
-      writeLine("\n\nGoodbye!");
+      writeLine("\nGoodbye!");
     } catch (IOException ex) {
       System.err.println("Error: " + ex.toString());
       System.exit(1);
@@ -72,10 +66,12 @@ public class Simulator {
     Command c = new Command(commandLine);
     String cmd = c.getCommand();
     if (cmd != null) {
-      if ("test".equals(cmd)) {
-        doTest();
-      } else if (cmd.startsWith("s")) {
+      if (cmd.startsWith("ste")) {
+        doStep(c);
+      } else if (cmd.startsWith("sta")) {
         doGetState();
+      } else if (cmd.startsWith("se")) {
+        doSet(c);
       } else if (cmd.startsWith("r")) { 
         doReset();
       } else if (cmd.startsWith("e")) {
@@ -90,6 +86,8 @@ public class Simulator {
         doToggleTrace();
       } else if (cmd.startsWith("f")) {
         doFill(c);
+      } else if (cmd.startsWith("l")) {
+        doLoad(c);
       } else {
         writeLine("? Type h for help");
       }
@@ -99,26 +97,90 @@ public class Simulator {
   public void doHelp(Command c) throws IOException {
     writeLine("Symon 6502 Simulator");
     writeLine("");
-    writeLine("All addresses must be in hexadecimal. Commands may be short or");
-    writeLine("long (e.g. 'e' or 'ex' or 'examine'). Note that 'go' clears the");
-    writeLine("Break processor status flag");
+    writeLine("All addresses must be in hexadecimal.");
+    writeLine("Commands may be short or long (e.g. 'e' or 'ex' or 'examine').");
+    writeLine("Note that 'go' clears the BREAK processor status flag.");
     writeLine("");
-    writeLine("g [address  [steps]]       Start running at address.");
-    writeLine("e [start    [end]]         Examine memory.");
-    writeLine("d [address] [data]         Deposit data into address.");
-    writeLine("f [start]   [end] [data]   Fill memory with data.");
-    writeLine("r                          Reset simulator.");
-    writeLine("s                          Show CPU state.");
-    writeLine("t                          Toggle trace.");
-    writeLine("q (or Control-D)           Quit.");
+    writeLine("g [address] [steps]       Start running at address, or at PC");
+    writeLine("e [start] [end]           Examine memory at PC, or at start, " +
+              "or from start to end");
+    writeLine("d <address> <data>        Deposit data into address.");
+    writeLine("f <start> <end> <data>    Fill memory with data.");
+    writeLine("reset                     Reset simulator.");
+    writeLine("set {pc,a,x,y} [data]     Set register to data value.");
+    writeLine("stat                      Show CPU state.");
+    writeLine("step [address]            Step once, optionally starting at " +
+              "address");
+    writeLine("trace                     Toggle trace.");
+    writeLine("load <filename>           Load binary file.");
+    writeLine("q (or Control-D)          Quit.");
   }
 
   public void doGetState() throws IOException, MemoryAccessException {
     writeLine(cpu.toString());
     writeLine("Trace is " + (trace ? "on" : "off"));
   }
+  
+  public void doLoad(Command c) throws IOException, MemoryAccessException,
+      CommandFormatException {
+    if (c.numArgs() != 2) {
+      throw new CommandFormatException("load <file> <address>");
+    }
+    
+    File binFile    = new File(c.getArg(0));
+    int address     = stringToWord(c.getArg(1));
+    
+    if (!binFile.exists()) {
+      throw new CommandFormatException("File '" + binFile +
+                                       "' does not exist.");
+    }
+    writeLine("Loading file '" + binFile + "' at address " +
+              String.format("%04x", address) + "...");
+    
+    int bytesLoaded = 0;
+    
+    FileInputStream fis = new FileInputStream(binFile);
 
-  public void doExamine(Command c) throws IOException, MemoryAccessException, CommandFormatException {
+    try {
+      int b = 0;
+      while ((b = fis.read()) > -1 && address <= bus.endAddress()) {
+        bus.write(address++, b);
+        bytesLoaded++;
+      }
+    } finally {
+      fis.close();
+    }
+        
+    writeLine("Loaded " + bytesLoaded + " (" +
+              String.format("$%x", bytesLoaded) + ") bytes");
+  }
+  
+  public void doSet(Command c) throws MemoryAccessException, 
+      CommandFormatException {
+    if (c.numArgs() != 2) {
+      throw new CommandFormatException("set {a, x, y, pc} <value>");
+    }
+    try {
+      String reg = c.getArg(0).toLowerCase();
+      String data = c.getArg(1);
+      if ("a".equals(reg)) {
+        cpu.setAccumulator(stringToByte(data));
+      } else if ("x".equals(reg)) {
+        cpu.setXRegister(stringToByte(data));
+      } else if ("y".equals(reg)) {
+        cpu.setYRegister(stringToByte(data));
+      } else if ("pc".equals(reg)) {
+        cpu.setProgramCounter(stringToWord(data));
+      } else {
+        throw new CommandFormatException("set {a, x, y, pc} <value>");
+      }
+    } catch (NumberFormatException ex) {
+      throw new CommandFormatException("Illegal address");
+    }
+  }
+  
+  public void doExamine(Command c) throws IOException, MemoryAccessException,
+      CommandFormatException {
     try {
       if (c.numArgs() == 2) {
         int startAddress = stringToWord(c.getArgs()[0]);
@@ -127,23 +189,33 @@ public class Simulator {
           StringBuffer line = new StringBuffer();
           int numBytes = 0;
           line.append(String.format("%04x  ", startAddress));
-          while (numBytes++ < 8 && startAddress <= endAddress) {
+          while (numBytes++ < 16 && startAddress <= endAddress) {
             line.append(String.format("%02x ", bus.read(startAddress++)));
+            if (numBytes % 8 == 0) {
+              line.append(" ");
+            }
           }
           writeLine(line.toString());
         }
+        nextExamineAddress = endAddress + 1;
       } else if (c.numArgs() == 1) {
         int address = stringToWord(c.getArgs()[0]);
         writeLine(String.format("%04x  %02x", address, bus.read(address)));
+        nextExamineAddress = address + 1;
+      } else if (c.numArgs() == 0) {
+        writeLine(String.format("%04x  %02x", nextExamineAddress,
+                                bus.read(nextExamineAddress)));
+        nextExamineAddress++;
       } else {
         throw new CommandFormatException("e [start [end]]");        
       }
     } catch (NumberFormatException ex) {
-      throw new CommandFormatException("Address not understood");
+      throw new CommandFormatException("Illegal Address");
     }
   }
   
-  public void doDeposit(Command c) throws MemoryAccessException, CommandFormatException {
+  public void doDeposit(Command c) throws MemoryAccessException,
+      CommandFormatException {
     if (c.numArgs() != 2) {
       throw new CommandFormatException("d [address] [data]");
     }
@@ -152,11 +224,12 @@ public class Simulator {
       int data    = stringToByte(c.getArg(1));
       bus.write(address, data);
     } catch (NumberFormatException ex) {
-      throw new CommandFormatException("Address not understood");
+      throw new CommandFormatException("Illegal Address");
     }
   }
   
-  public void doFill(Command c) throws MemoryAccessException, CommandFormatException {
+  public void doFill(Command c) throws MemoryAccessException,
+      CommandFormatException {
     if (c.numArgs() != 3) {
       throw new CommandFormatException("f [start] [end] [data]");
     }
@@ -169,17 +242,37 @@ public class Simulator {
         start++;
       }
     } catch (NumberFormatException ex) {
-      throw new CommandFormatException("Address not understood");
+      throw new CommandFormatException("Illegal Address");
     }
   }
   
-  public void doGo(Command c) throws IOException, MemoryAccessException, CommandFormatException {
-    if (c.numArgs() != 1 && c.numArgs() != 2) {
-      throw new CommandFormatException("g [address [steps]]");
+  public void doStep(Command c) throws IOException, MemoryAccessException,
+      CommandFormatException {
+    try {
+      if (c.numArgs() > 0) {
+        cpu.setProgramCounter(stringToWord(c.getArg(1)));
+      }
+      cpu.step();
+      writeLine(cpu.toString());  // Always show status after stepping
+    } catch (NumberFormatException ex) {
+      throw new CommandFormatException("Illegal Address");
+    }
+  }
+  
+  public void doGo(Command c) throws IOException, MemoryAccessException, 
+      CommandFormatException {
+    if (c.numArgs() > 2) {
+      throw new CommandFormatException("g [address] [steps]");
     }
     try {
-      int start = stringToWord(c.getArg(0));
+      int start = 0;
       int steps = -1;
+      
+      if (c.numArgs() > 0) {
+        start = stringToWord(c.getArg(0));
+      } else {
+        start = cpu.getProgramCounter();
+      }
       if (c.numArgs() == 2) {
         steps = stringToWord(c.getArg(1));
       }
@@ -200,7 +293,7 @@ public class Simulator {
         writeLine(cpu.toString());
       }
     } catch (NumberFormatException ex) {
-      throw new CommandFormatException("Address not understood");
+      throw new CommandFormatException("Illegal Address");
     }
   }
   
@@ -212,49 +305,6 @@ public class Simulator {
   public void doReset() throws MemoryAccessException {
     cpu.reset();
     this.trace = false;
-  }
-  
-  /**
-   * Run a very simple test program that doesn't do
-   * much other than exercise the accumulator a bit.
-   */
-  public void doTest() throws MemoryAccessException {
-    int[] zpData = {
-      0x39,             // $0000
-      0x21,             // $0001
-      0x12              // $0002
-    };
-    int[] data = {
-      0xae,             // $c800
-      0x13,             // $c801
-      0x29              // $c802
-    };
-    int[] program = {
-      0xa9, 0xff,       // LDA #$FF
-      0xa0, 0x1a,       // LDY #$1A
-      0xa2, 0x90,       // LDX #$90
-      0xa2, 0x02,       // LDX #$02
-      0x49, 0xff,       // EOR #$FF
-      0xa9, 0x00,       // LDA #$00
-      0xa2, 0x00,       // LDX #$00
-      0x29, 0xff,       // AND #$FF
-      0xa0, 0x00,       // LDY #$00
-      0xa5, 0x00,       // LDA $00
-      0xad, 0x00, 0xc8, // LDA $c800
-      0x4c, 0x00, 0x03  // JMP #$0300
-    };
-    int programLength = 12;
-
-    load(0x0000, zpData);
-    load(0x0300, program);
-    load(0xc800, data);
-    cpu.setResetVector(0x0300);
-    cpu.reset();
-
-    for (int i = 0; i <= programLength; i++) {
-      cpu.step();
-      System.out.println(cpu.toString());
-    }
   }
 
   /**
@@ -289,7 +339,7 @@ public class Simulator {
   }
   
   private void greeting() throws IOException {
-    writeLine("Welcome to the Symon Simulator!");
+    writeLine("Welcome to the Symon 6502 Simulator. Type 'help' for help.");
   }
 
   private void prompt() throws IOException {

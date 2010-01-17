@@ -107,8 +107,7 @@ public class Bus {
         return d.read(devAddr);
       }
     }
-    // TODO: Raise access error.
-    throw new RuntimeException("Read failed!  Device not found.");
+    throw new MemoryAccessException("Read failed!  No device at address.");
   }
 
   public void write(int address, int value) throws MemoryAccessException {
@@ -121,8 +120,7 @@ public class Bus {
         return;
       }
     }
-    // TODO: Raise access error.
-    throw new RuntimeException("Write failed!  Device not found.");
+    throw new MemoryAccessException("Write failed!  No device at address.");
   }
 
   public SortedSet<Device> getDevices() {
