@@ -14,8 +14,8 @@ public class Memory extends Device {
     super(address, size, "RW Memory");
     this.readOnly = readOnly;
     this.mem = new int[size];
-    // Initialize all locations to 0xff
-    Arrays.fill(this.mem, 0xff);
+    // Initialize all locations to 0x00 (BRK)
+    Arrays.fill(this.mem, 0x00);
   }
 
   public Memory(int address, int size)

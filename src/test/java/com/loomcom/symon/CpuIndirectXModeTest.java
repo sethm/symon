@@ -115,7 +115,7 @@ public class CpuIndirectXModeTest extends TestCase {
                     0xa9, 0xff,        // LDA #$ff
                     0x3d, 0x05, 0x1a,  // AND $1a05,X
                     0xa9, 0x01,        // LDA #$01
-                    0x3d, 0xd2, 0x1a); // AND $1ad2,X
+                    0x3d, 0xd2, 0x19); // AND $19d2,X
     cpu.step();
     assertEquals(0x00, cpu.getAccumulator());
     assertTrue(cpu.getZeroFlag());

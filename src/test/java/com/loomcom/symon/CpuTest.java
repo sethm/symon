@@ -70,7 +70,7 @@ public class CpuTest extends TestCase {
 
   public void testStackPush() throws MemoryAccessException {
     assertEquals(0xff, cpu.getStackPointer());
-    assertEquals(0xff, bus.read(0x1ff));
+    assertEquals(0x00, bus.read(0x1ff));
 
     cpu.stackPush(0x06);
     assertEquals(0xfe, cpu.getStackPointer());
@@ -179,7 +179,7 @@ public class CpuTest extends TestCase {
   }
 
   public void testStackPeekDoesNotAlterStackPointer() throws MemoryAccessException {
-    assertEquals(0xff, cpu.stackPeek());
+    assertEquals(0x00, cpu.stackPeek());
     assertEquals(0xff, cpu.getStackPointer());
 
     cpu.stackPush(0x01);

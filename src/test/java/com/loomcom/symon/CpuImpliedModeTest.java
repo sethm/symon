@@ -74,7 +74,7 @@ public class CpuImpliedModeTest extends TestCase {
     cpu.setOverflowFlag();
     assertEquals(0x20|Cpu.P_CARRY|Cpu.P_OVERFLOW,
                  cpu.getProcessorStatus());
-    assertEquals(0xff, cpu.stackPeek());
+    assertEquals(0x00, cpu.stackPeek());
     assertFalse(cpu.getBreakFlag());
     assertEquals(0x0200, cpu.getProgramCounter());
     assertEquals(0xff, cpu.getStackPointer());
