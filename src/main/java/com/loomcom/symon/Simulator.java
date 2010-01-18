@@ -101,19 +101,18 @@ public class Simulator {
     writeLine("Commands may be short or long (e.g. 'e' or 'ex' or 'examine').");
     writeLine("Note that 'go' clears the BREAK processor status flag.");
     writeLine("");
-    writeLine("g [address] [steps]       Start running at address, or at PC");
-    writeLine("e [start] [end]           Examine memory at PC, or at start, " +
-              "or from start to end");
-    writeLine("d <address> <data>        Deposit data into address.");
-    writeLine("f <start> <end> <data>    Fill memory with data.");
-    writeLine("reset                     Reset simulator.");
-    writeLine("set {pc,a,x,y} [data]     Set register to data value.");
-    writeLine("stat                      Show CPU state.");
-    writeLine("step [address]            Step once, optionally starting at " +
-              "address");
-    writeLine("trace                     Toggle trace.");
-    writeLine("load <filename>           Load binary file.");
-    writeLine("q (or Control-D)          Quit.");
+    writeLine("h                       Show this help file.");
+    writeLine("g [address] [steps]     Start running at address, or at PC.");
+    writeLine("e [start] [end]         Examine memory at PC, start, or start-end.");
+    writeLine("d <address> <data>      Deposit data into address.");
+    writeLine("f <start> <end> <data>  Fill memory with data.");
+    writeLine("reset                   Reset simulator.");
+    writeLine("set {pc,a,x,y} [data]   Set register to data value.");
+    writeLine("stat                    Show CPU state.");
+    writeLine("step [address]          Step once, optionally starting at address.");
+    writeLine("trace                   Toggle trace.");
+    writeLine("load <file> <address>   Load binary file at address.");
+    writeLine("q (or Control-D)        Quit.\n");
   }
 
   public void doGetState() throws IOException, MemoryAccessException {
@@ -152,7 +151,7 @@ public class Simulator {
     }
         
     writeLine("Loaded " + bytesLoaded + " (" +
-              String.format("$%x", bytesLoaded) + ") bytes");
+              String.format("$%04x", bytesLoaded) + ") bytes");
   }
   
   public void doSet(Command c) throws MemoryAccessException, 
@@ -237,7 +236,7 @@ public class Simulator {
       int start = stringToWord(c.getArg(0));
       int end = stringToWord(c.getArg(1));
       int data = stringToByte(c.getArg(2));
-      while (start < end) {
+      while (start <= end) {
         bus.write(start, data);
         start++;
       }
@@ -339,7 +338,7 @@ public class Simulator {
   }
   
   private void greeting() throws IOException {
-    writeLine("Welcome to the Symon 6502 Simulator. Type 'help' for help.");
+    writeLine("Welcome to the Symon 6502 Simulator. Type 'h' for help.");
   }
 
   private void prompt() throws IOException {
