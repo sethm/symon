@@ -21,24 +21,50 @@ public class Simulator {
    * correct IO devices.
    */
   private Bus bus;
-  
+
+  /**
+   * The ACIA, used for charater in/out.
+   *
+   * By default, the simulator uses base address c000 for the ACIA.
+   */
+  private Acia acia;
+
   private BufferedReader in;
   private BufferedWriter out;
-  
+
   /* If true, trace execution of the CPU */
   private boolean trace = false;
   private int nextExamineAddress = 0;
 
+  private static final int BUS_BOTTOM  = 0x0000;
+  private static final int BUS_TOP     = 0xffff;
+
+  private static final int ACIA_BASE   = 0xc000;
+
+  private static final int MEMORY_BASE = 0x0000;
+  private static final int MEMORY_SIZE = 0xc000; // 48 KB
+
+  private static final int ROM_BASE    = 0xe000;
+  private static final int ROM_SIZE    = 0x2000; // 8 KB
+
   public Simulator() throws MemoryRangeException {
-    cpu = new Cpu();
-    bus = new Bus(0x0000, 0xffff);
+    this.bus  = new Bus(BUS_BOTTOM, BUS_TOP);
+    this.cpu  = new Cpu();
+    this.acia = new Acia(ACIA_BASE);
+
     bus.addCpu(cpu);
-    bus.addDevice(new Memory(0x0000, 0x10000));
+    bus.addDevice(new Memory(MEMORY_BASE, MEMORY_SIZE, false));
+    bus.addDevice(acia);
+    // TODO: This should be read-only memory. Add a method
+    // to allow one-time initialization of ROM with a loaded
+    // ROM binary file.
+    bus.addDevice(new Memory(ROM_BASE, ROM_SIZE, false));
+
     this.in = new BufferedReader(new InputStreamReader(System.in));
     this.out = new BufferedWriter(new OutputStreamWriter(System.out));
   }
 
-  public void run() throws MemoryAccessException {
+  public void run() throws MemoryAccessException, FifoUnderrunException {
     try {
       greeting();
       prompt();
@@ -57,12 +83,14 @@ public class Simulator {
       System.exit(1);
     }
   }
-    
+
   /**
    * Dispatch the command.
    */
-  public void dispatch(String commandLine)
-      throws MemoryAccessException, IOException, CommandFormatException {
+  public void dispatch(String commandLine) throws MemoryAccessException,
+                                                  IOException,
+                                                  CommandFormatException,
+                                                  FifoUnderrunException {
     Command c = new Command(commandLine);
     String cmd = c.getCommand();
     if (cmd != null) {
@@ -72,7 +100,7 @@ public class Simulator {
         doGetState();
       } else if (cmd.startsWith("se")) {
         doSet(c);
-      } else if (cmd.startsWith("r")) { 
+      } else if (cmd.startsWith("r")) {
         doReset();
       } else if (cmd.startsWith("e")) {
         doExamine(c);
@@ -93,7 +121,7 @@ public class Simulator {
       }
     }
   }
-  
+
   public void doHelp(Command c) throws IOException {
     writeLine("Symon 6502 Simulator");
     writeLine("");
@@ -102,16 +130,16 @@ public class Simulator {
     writeLine("Note that 'go' clears the BREAK processor status flag.");
     writeLine("");
     writeLine("h                       Show this help file.");
-    writeLine("g [address] [steps]     Start running at address, or at PC.");
     writeLine("e [start] [end]         Examine memory at PC, start, or start-end.");
     writeLine("d <address> <data>      Deposit data into address.");
     writeLine("f <start> <end> <data>  Fill memory with data.");
-    writeLine("reset                   Reset simulator.");
     writeLine("set {pc,a,x,y} [data]   Set register to data value.");
-    writeLine("stat                    Show CPU state.");
-    writeLine("step [address]          Step once, optionally starting at address.");
-    writeLine("trace                   Toggle trace.");
     writeLine("load <file> <address>   Load binary file at address.");
+    writeLine("g [address] [steps]     Start running at address, or at PC.");
+    writeLine("step [address]          Step once, optionally starting at address.");
+    writeLine("stat                    Show CPU state.");
+    writeLine("reset                   Reset simulator.");
+    writeLine("trace                   Toggle trace.");
     writeLine("q (or Control-D)        Quit.\n");
   }
 
@@ -119,25 +147,26 @@ public class Simulator {
     writeLine(cpu.toString());
     writeLine("Trace is " + (trace ? "on" : "off"));
   }
-  
-  public void doLoad(Command c) throws IOException, MemoryAccessException,
-      CommandFormatException {
+
+  public void doLoad(Command c) throws IOException,
+                                       MemoryAccessException,
+                                       CommandFormatException {
     if (c.numArgs() != 2) {
       throw new CommandFormatException("load <file> <address>");
     }
-    
+
     File binFile    = new File(c.getArg(0));
     int address     = stringToWord(c.getArg(1));
-    
+
     if (!binFile.exists()) {
       throw new CommandFormatException("File '" + binFile +
                                        "' does not exist.");
     }
     writeLine("Loading file '" + binFile + "' at address " +
               String.format("%04x", address) + "...");
-    
+
     int bytesLoaded = 0;
-    
+
     FileInputStream fis = new FileInputStream(binFile);
 
     try {
@@ -149,13 +178,13 @@ public class Simulator {
     } finally {
       fis.close();
     }
-        
+
     writeLine("Loaded " + bytesLoaded + " (" +
               String.format("$%04x", bytesLoaded) + ") bytes");
   }
-  
-  public void doSet(Command c) throws MemoryAccessException, 
-      CommandFormatException {
+
+  public void doSet(Command c) throws MemoryAccessException,
+                                      CommandFormatException {
     if (c.numArgs() != 2) {
       throw new CommandFormatException("set {a, x, y, pc} <value>");
     }
@@ -177,9 +206,10 @@ public class Simulator {
       throw new CommandFormatException("Illegal address");
     }
   }
-  
-  public void doExamine(Command c) throws IOException, MemoryAccessException,
-      CommandFormatException {
+
+  public void doExamine(Command c) throws IOException,
+                                          MemoryAccessException,
+                                          CommandFormatException {
     try {
       if (c.numArgs() == 2) {
         int startAddress = stringToWord(c.getArgs()[0]);
@@ -206,15 +236,15 @@ public class Simulator {
                                 bus.read(nextExamineAddress)));
         nextExamineAddress++;
       } else {
-        throw new CommandFormatException("e [start [end]]");        
+        throw new CommandFormatException("e [start [end]]");
       }
     } catch (NumberFormatException ex) {
       throw new CommandFormatException("Illegal Address");
     }
   }
-  
+
   public void doDeposit(Command c) throws MemoryAccessException,
-      CommandFormatException {
+                                          CommandFormatException {
     if (c.numArgs() != 2) {
       throw new CommandFormatException("d [address] [data]");
     }
@@ -226,9 +256,9 @@ public class Simulator {
       throw new CommandFormatException("Illegal Address");
     }
   }
-  
+
   public void doFill(Command c) throws MemoryAccessException,
-      CommandFormatException {
+                                       CommandFormatException {
     if (c.numArgs() != 3) {
       throw new CommandFormatException("f [start] [end] [data]");
     }
@@ -244,9 +274,11 @@ public class Simulator {
       throw new CommandFormatException("Illegal Address");
     }
   }
-  
-  public void doStep(Command c) throws IOException, MemoryAccessException,
-      CommandFormatException {
+
+  public void doStep(Command c) throws IOException,
+                                       MemoryAccessException,
+                                       FifoUnderrunException,
+                                       CommandFormatException {
     try {
       if (c.numArgs() > 0) {
         cpu.setProgramCounter(stringToWord(c.getArg(1)));
@@ -257,16 +289,21 @@ public class Simulator {
       throw new CommandFormatException("Illegal Address");
     }
   }
-  
-  public void doGo(Command c) throws IOException, MemoryAccessException, 
-      CommandFormatException {
+
+  public void doGo(Command c) throws IOException,
+                                     MemoryAccessException,
+                                     FifoUnderrunException,
+                                     CommandFormatException {
+    int readChar;
+    int stepCount = 0;
+
     if (c.numArgs() > 2) {
       throw new CommandFormatException("g [address] [steps]");
     }
     try {
       int start = 0;
       int steps = -1;
-      
+
       if (c.numArgs() > 0) {
         start = stringToWord(c.getArg(0));
       } else {
@@ -275,17 +312,55 @@ public class Simulator {
       if (c.numArgs() == 2) {
         steps = stringToWord(c.getArg(1));
       }
-      
+
       // Make a gross assumption: Restarting the CPU clears
       // the break flag and the IRQ disable flag.
       cpu.clearBreakFlag();
       cpu.clearIrqDisableFlag();
-      
+
       cpu.setProgramCounter(start);
+      outer:
       while (!cpu.getBreakFlag() && (steps == -1 || steps-- > 0)) {
         cpu.step();
         if (trace) {
           writeLine(cpu.toString());
+        }
+        // Wake up and scan keyboard every 500 steps
+        if (stepCount++ >= 500) {
+          // Reset step count
+          stepCount = 0;
+
+          //
+          // Do output if available.
+          //
+          while (acia.hasTxChar()) {
+            out.write(acia.txRead());
+            out.flush();
+          }
+
+          //
+          // Consume input if available.
+          //
+          // NOTE: On UNIX systems, System.in.available() returns 0
+          // until Enter is pressed. So to interrupt we must ALWAYS
+          // type "^E<enter>". Sucks hard. But such is life.
+          if (System.in.available() > 0) {
+            while ((readChar = in.read()) > -1) {
+              // Keep consuming unless ^E is found.
+              //
+              // TODO: This will probably lead to a lot of spurious keyboard
+              // entry. Gotta keep an eye on that.
+              //
+              if (readChar == 0x05) {
+                break outer;
+              } else {
+                // Buffer keyboard input into the simulated ACIA's
+                // read buffer.
+                acia.rxWrite(readChar);
+              }
+            }
+          }
+
         }
       }
       if (!trace) {
@@ -295,12 +370,12 @@ public class Simulator {
       throw new CommandFormatException("Illegal Address");
     }
   }
-  
+
   public void doToggleTrace() throws IOException {
     this.trace = !trace;
     writeLine("Trace is now " + (trace ? "on" : "off"));
   }
-  
+
   public void doReset() throws MemoryAccessException {
     cpu.reset();
     this.trace = false;
@@ -309,14 +384,15 @@ public class Simulator {
   /**
    * Main simulator routine.
    */
-  public static void main(String[] args) throws MemoryAccessException {
+  public static void main(String[] args) throws MemoryAccessException,
+                                                FifoUnderrunException {
     try {
       new Simulator().run();
     } catch (MemoryRangeException ex) {
       System.err.println("Error: " + ex.toString());
     }
   }
-  
+
   /*******************************************************************
    * Private
    *******************************************************************/
@@ -328,15 +404,15 @@ public class Simulator {
       bus.write(address + i++, d);
     }
   }
-  
+
   private int stringToWord(String addrString) {
     return Integer.parseInt(addrString, 16) & 0xffff;
   }
-  
+
   private int stringToByte(String dataString) {
     return Integer.parseInt(dataString, 16) & 0xff;
   }
-  
+
   private void greeting() throws IOException {
     writeLine("Welcome to the Symon 6502 Simulator. Type 'h' for help.");
   }
@@ -364,7 +440,7 @@ public class Simulator {
   private boolean shouldQuit(String line) {
     return (line == null || "q".equals(line.toLowerCase()));
   }
-  
+
   /**
    * Command line tokenizer class. Given a command line, tokenize
    * it and give easy access to the command and its arguments.
@@ -386,15 +462,15 @@ public class Simulator {
         }
       }
     }
-    
+
     public String getCommand() {
       return command;
     }
-    
+
     public String[] getArgs() {
       return args;
     }
-    
+
     public String getArg(int argNum) {
       if (argNum > args.length - 1) {
         return null;
@@ -402,13 +478,13 @@ public class Simulator {
         return args[argNum];
       }
     }
-    
+
     public int numArgs() {
       return args.length;
     }
-    
+
     public boolean hasArgs() {
       return args.length > 0;
-    } 
+    }
   }
 }

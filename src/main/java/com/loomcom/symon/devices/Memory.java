@@ -9,17 +9,18 @@ public class Memory extends Device {
   private boolean readOnly;
   private int[] mem;
 
+  /* Initialize all locations to 0x00 (BRK) */
+  private static final int DEFAULT_FILL = 0x00;
+
   public Memory(int address, int size, boolean readOnly)
-    throws MemoryRangeException {
-    super(address, size, "RW Memory");
+  throws MemoryRangeException {
+    super(address, size, (readOnly ? "RO Memory" : "RW Memory"));
     this.readOnly = readOnly;
     this.mem = new int[size];
-    // Initialize all locations to 0x00 (BRK)
-    Arrays.fill(this.mem, 0x00);
+    Arrays.fill(this.mem, DEFAULT_FILL);
   }
 
-  public Memory(int address, int size)
-    throws MemoryRangeException {
+  public Memory(int address, int size) throws MemoryRangeException {
     this(address, size, false);
   }
 

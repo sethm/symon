@@ -10,8 +10,8 @@ deemed ready for testing, it will be given a version number of "0.1".
 
 ====================================================================
 
-Version: PRERELEASE
-Last Updated: 10 January, 2010
+Version: 0.1
+Last Updated: 20 January, 2010
 Copyright (c) 2008-2010 Seth J. Morabito <sethm@loomcom.com>
 
 See the file COPYING for license.
@@ -29,25 +29,222 @@ The initial goal is to simulate a system with an NMOS 6502 or CMOS
 65C02 central processor; one or more 6522 VIAs; and one or more 6551
 ACIAs.  More functionality may be considered as time goes on.
 
-2.0 Usage
+
+2.0 Requirements
+----------------
+
+ - Java 1.5 or higher
+ - Maven 2.0.x or higher (for building from source)
+ - JUnit 4 or higher (for testing)
+
+
+3.0 Usage
 ---------
 
-  2.1 Requirements
+To build Symon with Apache Maven, just type:
 
-  - Java 1.5 or higher
-  - Maven 2.0.x or higher (for building from source)
-  - JUnit 4 or higher (for testing)
+  $ mvn package
 
-  (More to come!)
+Maven will build Symon, run unit tests, and produce a jar file in the
+'target' directory containing the compiled simulator.
 
-3.0 To Do
+Symon is meant to be invoked directly from the jar file. To run with
+Java 1.5 or greater, just type:
+
+   $ jar -jar symon-0.1.jar
+
+When Symon is running , you should be greeted by the following message
+
+   Welcome to the Symon 6502 Simulator. Type 'h' for help.
+   symon>
+
+Commands are entered at the monitor 'symon>' prompt. They can be the
+full name (e.g. 'examine') or abbrevations (e.g. 'ex', or even just
+'e' if there is no ambiguity). The basic commands are documented below
+
+3.1 Help
+--------
+
+Typing 'h' or 'help' will show the help screen.
+
+   symon> h
+   Symon 6502 Simulator
+
+   All addresses must be in hexadecimal.
+   Commands may be short or long (e.g. 'e' or 'ex' or 'examine').
+   Note that 'go' clears the BREAK processor status flag.
+
+   h                       Show this help file.
+   e [start] [end]         Examine memory at PC, start, or start-end.
+   d <address> <data>      Deposit data into address.
+   f <start> <end> <data>  Fill memory with data.
+   set {pc,a,x,y} [data]   Set register to data value.
+   load <file> <address>   Load binary file at address.
+   g [address] [steps]     Start running at address, or at PC.
+   step [address]          Step once, optionally starting at address.
+   stat                    Show CPU state.
+   reset                   Reset simulator.
+   trace                   Toggle trace.
+   q (or Control-D)        Quit.
+
+3.2 Examine
+-----------
+
+Memory locations can be examined with the 'examine' (abbreviated 'ex'
+or 'e') command.
+
+If given no arguments, it will display the contents of memory at the
+program counter, as well as the address it is showing.
+
+Example: Examine memory location at the program counter.
+
+   symon> ex
+   0000 35
+
+Subsequent invocations without arguments will move forward in memory
+from the program counter, showing one byte per invocation
+
+Example: Continue examining memory from previous location, one byte at
+a time.
+
+   symon> ex
+   0001 ff
+   symon> ex
+   0002 1d
+   symon> ex
+   0003 a9
+
+An address to examine can be specified by a single argument.
+
+Example: Examine memory location $200
+
+   symon> ex 0200
+   0200 a9
+
+To examine a range of memory, both a start and end address can be
+specified.
+
+Example: Examine all memory from memory location $300 to $325
+
+   symon> e 0300 0325
+   0300  a2 00 bd 11 03 f0 07 8d  00 c0 e8 4c 02 03 4c 0e
+   0310  03 48 65 6c 6c 6f 2c 20  36 35 30 32 20 77 6f 72
+   0320  6c 64 21 0d 0a 00
+
+
+3.3 Deposit
+-----------
+
+Memory contents can be updated using the 'deposit' command
+(abbreviated 'dep' or 'd'). It takes a single argument, a
+16-bit address.
+
+Example: Deposit the byte value $A9 into memory location $400
+
+   symon> d 0400 a9
+
+
+3.4 Fill
+--------
+
+A region of memory can be filled using the 'fill' command (abbreviated
+'fi', 'fl', or 'f'). It takes three arguments. The first is the start
+address, the second is the end address (inclusive), and the third is
+the byte value to fill the memory with.
+
+Example: Fill the memory range $400 to $4FF with the byte value $EA
+
+   symon> fill 0400 04ff ea
+
+
+3.5 Set Registers
+-----------------
+
+Individual registers can be modified directly using the 'set' command.
+The program counter (PC), accumulator (A), X index register and Y
+index register can be set.
+
+The 'set' command takes two arguments. The first is the register to be
+modified, and the second is the one or two byte value to set.
+
+Example: Set the program counter to $300
+
+   symon> set pc 0300
+
+Example: Set the X register to 00
+
+   symon> set x 00
+
+
+3.6 Load A Binary File
+----------------------
+
+Programs in the form of raw binary object files can be loaded directly
+into memory with the 'load' command (abbreviated 'lo' or 'l'). It
+takes two arguments: A file name (with full path if not in the current
+working directory where the simulator was started), and a starting
+address.
+
+Example: Load the file 'test.bin' at address $300
+
+   symon> load test2.bin 0300
+   Loading file 'test2.bin' at address 0300...
+   Loaded 38 ($0026) bytes
+
+3.7 Start Running
+-----------------
+
+The simulator's CPU can be started running with the 'go' command.  If
+invoked with no argument, the simulator will start running from the
+current program counter.
+
+Example: Start running from the current program counter.
+
+   symon> go
+
+If invoked with one argument, the PC will first be set to the
+specified address before the simulated CPU starts running.
+
+Example: Start running from memory location $300
+
+   symon> go 0300
+
+If invoked with two arguments, the second is interpreted as the
+maximum number of steps to execute.
+
+Example: Start running from memory location $300, but for no more than
+255 steps
+
+   symon> go 0300 ff
+
+
+[TODO: More to come]
+
+
+4.0 To Do
 ---------
 
-- Finish core functionality.
-- Finish command monitor.
-- Refactor address decoding (second refactor to DRY up more).
+- More extensive testing.
+
+- Command monitor improvements:
+  * Allow 'deposit' to take no argument, but auto-increment
+    deposited-to address with each invocation.
+
 - Clean up JavaDoc.
+
+- Busses are defined by start address and length. Devices are defined
+  by start address and end address. They should both use start/end
+  address.
+
 - Implement CMOS 65C02 instructions and NMOS / CMOS mode flag.
+
+- Allow a flag to disable breaking to monitor on BRK.
+
+- Allow displaying ACIA status and dumping ACIA buffers, for
+  debugging.
+
+- Allow fine-tuning of keyboard polling interval; 500 instructions is
+  a lot of latency.
 
 
 4.0 Licensing

@@ -1,7 +1,6 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.exceptions.MemoryAccessException;
 
 import org.junit.*;
 import static org.junit.Assert.*;

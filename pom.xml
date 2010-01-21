@@ -4,7 +4,7 @@
   <groupId>com.loomcom.symon</groupId>
   <artifactId>symon</artifactId>
   <packaging>jar</packaging>
-  <version>snapshot</version>
+  <version>0.1</version>
   <name>symon</name>
   <url>http://www.loomcom.com/symon</url>
   <dependencies>
