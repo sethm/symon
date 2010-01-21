@@ -3,10 +3,9 @@
                     SYMON - A 6502 System Simulator
 ====================================================================
 
-NOTE: THIS IS PRE-RELEASE SOFTWARE UNDER ACTIVE DEVELOPMENT.  IT IS
-NOT YET FUNCTIONAL!  IT IS NOT INTENDED TO BE USED BY ANYONE BUT
-DEVELOPERS IMPLEMENTING CORE FUNCTIONALITY.  When the software is
-deemed ready for testing, it will be given a version number of "0.1".
+NOTE: THIS IS ALPHA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT. IT IS
+NOT YET FULLY FUNCTIONAL. IT MAY BE USEFUL, BUT IT IS NOT YET INTENDED
+TO BE USED BY ANYONE BUT DEVELOPERS. Feedback is welcome!
 
 ====================================================================
 
