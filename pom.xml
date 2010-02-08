@@ -7,12 +7,24 @@
   <version>0.1</version>
   <name>symon</name>
   <url>http://www.loomcom.com/symon</url>
+  <repositories>
+    <repository>
+      <id>jline</id>
+      <name>JLine Project Repository</name>
+      <url>http://jline.sourceforge.net/m2repo</url>
+    </repository>
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.7</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jline</groupId>
+      <artifactId>jline</artifactId>
+      <version>0.9.9</version>
     </dependency>
   </dependencies>
 
