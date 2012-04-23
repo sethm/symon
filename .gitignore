@@ -1,7 +1,6 @@
 *~
 *#
 target
-.classpath
-.project
-.settings
 .DS_Store
+.idea
+symon.iml

@@ -1,6 +1,6 @@
 package com.loomcom.symon.exceptions;
 
-public class CommandFormatException extends Exception {
+public class CommandFormatException extends SymonException {
   public CommandFormatException(String msg) {
     super(msg);
   }
