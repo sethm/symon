@@ -1,15 +1,14 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-** NOTE: THIS IS ALPHA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT. IT IS
+**NOTE: THIS IS ALPHA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT. IT IS
 NOT YET FULLY FUNCTIONAL. IT MAY BE USEFUL, BUT IT IS NOT YET INTENDED
-TO BE USED BY ANYONE BUT DEVELOPERS. Feedback is welcome! **
+TO BE USED BY ANYONE BUT DEVELOPERS. Feedback is welcome!**
 
-*Version*: 0.2
+**Version:** 0.2  
+**Last Updated:** 22 April, 2012  
 
-*Last Updated*: 22 April, 2012
-
-*Copyright (c)* 2008-2012 Seth J. Morabito <web@loomcom.com>
+Copyright (c) 2008-2012 Seth J. Morabito &lt;web@loomcom.com&gt;
 
 See the file COPYING for license.
 
@@ -18,7 +17,7 @@ See the file COPYING for license.
 
 Symon is a general purpose simulator for systems based on the NMOS
 Mostek 6502 microprocessor and compatibles.  Symon is implemented in
-Java.  It's core goals are accuracy, ease of development, clear
+Java.  Its core goals are accuracy, ease of development, clear
 documentation, and extensive test suites for validating correctness.
 
 The initial goal is to simulate a system with an NMOS 6502 or CMOS
@@ -49,7 +48,7 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.5 or greater, just type:
 
-    $ jar -jar symon-0.1-jar-with-dependencies.jar
+    $ java -jar symon-0.1-jar-with-dependencies.jar
 
 When Symon is running, you should be greeted by a simple graphical
 interface.
