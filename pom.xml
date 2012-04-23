@@ -21,7 +21,7 @@
             <name>JLine Project Repository</name>
             <url>http://jline.sourceforge.net/m2repo</url>
         </repository>
-        <!-- Loomcom's Maven2 repository -->
+        <!-- Loomcom's Maven2 repository for JTerminal -->
         <repository>
             <releases>
                 <enabled>true</enabled>
@@ -42,11 +42,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>jline</groupId>
-            <artifactId>jline</artifactId>
-            <version>0.9.9</version>
-        </dependency>
-        <dependency>
             <groupId>com.grahamedgecombe.jterminal</groupId>
             <artifactId>jterminal</artifactId>
             <version>1.0.2-SNAPSHOT</version>
@@ -55,6 +50,50 @@
 
     <build>
         <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/com/loomcom/symon/ui/images</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/java/com/loomcom/symon/ui/images</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.loomcom.symon.MainWindow</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- Set Java version to Java 1.5 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -127,7 +166,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 

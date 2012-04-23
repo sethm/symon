@@ -1,0 +1,9 @@
+A Sample Program
+----------------
+
+When loaded at address $0300, this program will print "Hello, 6502 World!" in
+infinite loop.
+
+Assembled with the Ophis assembler:
+
+   https://hkn.eecs.berkeley.edu/~mcmartin/ophis/
