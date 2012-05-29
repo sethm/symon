@@ -7,6 +7,10 @@ import java.awt.event.MouseListener;
 
 import com.grahamedgecombe.jterminal.JTerminal;
 
+import javax.swing.*;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
+
 /**
  * The Console is a simulated 80 column x 24 row VT-100 terminal attached to
  * the ACIA of the system. It provides basic keyboard I/O to Symon.
@@ -14,11 +18,14 @@ import com.grahamedgecombe.jterminal.JTerminal;
 
 public class Console extends JTerminal implements KeyListener, MouseListener {
 
-    // TODO: Pass in io threads, read and write to ACIA.
 	public Console() {
         super();
         addKeyListener(this);
         addMouseListener(this);
+        Border emptyBorder = BorderFactory.createEmptyBorder(5, 5, 5, 0);
+        Border bevelBorder = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
+        Border compoundBorder = BorderFactory.createCompoundBorder(emptyBorder, bevelBorder);
+        this.setBorder(compoundBorder);
 	}
 
     public void reset() {

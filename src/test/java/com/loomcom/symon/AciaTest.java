@@ -44,7 +44,7 @@ public class AciaTest {
   }
 
   @Test
-  public void readingBuffersUntilEmptyShouldResetStatus()
+  public void readingBuffersShouldResetStatus()
       throws Exception {
     Acia acia = new Acia(0x0000);
 
@@ -57,66 +57,6 @@ public class AciaTest {
     assertEquals('b', acia.txRead());
 
     assertEquals(0x10, acia.read(0x0001));
-  }
-
-  @Test
-  public void readingPastEmptyRxBufferShouldThrowException()
-    throws Exception {
-    Acia acia = new Acia(0x0000);
-
-    acia.rxWrite('a');
-    assertEquals(0x18, acia.read(0x0001)); // not empty
-
-    assertEquals('a', acia.rxRead());
-    assertEquals(0x10, acia.read(0x0001)); // becomes empty
-
-    // Should raise (note: I prefer this style to @Test(expected=...)
-    // because it allows much finer grained control over asserting
-    // exactly where the exception is expected to be raised.)
-    try {
-      // Should cause an underrun
-      acia.rxRead();
-      fail("Should have raised FifoUnderrunException.");
-    } catch (FifoUnderrunException ex) {}
-
-    assertEquals(0x10, acia.read(0x0001)); // still again
-
-    for (int i = 0; i < Acia.BUF_LEN; i++) {
-      acia.rxWrite('a');
-    }
-
-    // Should NOT cause an overrun
-    acia.rxWrite('a'); // nothing thrown
-  }
-
-  @Test
-  public void readingPastEmptyTxBufferShouldThrowException()
-    throws Exception {
-    Acia acia = new Acia(0x0000);
-
-    acia.txWrite('a');
-    assertEquals(0x00, acia.read(0x0001)); // not empty
-
-    assertEquals('a', acia.txRead());
-    assertEquals(0x10, acia.read(0x0001)); // becomes empty
-
-    // Should raise (note: I prefer this style to @Test(expected=...)
-    // because it allows much finer grained control over asserting
-    // exactly where the exception is expected to be raised.)
-    try {
-      // Should cause an underrun
-      acia.txRead();
-      fail("Should have raised FifoUnderrunException.");
-    } catch (FifoUnderrunException ex) {}
-
-    assertEquals(0x10, acia.read(0x0001)); // still empty
-
-    for (int i = 0; i < Acia.BUF_LEN; i++) {
-      acia.txWrite('a');
-    }
-
-    // Should NOT cause an overrun
-    acia.txWrite('a'); // Nothing thrown.
   }
 
 }

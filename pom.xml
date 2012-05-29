@@ -81,7 +81,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.loomcom.symon.MainWindow</mainClass>
+                            <mainClass>com.loomcom.symon.Simulator</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -114,7 +114,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.loomcom.symon.MainWindow</mainClass>
+                            <mainClass>com.loomcom.symon.Simulator</mainClass>
                             <packageName>com.loomcom.symon</packageName>
                         </manifest>
                         <manifestEntries>

@@ -111,6 +111,7 @@ public class Cpu implements InstructionTable {
         decimalModeFlag = false;
         breakFlag = false;
         overflowFlag = false;
+        zeroFlag = false;
 
         // Clear illegal opcode trap.
         opTrap = false;
@@ -1375,7 +1376,7 @@ public class Cpu implements InstructionTable {
         return (zp + getYRegister()) & 0xff;
     }
 
-    void setResetVector(int address) throws MemoryAccessException {
+    public void setResetVector(int address) throws MemoryAccessException {
         bus.write(RST_VECTOR_H, (address & 0xff00) >>> 8);
         bus.write(RST_VECTOR_L, address & 0x00ff);
     }

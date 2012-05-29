@@ -6,12 +6,10 @@ package com.loomcom.symon.ui;
 import com.loomcom.symon.Cpu;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 
-public class StatusPane extends JPanel {
-
-    // The CPU to ask for state information.
-    private final Cpu cpu;
+public class StatusPanel extends JPanel {
 
     private final ImageIcon carryOn;
     private final ImageIcon carryOff;
@@ -36,26 +34,35 @@ public class StatusPane extends JPanel {
     private final JLabel overflowFlagLabel;
     private final JLabel negativeFlagLabel;
 
+    private JTextField opcodeField;
+    private JTextField pcField;
+    private JTextField aField;
+    private JTextField xField;
+    private JTextField yField;
+//    private JTextField stepCountField;
+
     private final JLabel opcodeLabel;
     private final JLabel pcLabel;
     private final JLabel aLabel;
     private final JLabel xLabel;
     private final JLabel yLabel;
-    private final JLabel stepCountLabel;
+//    private final JLabel stepCountLabel;
 
-    private static final int WIDTH = 134;
-    private static final int HEIGHT = 27;
+    private static final int WIDTH = 140;
+    private static final int HEIGHT = 200;
 
-    public StatusPane(Cpu cpu) {
+    public StatusPanel() {
         super();
-
-        this.cpu = cpu;
 
         Dimension dimensions = new Dimension(WIDTH, HEIGHT);
 
         setMinimumSize(dimensions);
         setPreferredSize(dimensions);
         setMaximumSize(dimensions);
+
+        setLayout(new GridLayout(13,1));
+
+        JPanel statusFlagsPanel = new JPanel();
 
         carryOn = new ImageIcon(this.getClass().getResource("images/C_on.png"));
         carryOff = new ImageIcon(this.getClass().getResource("images/C_off.png"));
@@ -81,52 +88,83 @@ public class StatusPane extends JPanel {
         overflowFlagLabel = new JLabel(overflowOff, JLabel.CENTER);
         negativeFlagLabel = new JLabel(negativeOff, JLabel.CENTER);
 
+        Border emptyBorder = BorderFactory.createEmptyBorder(8, 6, 0, 6);
+
         // Create and add register and address labels
+        opcodeLabel = new JLabel("Instruction");
+        opcodeLabel.setBorder(emptyBorder);
+        pcLabel = new JLabel("Program Counter");
+        pcLabel.setBorder(emptyBorder);
+        aLabel = new JLabel("Accumulator");
+        aLabel.setBorder(emptyBorder);
+        xLabel = new JLabel("X Register");
+        xLabel.setBorder(emptyBorder);
+        yLabel = new JLabel("Y Register");
+        yLabel.setBorder(emptyBorder);
+//        stepCountLabel = new JLabel("Steps");
+//        stepCountLabel.setBorder(emptyBorder);
 
-        this.opcodeLabel = new JLabel();
-        this.pcLabel = new JLabel();
-        this.aLabel = new JLabel();
-        this.xLabel = new JLabel();
-        this.yLabel = new JLabel();
-        this.stepCountLabel = new JLabel();
+        opcodeField = new JTextField("");
+        pcField = new JTextField("");
+        aField = new JTextField("");
+        xField = new JTextField("");
+        yField = new JTextField("");
+//        stepCountField = new JTextField("");
 
-        this.opcodeLabel.setMinimumSize(new Dimension(100, 20));
-        this.pcLabel.setMinimumSize(new Dimension(80, 20));
-        this.aLabel.setMinimumSize(new Dimension(60, 20));
-        this.xLabel.setMinimumSize(new Dimension(60, 20));
-        this.yLabel.setMinimumSize(new Dimension(60, 20));
-        this.stepCountLabel.setMinimumSize(new Dimension(120, 20));
+        opcodeField.setEditable(false);
+        pcField.setEditable(false);
+        aField.setEditable(false);
+        xField.setEditable(false);
+        yField.setEditable(false);
+//        stepCountField.setEditable(false);
 
-        this.opcodeLabel.setPreferredSize(new Dimension(100, 20));
-        this.pcLabel.setPreferredSize(new Dimension(80, 20));
-        this.aLabel.setPreferredSize(new Dimension(60, 20));
-        this.xLabel.setPreferredSize(new Dimension(60, 20));
-        this.yLabel.setPreferredSize(new Dimension(60, 20));
-        this.stepCountLabel.setPreferredSize(new Dimension(120, 20));
+        opcodeLabel.setMinimumSize(new Dimension(100, 20));
+        pcLabel.setMinimumSize(new Dimension(80, 20));
+        aLabel.setMinimumSize(new Dimension(60, 20));
+        xLabel.setMinimumSize(new Dimension(60, 20));
+        yLabel.setMinimumSize(new Dimension(60, 20));
+//        stepCountLabel.setMinimumSize(new Dimension(120, 20));
 
-        this.setLayout(new FlowLayout());
+        opcodeLabel.setPreferredSize(new Dimension(100, 20));
+        pcLabel.setPreferredSize(new Dimension(80, 20));
+        aLabel.setPreferredSize(new Dimension(60, 20));
+        xLabel.setPreferredSize(new Dimension(60, 20));
+        yLabel.setPreferredSize(new Dimension(60, 20));
+//        stepCountLabel.setPreferredSize(new Dimension(120, 20));
 
-        this.add(negativeFlagLabel);
-        this.add(overflowFlagLabel);
-        this.add(breakFlagLabel);
-        this.add(decimalModeFlagLabel);
-        this.add(irqDisableFlagLabel);
-        this.add(zeroFlagLabel);
-        this.add(carryFlagLabel);
+        statusFlagsPanel.add(negativeFlagLabel);
+        statusFlagsPanel.add(overflowFlagLabel);
+        statusFlagsPanel.add(breakFlagLabel);
+        statusFlagsPanel.add(decimalModeFlagLabel);
+        statusFlagsPanel.add(irqDisableFlagLabel);
+        statusFlagsPanel.add(zeroFlagLabel);
+        statusFlagsPanel.add(carryFlagLabel);
 
-        this.add(opcodeLabel);
-        this.add(pcLabel);
-        this.add(aLabel);
-        this.add(xLabel);
-        this.add(yLabel);
-        this.add(stepCountLabel);
+        add(statusFlagsPanel);
+        add(opcodeLabel);
+        add(opcodeField);
+        add(pcLabel);
+        add(pcField);
+        add(aLabel);
+        add(aField);
+        add(xLabel);
+        add(xField);
+        add(yLabel);
+        add(yField);
+//        add(stepCountLabel);
+//        add(stepCountField);
 
-        updateState();
+        setBorder(BorderFactory.createBevelBorder(3));
     }
 
-    public void updateState() {
+    /**
+     * Update the display based on the current state of the CPU.
+     *
+     * @param cpu The simulated 6502 CPU.
+     */
+    public void updateState(Cpu cpu) {
         // Update the Processor Status Flag display
-        int state = this.cpu.getProcessorStatus();
+        int state = cpu.getProcessorStatus();
 
         carryFlagLabel.setIcon(iconForFlag(state, 0));
         zeroFlagLabel.setIcon(iconForFlag(state, 1));
@@ -137,12 +175,12 @@ public class StatusPane extends JPanel {
         negativeFlagLabel.setIcon(iconForFlag(state, 7));
 
         // Update the register and address displays
-        opcodeLabel.setText(cpu.getOpcodeStatus());
-        pcLabel.setText(cpu.getProgramCounterStatus());
-        aLabel.setText(cpu.getARegisterStatus());
-        xLabel.setText(cpu.getXRegisterStatus());
-        yLabel.setText(cpu.getYRegisterStatus());
-        stepCountLabel.setText(Long.toString(cpu.getStepCounter()));
+        opcodeField.setText(cpu.getOpcodeStatus());
+        pcField.setText(cpu.getProgramCounterStatus());
+        aField.setText(cpu.getARegisterStatus());
+        xField.setText(cpu.getXRegisterStatus());
+        yField.setText(cpu.getYRegisterStatus());
+//        stepCountField.setText(Long.toString(cpu.getStepCounter()));
 
         repaint();
     }
