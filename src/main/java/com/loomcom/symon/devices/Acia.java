@@ -32,6 +32,8 @@ public class Acia extends Device {
     private int commandRegister;
     private int controlRegister;
 
+    private boolean overrun = false;
+
     /**
      * Read/Write buffers
      */
@@ -52,6 +54,8 @@ public class Acia extends Device {
             case DATA_REG:
                 return rxRead();
             case STAT_REG:
+                // TODO: Overrun, Parity Error, Framing Error,
+                // DTR, DSR, and Interrupt flags.
                 return ((rxFull ? 0x08 : 0x00) |
                         (txFull ? 0x00 : 0x10));
             case CMND_REG:

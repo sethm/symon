@@ -18,6 +18,9 @@ import javax.swing.border.Border;
 
 public class Console extends JTerminal implements KeyListener, MouseListener {
 
+    private boolean hasInput = false;
+    private char keyBuffer;
+
 	public Console() {
         super();
         addKeyListener(this);
@@ -33,6 +36,7 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
         getModel().setCursorColumn(0);
         getModel().setCursorRow(0);
         repaint();
+        this.hasInput = false;
     }
 
     public void keyTyped(KeyEvent keyEvent) {
@@ -40,17 +44,21 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
     }
 
     public void keyPressed(KeyEvent keyEvent) {
-        int keyCode = keyEvent.getKeyCode();
-        int modifiersMask = keyEvent.getModifiers();
-        int modifiersExMask = keyEvent.getModifiersEx();
+        keyBuffer = keyEvent.getKeyChar();
+        hasInput = true;
 
-        System.out.println("Key Pressed #" + keyEvent.getKeyCode() + " : " +
-                KeyEvent.getKeyText(keyCode) + "   MASK : " +
-                modifiersMask + "    EXT MASK : " +
-                modifiersExMask
-        );
+        System.out.println("Key Pressed (0x" + Integer.toString((int)keyBuffer, 16) + ") : " + keyBuffer);
 
         keyEvent.consume();
+    }
+
+    public boolean hasInput() {
+        return hasInput;
+    }
+
+    public char readInputChar() {
+        hasInput = false;
+        return this.keyBuffer;
     }
 
     public void keyReleased(KeyEvent keyEvent) {

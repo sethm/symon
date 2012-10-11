@@ -14,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
@@ -61,6 +62,9 @@ public class Simulator implements ActionListener, Observer {
     private JButton      stepButton;
     private JButton      resetButton;
 
+    // The most recently read key code
+    private char         keyBuffer;
+
     // TODO: loadMenuItem seriously violates encapsulation!
     // A far better solution would be to extend JMenu and add callback
     // methods to enable and disable menus as required.
@@ -71,10 +75,7 @@ public class Simulator implements ActionListener, Observer {
     private JFileChooser fileChooser;
     private Preferences  preferences;
 
-    private StringBuffer aciaBuffer;
-
     public Simulator() throws MemoryRangeException {
-        this.aciaBuffer = new StringBuffer(512);
         this.acia = new Acia(ACIA_BASE);
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
@@ -275,7 +276,8 @@ public class Simulator implements ActionListener, Observer {
             // Update status.
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    updateConsoleAndStatus(cpu);
+                    // Now update the state
+                    statusPane.updateState(cpu);
                 }
             });
         } catch (MemoryAccessException ex) {
@@ -294,7 +296,8 @@ public class Simulator implements ActionListener, Observer {
             // immediate update after stepping manually.
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    updateConsoleAndStatus(cpu);
+                    // Now update the state
+                    statusPane.updateState(cpu);
                 }
             });
         } catch (SymonException ex) {
@@ -321,9 +324,27 @@ public class Simulator implements ActionListener, Observer {
 
         cpu.step();
 
-        // Read from the ACIA
-        while (acia.hasTxChar()) {
-            aciaBuffer.append((char) acia.txRead());
+        // Read from the ACIA and immediately update the console if there's
+        // output ready.
+        if (acia.hasTxChar()) {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        console.print(Character.toString((char)acia.txRead()));
+                        console.repaint();
+                    }
+                });
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // If a key has been pressed, fill the ACIA.
+        // TODO: Interrupt handling.
+        if (console.hasInput()) {
+            acia.rxWrite((int)console.readInputChar());
         }
 
         // This is a very expensive update, and we're doing it without
@@ -332,7 +353,8 @@ public class Simulator implements ActionListener, Observer {
         if (stepsSinceLastUpdate++ > MAX_STEPS_BETWEEN_UPDATES) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    updateConsoleAndStatus(cpu);
+                    // Now update the state
+                    statusPane.updateState(cpu);
                 }
             });
             stepsSinceLastUpdate = 0;
@@ -361,26 +383,10 @@ public class Simulator implements ActionListener, Observer {
         // Immediately update the UI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                updateConsoleAndStatus(cpu);
+                // Now update the state
+                statusPane.updateState(cpu);
             }
         });
-    }
-
-    /**
-     * Update the UI with the latest state of the simulator.
-     */
-    private void updateConsoleAndStatus(Cpu cpu) {
-        // If we have accumulated any ACIA output in our temporary
-        // buffer since the last UI update, write it to the console,
-        // then clear the buffer.
-        if (aciaBuffer.length() > 0) {
-            console.print(aciaBuffer.toString());
-            console.repaint();
-            aciaBuffer.delete(0, aciaBuffer.length());
-        }
-
-        // Now update the state
-        statusPane.updateState(cpu);
     }
 
     public static void main(String args[]) {
@@ -457,8 +463,8 @@ public class Simulator implements ActionListener, Observer {
                     stepButton.setEnabled(true);
                     loadMenuItem.setEnabled(true);
                     runStopButton.setText("Run");
-                    // Update state.
-                    updateConsoleAndStatus(cpu);
+                    // Now update the state
+                    statusPane.updateState(cpu);
                 }
             });
 
