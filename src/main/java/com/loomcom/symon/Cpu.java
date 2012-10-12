@@ -1289,26 +1289,32 @@ public class Cpu implements InstructionTable {
 
     /**
      * Push an item onto the stack, and decrement the stack counter.
-     * Silently fails to push onto the stack if SP is
+     * Will wrap-around if already at the bottom of the stack (This
+     * is the same behavior as the real 6502)
      */
     void stackPush(int data) throws MemoryAccessException {
         bus.write(0x100 + sp, data);
 
-        if (sp == 0)
+        if (sp == 0) {
             sp = 0xff;
-        else
+        } else {
             --sp;
+        }
+
     }
 
 
     /**
      * Pre-increment the stack pointer, and return the top of the stack.
+     * Will wrap-around if already at the top of the stack (This
+     * is the same behavior as the real 6502)
      */
     int stackPop() throws MemoryAccessException {
-        if (sp == 0xff)
+        if (sp == 0xff) {
             sp = 0x00;
-        else
+        } else {
             ++sp;
+        }
 
         return bus.read(0x100 + sp);
     }
