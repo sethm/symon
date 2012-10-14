@@ -73,7 +73,7 @@ public class Simulator implements ActionListener, Observer {
     private JMenuItem    loadMenuItem;
 
     private JFileChooser fileChooser;
-    private Preferences  preferences;
+    private PreferencesDialog  preferences;
 
     public Simulator() throws MemoryRangeException {
         this.acia = new Acia(ACIA_BASE);
@@ -109,6 +109,7 @@ public class Simulator implements ActionListener, Observer {
         // File Chooser
         fileChooser = new JFileChooser();
         preferences = new PreferencesDialog(mainWindow, true);
+        preferences.addObserver(this);
 
         // Panel for Console and Buttons
         JPanel controlsContainer = new JPanel();
@@ -203,6 +204,8 @@ public class Simulator implements ActionListener, Observer {
         } else if (actionEvent.getSource() == stepButton) {
             handleStep();
         } else if (actionEvent.getSource() == runStopButton) {
+            // Shift focus to the console.
+            console.requestFocus();
             if (runLoop != null && runLoop.isRunning()) {
                 runLoop.requestStop();
                 runLoop.interrupt();
@@ -327,18 +330,9 @@ public class Simulator implements ActionListener, Observer {
         // Read from the ACIA and immediately update the console if there's
         // output ready.
         if (acia.hasTxChar()) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        console.print(Character.toString((char)acia.txRead()));
-                        console.repaint();
-                    }
-                });
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            // This is thread-safe
+            console.print(Character.toString((char)acia.txRead()));
+            console.repaint();
         }
 
         // If a key has been pressed, fill the ACIA.
@@ -414,8 +408,14 @@ public class Simulator implements ActionListener, Observer {
     public void update(Observable observable, Object o) {
         // Instance equality should work here, there is only one instance.
         if (observable == preferences) {
-            // TODO: Update system based on state. (i.e., update ACIA address, and raise a dialog if it
-            // overlaps with anything)
+            // TODO: Update ACIA base address if it has changed.
+
+            int oldBorderWidth = console.getBorderWidth();
+            if (oldBorderWidth != preferences.getBorderWidth()) {
+                // Resize the main window if the border width has changed.
+                console.setBorderWidth(preferences.getBorderWidth());
+                mainWindow.pack();
+            }
         }
     }
 

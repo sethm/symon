@@ -118,6 +118,11 @@ public class Cpu implements InstructionTable {
 
         // Reset step counter
         stepCounter = 0L;
+
+        // Reset registers.
+        a = 0;
+        x = 0;
+        y = 0;
     }
 
     public void step(int num) throws MemoryAccessException {

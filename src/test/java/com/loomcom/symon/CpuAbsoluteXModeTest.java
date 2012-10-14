@@ -401,6 +401,8 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
+
     bus.loadProgram(0xa9, 0x7f,        // LDA #$7f
                     0x7d, 0x10, 0xab); // ADC $ab10,X
     cpu.step(2);
@@ -411,6 +413,8 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
+
     bus.loadProgram(0xa9, 0x80,        // LDA #$80
                     0x7d, 0x10, 0xab); // ADC $ab10,X
     cpu.step(2);
@@ -421,6 +425,8 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
+
     bus.loadProgram(0xa9, 0xff,        // LDA #$ff
                     0x7d, 0x10, 0xab); // ADC $ab10,X
     cpu.step(2);
@@ -431,6 +437,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xa9, 0x00,        // LDA #$00
                     0x7d, 0x11, 0xab); // ADC $ab11,X
     cpu.step(2);
@@ -441,6 +448,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xa9, 0x7f,        // LDA #$7f
                     0x7d, 0x11, 0xab); // ADC $ab11,X
     cpu.step(2);
@@ -451,6 +459,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xa9, 0x80,        // LDA #$80
                     0x7d, 0x11, 0xab); // ADC $ab11,X
     cpu.step(2);
@@ -461,6 +470,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xa9, 0xff,        // LDA #$ff
                     0x7d, 0x11, 0xab); // ADC $ab11,X
     cpu.step(2);
@@ -506,6 +516,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xf8,              // SED
                     0xa9, 0x49,        // LDA #$49
                     0x7d, 0x10, 0xab); // ADC $ab10,X
@@ -517,6 +528,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xf8,              // SED
                     0xa9, 0x50,        // LDA #$50
                     0x7d, 0x10, 0xab); // ADC $ab10,X
@@ -528,6 +540,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xf8,              // SED
                     0xa9, 0x99,        // LDA #$99
                     0x7d, 0x10, 0xab); // ADC $ab10,X
@@ -539,6 +552,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xf8,              // SED
                     0xa9, 0x00,        // LDA #$00
                     0x7d, 0x11, 0xab); // ADC $ab10,X
@@ -550,6 +564,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xf8,              // SED
                     0xa9, 0x49,        // LDA #$49
                     0x7d, 0x11, 0xab); // ADC $ab11,X
@@ -561,6 +576,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertTrue(cpu.getCarryFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
     bus.loadProgram(0xf8,              // SED
                     0xa9, 0x50,        // LDA #$59
                     0x7d, 0x11, 0xab); // ADC $ab11,X
@@ -666,6 +682,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
 
     cpu.setAccumulator(0x0f);
     bus.loadProgram(0x9d, 0x10, 0xab); // STA $ab10,X
@@ -675,6 +692,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
     assertFalse(cpu.getNegativeFlag());
 
     cpu.reset();
+    cpu.setXRegister(0x30);
 
     cpu.setAccumulator(0x80);
     bus.loadProgram(0x9d, 0x10, 0xab); // STA $ab10,X

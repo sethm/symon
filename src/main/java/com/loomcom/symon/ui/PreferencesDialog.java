@@ -14,9 +14,11 @@ public class PreferencesDialog extends Observable implements Preferences {
 
     private JTextField aciaAddressField;
     private JTextField programLoadAddressField;
+    private JTextField borderWidthField;
 
     private int programLoadAddress = DEFAULT_PROGRAM_LOAD_ADDRESS;
     private int aciaAddress = DEFAULT_ACIA_ADDRESS;
+    private int borderWidth = DEFAULT_BORDER_WIDTH;
 
     public PreferencesDialog(Frame parent, boolean modal) {
         this.dialog = new JDialog(parent, modal);
@@ -28,6 +30,9 @@ public class PreferencesDialog extends Observable implements Preferences {
         return dialog;
     }
 
+    /**
+     * TODO: Validation of input.
+     */
     private void initComponents() {
         dialog.setTitle("Preferences");
         Container contents = dialog.getContentPane();
@@ -40,12 +45,15 @@ public class PreferencesDialog extends Observable implements Preferences {
 
         final JLabel aciaAddressLabel = new JLabel("ACIA Address");
         final JLabel programLoadAddressLabel = new JLabel("Program Load Address");
+        final JLabel borderWidthLabel = new JLabel("Console Border Width");
 
         aciaAddressField = new JTextField(8);
         programLoadAddressField = new JTextField(8);
+        borderWidthField = new JTextField(8);
 
         aciaAddressLabel.setLabelFor(aciaAddressField);
         programLoadAddressLabel.setLabelFor(programLoadAddressField);
+        borderWidthLabel.setLabelFor(borderWidthField);
 
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -66,6 +74,13 @@ public class PreferencesDialog extends Observable implements Preferences {
         constraints.gridx = 1;
         settingsContainer.add(programLoadAddressField, constraints);
 
+        constraints.gridy = 2;
+        constraints.gridx = 0;
+        settingsContainer.add(borderWidthLabel, constraints);
+
+        constraints.gridx = 1;
+        settingsContainer.add(borderWidthField, constraints);
+
         JButton applyButton = new JButton("Apply");
         JButton cancelButton = new JButton("Cancel");
 
@@ -81,8 +96,11 @@ public class PreferencesDialog extends Observable implements Preferences {
             public void actionPerformed(ActionEvent actionEvent) {
                 programLoadAddress = hexToInt(programLoadAddressField.getText());
                 aciaAddress = hexToInt(aciaAddressField.getText());
+                borderWidth = Integer.parseInt(borderWidthField.getText());
                 updateUi();
-                notifyObservers();
+                // TODO: Actually check to see if values have changed, don't assume.
+                setChanged();
+                PreferencesDialog.this.notifyObservers();
                 dialog.setVisible(false);
             }
         });
@@ -94,6 +112,27 @@ public class PreferencesDialog extends Observable implements Preferences {
         contents.add(buttonsContainer, BorderLayout.PAGE_END);
 
         dialog.pack();
+    }
+
+    public int getProgramStartAddress() {
+        return programLoadAddress;
+    }
+
+    public int getAciaAddress() {
+        return aciaAddress;
+    }
+
+    /**
+     * @return The width of the console border, in pixels.
+     */
+    public int getBorderWidth() {
+        return borderWidth;
+    }
+
+    public void updateUi() {
+        aciaAddressField.setText(intToHex(aciaAddress));
+        programLoadAddressField.setText(intToHex(programLoadAddress));
+        borderWidthField.setText(Integer.toString(borderWidth));
     }
 
     private String intToHex(int i) {
@@ -109,16 +148,4 @@ public class PreferencesDialog extends Observable implements Preferences {
         }
     }
 
-    public int getProgramStartAddress() {
-        return programLoadAddress;
-    }
-
-    public int getAciaAddress() {
-        return aciaAddress;
-    }
-
-    public void updateUi() {
-        aciaAddressField.setText(intToHex(aciaAddress));
-        programLoadAddressField.setText(intToHex(programLoadAddress));
-    }
 }
