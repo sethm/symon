@@ -5,8 +5,8 @@ SYMON - A 6502 System Simulator
 NOT YET FULLY FUNCTIONAL. IT MAY BE USEFUL, BUT IT IS NOT YET INTENDED
 TO BE USED BY ANYONE BUT DEVELOPERS. Feedback is welcome!**
 
-**Version:** 0.2  
-**Last Updated:** 22 April, 2012  
+**Version:** 0.3
+**Last Updated:** 14 October, 2012  
 
 Copyright (c) 2008-2012 Seth J. Morabito &lt;web@loomcom.com&gt;
 
@@ -48,9 +48,9 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.5 or greater, just type:
 
-    $ java -jar symon-0.1-jar-with-dependencies.jar
+    $ java -jar symon-0.3-jar-with-dependencies.jar
 
-When Symon is running, you should be greeted by a simple graphical
+When Symon is running, you should be presented with a simple graphical
 interface.
 
 
@@ -63,8 +63,12 @@ Right now, all programs are loaded starting at addres $0300.  After
 loading, the simulated CPU's reset vector is loaded with the values
 $00, $03, and the CPU is reset.
 
-There is a simple sample program in the "samples" directory,
+There are two very simple sample program in the "samples" directory,
 for testing.
+  
+- 'echo.prg' will echo back anything typed at the console.
+
+- 'hello.prg' will continuously print "Hello, 6502 World!" to the console.
 
 ### 3.3 Running
 
@@ -74,6 +78,9 @@ running at address $0300.
 
 ## 4.0 To Do
 
+- Accurate timing (all simulated instructions currently take
+  only one step to execute)
+  
 - Interrupt handling!
 
 - UI needs a ton more polish.
@@ -96,8 +103,7 @@ running at address $0300.
   debugging.
 
 
-5.0 Licensing
--------------
+## 5.0 Licensing
 
 Symon is free software.  It is distributed under the MIT License.
 Please see the file 'COPYING' for full details of the license.
