@@ -2,6 +2,9 @@ package com.loomcom.symon.devices;
 
 import com.loomcom.symon.exceptions.*;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 /**
  * This is a simulation of the MOS 6551 ACIA, with limited
@@ -34,14 +37,19 @@ public class Acia extends Device {
 
     private boolean overrun = false;
 
+    private long lastTxWrite   = 0;
+    private long lastRxRead    = 0;
+    private int  baudRate      = 0;
+    private long baudRateDelay = 0;
+
     /**
      * Read/Write buffers
      */
     private int rxChar = 0;
     private int txChar = 0;
 
-    private boolean rxFull = false;
-    private boolean txFull = false;
+    private boolean rxFull  = false;
+    private boolean txEmpty = true;
 
     public Acia(int address) throws MemoryRangeException {
         super(address, ACIA_SIZE, "ACIA");
@@ -54,10 +62,7 @@ public class Acia extends Device {
             case DATA_REG:
                 return rxRead();
             case STAT_REG:
-                // TODO: Overrun, Parity Error, Framing Error,
-                // DTR, DSR, and Interrupt flags.
-                return ((rxFull ? 0x08 : 0x00) |
-                        (txFull ? 0x00 : 0x10));
+                return statusReg();
             case CMND_REG:
                 return commandRegister;
             case CTRL_REG:
@@ -80,11 +85,128 @@ public class Acia extends Device {
                 commandRegister = data;
                 break;
             case 3:
-                controlRegister = data;
+                setControlRegister(data);
                 break;
             default:
                 throw new MemoryAccessException("No register.");
         }
+    }
+
+    /**
+     * Set the control register and associated state.
+     *
+     * @param data
+     */
+    public void setControlRegister(int data) {
+        this.controlRegister = data;
+
+        // If the value of the data is 0, this is a request to reset,
+        // otherwise it's a control update.
+
+        if (data == 0) {
+            reset();
+        } else {
+            // Mask the lower three bits to get the baud rate.
+            int baudSelector = data & 0x0f;
+            switch (baudSelector) {
+                case 0:
+                    baudRate = 0;
+                    break;
+                case 1:
+                    baudRate = 50;
+                    break;
+                case 2:
+                    baudRate = 75;
+                    break;
+                case 3:
+                    baudRate = 110; // Real rate is actually 109.92
+                    break;
+                case 4:
+                    baudRate = 135; // Real rate is actually 134.58
+                    break;
+                case 5:
+                    baudRate = 150;
+                    break;
+                case 6:
+                    baudRate = 300;
+                    break;
+                case 7:
+                    baudRate = 600;
+                    break;
+                case 8:
+                    baudRate = 1200;
+                    break;
+                case 9:
+                    baudRate = 1800;
+                    break;
+                case 10:
+                    baudRate = 2400;
+                    break;
+                case 11:
+                    baudRate = 3600;
+                    break;
+                case 12:
+                    baudRate = 4800;
+                    break;
+                case 13:
+                    baudRate = 7200;
+                    break;
+                case 14:
+                    baudRate = 9600;
+                    break;
+                case 15:
+                    baudRate = 19200;
+                    break;
+            }
+
+            // Recalculate the baud rate delay.
+            baudRateDelay = calculateBaudRateDelay();
+        }
+    }
+
+    /*
+     * Calculate the delay in nanoseconds between successive read/write operations, based on the
+     * configured baud rate.
+     */
+    private long calculateBaudRateDelay() {
+        if (baudRate > 0) {
+            // This is a pretty rough approximation based on 8 bits per character,
+            // and 1/baudRate per bit.
+            return (long)((1.0 / baudRate) * 1000000000 * 8);
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @return The simulated baud rate in bps.
+     */
+    public int getBaudRate() {
+        return baudRate;
+    }
+
+    /**
+     * Set the baud rate of the simulated ACIA.
+     *
+     * @param rate The baud rate in bps. 0 means no simulated baud rate delay.
+     */
+    public void setBaudRate(int rate) {
+        this.baudRate = rate;
+    }
+
+    /**
+     * @return The contents of the status register.
+     */
+    public int statusReg() {
+        // TODO: Overrun, Parity Error, Framing Error, DTR, DSR, and Interrupt flags.
+        int stat = 0;
+        if (rxFull && System.nanoTime() >= (lastRxRead + baudRateDelay)) {
+            stat |= 0x08;
+        }
+        if (txEmpty && System.nanoTime() >= (lastTxWrite + baudRateDelay)) {
+            stat |= 0x10;
+        }
+        return stat;
     }
 
     @Override
@@ -93,6 +215,7 @@ public class Acia extends Device {
     }
 
     public synchronized int rxRead() {
+        lastRxRead = System.nanoTime();
         rxFull = false;
         return rxChar;
     }
@@ -103,12 +226,13 @@ public class Acia extends Device {
     }
 
     public synchronized int txRead() {
-        txFull = false;
+        txEmpty = true;
         return txChar;
     }
 
     public synchronized void txWrite(int data) {
-        txFull = true;
+        lastTxWrite = System.nanoTime();
+        txEmpty = false;
         txChar = data;
     }
 
@@ -116,7 +240,7 @@ public class Acia extends Device {
      * @return true if there is character data in the TX register.
      */
     public boolean hasTxChar() {
-        return txFull;
+        return !txEmpty;
     }
 
     /**
@@ -128,7 +252,7 @@ public class Acia extends Device {
 
     private synchronized void reset() {
         txChar = 0;
-        txFull = false;
+        txEmpty = true;
         rxChar = 0;
         rxFull = false;
     }

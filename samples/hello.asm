@@ -13,20 +13,19 @@
 start:  cli
         lda #$09
         sta iocmd      ; Set command status
-        lda #$16
-        sta ioctrl     ; 0 stop bits, 8 bit word, 300 baud
-        ldx #$00       ; Initialize index
+        lda #$1a
+        sta ioctrl     ; 0 stop bits, 8 bit word, 2400 baud
 
-loop:   lda string,x
-        beq start      ; If A is 0, loop back and start again
+init:   ldx #$00       ; Initialize index
 
-write:  lda iostatus
-        and #$10       ; Load ACIA status. Is output buffer empty?
-        beq write      ; If not, loop back and try again,
-        lda string,x
-        sta iobase     ; Otherwise, write to output.
+loop:   lda iostatus
+        and #$10       ; Is the tx register empty?
+        beq loop       ; No, wait for it to empty
+        lda string,x   ; Otherwise, load the string pointer
+        beq init       ; If the char is 0, re-init
+        sta iobase     ; Otherwise, transmit
 
-        inx
-        jmp loop       ; Repeat.
+        inx            ; Increment string pointer.
+        jmp loop       ; Repeat write.
 
 string: .byte "Hello, 6502 world! ", 0

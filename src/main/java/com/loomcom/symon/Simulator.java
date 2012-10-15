@@ -33,12 +33,21 @@ public class Simulator implements ActionListener, Observer {
     private static final int ROM_BASE = 0xe000;
     private static final int ROM_SIZE = 0x2000; // 8 KB
 
-    public static final int ACIA_BASE = 0xc000;
+    private static final int ACIA_BASE = 0xc000;
+
+    // The delay in microseconds between steps.
+    private static final int DELAY_BETWEEN_STEPS_NS = 1000;
 
     // Since it is very expensive to update the UI with Swing's Event Dispatch Thread, we can't afford
-    // to refresh the view on every simualted clock cycle. Instead, we will only refresh the view after this
+    // to refresh the view on every simulated clock cycle. Instead, we will only refresh the view after this
     // number of steps when running normally.
-    private static final int MAX_STEPS_BETWEEN_UPDATES = 15000;
+    //
+    // Since we're simulating a 1MHz 6502 here, we have a 1 us delay between steps. Setting this to 10000
+    // should give us a status update every 10 ms.
+    //
+    // TODO: Work around the event dispatch thread with custom painting code instead of relying on Swing.
+    //
+    private static final int MAX_STEPS_BETWEEN_UPDATES = 10000;
 
     private final static Logger logger = Logger.getLogger(Simulator.class.getName());
 
@@ -131,12 +140,15 @@ public class Simulator implements ActionListener, Observer {
         buttonContainer.add(stepButton);
         buttonContainer.add(resetButton);
 
-        // Left side - console and buttons
+        // Left side - console
         controlsContainer.add(console, BorderLayout.PAGE_START);
-        controlsContainer.add(buttonContainer, BorderLayout.PAGE_END);
-
         mainWindow.getContentPane().add(controlsContainer, BorderLayout.LINE_START);
+
+        // Right side - status pane
         mainWindow.getContentPane().add(statusPane, BorderLayout.LINE_END);
+
+        // Bottom - buttons.
+        mainWindow.getContentPane().add(buttonContainer, BorderLayout.PAGE_END);
 
         runStopButton.addActionListener(this);
         stepButton.addActionListener(this);
@@ -325,6 +337,8 @@ public class Simulator implements ActionListener, Observer {
      */
     private void step() throws MemoryAccessException {
 
+        delayLoop();
+
         cpu.step();
 
         // Read from the ACIA and immediately update the console if there's
@@ -417,6 +431,16 @@ public class Simulator implements ActionListener, Observer {
                 mainWindow.pack();
             }
         }
+    }
+
+    /*
+     * Perform a busy-loop for DELAY_BETWEEN_STEPS_NS nanoseconds
+     */
+    private void delayLoop() {
+        long startTime = System.nanoTime();
+        long stopTime = startTime + DELAY_BETWEEN_STEPS_NS;
+        // Busy loop
+        while (System.nanoTime() < stopTime) { ; }
     }
 
     /**

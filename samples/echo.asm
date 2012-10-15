@@ -13,8 +13,8 @@
 start:  cli
         lda #$09
         sta iocmd      ; Set command status
-        lda #$16
-        sta ioctrl     ; 0 stop bits, 8 bit word, 300 baud
+        lda #$1a
+        sta ioctrl     ; 0 stop bits, 8 bit word, 2400 baud
 
 ;; Load a character from the keyboard and store it into
 ;; the accumulator

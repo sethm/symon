@@ -6,7 +6,7 @@ package com.loomcom.symon.ui;
 import com.loomcom.symon.Cpu;
 
 import javax.swing.*;
-import javax.swing.border.Border;
+import javax.swing.border.*;
 import java.awt.*;
 
 public class StatusPanel extends JPanel {
@@ -36,6 +36,7 @@ public class StatusPanel extends JPanel {
 
     private JTextField opcodeField;
     private JTextField pcField;
+    private JTextField spField;
     private JTextField aField;
     private JTextField xField;
     private JTextField yField;
@@ -43,26 +44,29 @@ public class StatusPanel extends JPanel {
 
     private final JLabel opcodeLabel;
     private final JLabel pcLabel;
+    private final JLabel spLabel;
     private final JLabel aLabel;
     private final JLabel xLabel;
     private final JLabel yLabel;
 //    private final JLabel stepCountLabel;
 
-    private static final int WIDTH = 140;
-    private static final int HEIGHT = 200;
+    private static final int EMPTY_BORDER = 5;
+    private static final Border LABEL_BORDER = BorderFactory.createEmptyBorder(0, 4, 0, 0);
+    private static final Font LABEL_FONT = new Font("sansserif", Font.PLAIN, 11);
 
     public StatusPanel() {
         super();
 
-        Dimension dimensions = new Dimension(WIDTH, HEIGHT);
+        Border emptyBorder = BorderFactory.createEmptyBorder(EMPTY_BORDER, EMPTY_BORDER,
+                                                             EMPTY_BORDER, EMPTY_BORDER);
+        Border etchedBorder = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
 
-        setMinimumSize(dimensions);
-        setPreferredSize(dimensions);
-        setMaximumSize(dimensions);
+        setBorder(BorderFactory.createCompoundBorder(emptyBorder, etchedBorder));
 
-        setLayout(new GridLayout(13,1));
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         JPanel statusFlagsPanel = new JPanel();
+        statusFlagsPanel.setAlignmentX(LEFT_ALIGNMENT);
 
         carryOn = new ImageIcon(this.getClass().getResource("images/C_on.png"));
         carryOff = new ImageIcon(this.getClass().getResource("images/C_off.png"));
@@ -88,50 +92,6 @@ public class StatusPanel extends JPanel {
         overflowFlagLabel = new JLabel(overflowOff, JLabel.CENTER);
         negativeFlagLabel = new JLabel(negativeOff, JLabel.CENTER);
 
-        Border emptyBorder = BorderFactory.createEmptyBorder(8, 6, 0, 6);
-
-        // Create and add register and address labels
-        opcodeLabel = new JLabel("Instruction");
-        opcodeLabel.setBorder(emptyBorder);
-        pcLabel = new JLabel("Program Counter");
-        pcLabel.setBorder(emptyBorder);
-        aLabel = new JLabel("Accumulator");
-        aLabel.setBorder(emptyBorder);
-        xLabel = new JLabel("X Register");
-        xLabel.setBorder(emptyBorder);
-        yLabel = new JLabel("Y Register");
-        yLabel.setBorder(emptyBorder);
-//        stepCountLabel = new JLabel("Steps");
-//        stepCountLabel.setBorder(emptyBorder);
-
-        opcodeField = new JTextField("");
-        pcField = new JTextField("");
-        aField = new JTextField("");
-        xField = new JTextField("");
-        yField = new JTextField("");
-//        stepCountField = new JTextField("");
-
-        opcodeField.setEditable(false);
-        pcField.setEditable(false);
-        aField.setEditable(false);
-        xField.setEditable(false);
-        yField.setEditable(false);
-//        stepCountField.setEditable(false);
-
-        opcodeLabel.setMinimumSize(new Dimension(100, 20));
-        pcLabel.setMinimumSize(new Dimension(80, 20));
-        aLabel.setMinimumSize(new Dimension(60, 20));
-        xLabel.setMinimumSize(new Dimension(60, 20));
-        yLabel.setMinimumSize(new Dimension(60, 20));
-//        stepCountLabel.setMinimumSize(new Dimension(120, 20));
-
-        opcodeLabel.setPreferredSize(new Dimension(100, 20));
-        pcLabel.setPreferredSize(new Dimension(80, 20));
-        aLabel.setPreferredSize(new Dimension(60, 20));
-        xLabel.setPreferredSize(new Dimension(60, 20));
-        yLabel.setPreferredSize(new Dimension(60, 20));
-//        stepCountLabel.setPreferredSize(new Dimension(120, 20));
-
         statusFlagsPanel.add(negativeFlagLabel);
         statusFlagsPanel.add(overflowFlagLabel);
         statusFlagsPanel.add(breakFlagLabel);
@@ -140,11 +100,30 @@ public class StatusPanel extends JPanel {
         statusFlagsPanel.add(zeroFlagLabel);
         statusFlagsPanel.add(carryFlagLabel);
 
+        // Create and add register and address labels
+        opcodeLabel = makeLabel("Instruction");
+        pcLabel = makeLabel("Program Counter");
+        spLabel = makeLabel("Stack Pointer");
+        aLabel = makeLabel("Accumulator");
+        xLabel = makeLabel("X Register");
+        yLabel = makeLabel("Y Register");
+//        stepCountLabel = new JLabel("Steps");
+
+        opcodeField = makeTextField();
+        pcField = makeTextField();
+        spField = makeTextField();
+        aField = makeTextField();
+        xField = makeTextField();
+        yField = makeTextField();
+//        stepCountField = new JTextField("");
+
         add(statusFlagsPanel);
         add(opcodeLabel);
         add(opcodeField);
         add(pcLabel);
         add(pcField);
+        add(spLabel);
+        add(spField);
         add(aLabel);
         add(aField);
         add(xLabel);
@@ -153,8 +132,6 @@ public class StatusPanel extends JPanel {
         add(yField);
 //        add(stepCountLabel);
 //        add(stepCountField);
-
-        setBorder(BorderFactory.createBevelBorder(3));
     }
 
     /**
@@ -177,7 +154,8 @@ public class StatusPanel extends JPanel {
         // Update the register and address displays
         opcodeField.setText(cpu.getOpcodeStatus());
         pcField.setText(cpu.getProgramCounterStatus());
-        aField.setText(cpu.getARegisterStatus());
+        spField.setText(cpu.getStackPointerStatus());
+        aField.setText(cpu.getAccumulatorStatus());
         xField.setText(cpu.getXRegisterStatus());
         yField.setText(cpu.getYRegisterStatus());
 //        stepCountField.setText(Long.toString(cpu.getStepCounter()));
@@ -240,6 +218,21 @@ public class StatusPanel extends JPanel {
         }
 
         return imageIcon;
+    }
+
+    private JLabel makeLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setAlignmentX(LEFT_ALIGNMENT);
+        label.setBorder(LABEL_BORDER);
+        label.setFont(LABEL_FONT);
+        return label;
+    }
+
+    private JTextField makeTextField() {
+        JTextField textField = new JTextField("");
+        textField.setAlignmentX(LEFT_ALIGNMENT);
+        textField.setEditable(false);
+        return textField;
     }
 
 }

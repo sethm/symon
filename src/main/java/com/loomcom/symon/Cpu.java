@@ -1260,7 +1260,7 @@ public class Cpu implements InstructionTable {
         return String.format("$%04X", addr);
     }
 
-    public String getARegisterStatus() {
+    public String getAccumulatorStatus() {
         return String.format("$%02X", a);
     }
 
@@ -1276,6 +1276,10 @@ public class Cpu implements InstructionTable {
         return String.format("$%04X", pc);
     }
 
+    public String getStackPointerStatus() {
+        return String.format("$%02X", sp);
+    }
+
     /**
      * Returns a string representing the CPU state.
      */
@@ -1284,10 +1288,11 @@ public class Cpu implements InstructionTable {
         StringBuffer sb = new StringBuffer(String.format("$%04X", addr) +
                                            "   ");
         sb.append(String.format("%-14s", opcode));
-        sb.append("A=" + String.format("$%02X", a) + "  ");
-        sb.append("X=" + String.format("$%02X", x) + "  ");
-        sb.append("Y=" + String.format("$%02X", y) + "  ");
-        sb.append("PC=" + String.format("$%04X", pc) + "  ");
+        sb.append("A=" + getAccumulatorStatus() + "  ");
+        sb.append("X=" + getXRegisterStatus() + "  ");
+        sb.append("Y=" + getYRegisterStatus() + "  ");
+        sb.append("PC=" + getProgramCounterStatus() + "  ");
+        sb.append("SP=" + getStackPointerStatus() + "  ");
         sb.append("P=" + getProcessorStatusString());
         return sb.toString();
     }
