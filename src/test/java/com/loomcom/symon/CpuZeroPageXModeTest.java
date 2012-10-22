@@ -709,7 +709,8 @@ public class CpuZeroPageXModeTest extends TestCase {
         bus.loadProgram(0x94, 0x10); // STY $10,X
         cpu.step();
         assertEquals(0x00, bus.read(0x40));
-        assertTrue(cpu.getZeroFlag());
+        // Should have no effect on flags.
+        assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
         cpu.reset();
@@ -730,7 +731,7 @@ public class CpuZeroPageXModeTest extends TestCase {
         cpu.step();
         assertEquals(0x80, bus.read(0x40));
         assertFalse(cpu.getZeroFlag());
-        assertTrue(cpu.getNegativeFlag());
+        assertFalse(cpu.getNegativeFlag());
     }
 
     /* STA - Store Accumulator - $95 */
@@ -742,7 +743,8 @@ public class CpuZeroPageXModeTest extends TestCase {
         bus.loadProgram(0x95, 0x10); // STA $10,X
         cpu.step();
         assertEquals(0x00, bus.read(0x40));
-        assertTrue(cpu.getZeroFlag());
+        // Should have no effect on flags.
+        assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
         cpu.reset();
@@ -763,7 +765,7 @@ public class CpuZeroPageXModeTest extends TestCase {
         cpu.step();
         assertEquals(0x80, bus.read(0x40));
         assertFalse(cpu.getZeroFlag());
-        assertTrue(cpu.getNegativeFlag());
+        assertFalse(cpu.getNegativeFlag());
     }
 
     /* LDY - Load Y Register - $b4 */
@@ -852,7 +854,7 @@ public class CpuZeroPageXModeTest extends TestCase {
         cpu.step();
         assertFalse(cpu.getCarryFlag());    // m < y
         assertFalse(cpu.getZeroFlag());
-        assertFalse(cpu.getNegativeFlag()); // m - y > 0
+        assertTrue(cpu.getNegativeFlag()); // m - y < 0
     }
 
     /* DEC - Decrement Memory Location - $d6 */

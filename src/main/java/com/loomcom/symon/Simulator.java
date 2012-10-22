@@ -2,6 +2,7 @@ package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Acia;
 import com.loomcom.symon.devices.Memory;
+import com.loomcom.symon.exceptions.FifoUnderrunException;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import com.loomcom.symon.exceptions.SymonException;
@@ -14,7 +15,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
@@ -27,16 +27,16 @@ public class Simulator implements ActionListener, Observer {
     private static final int BUS_BOTTOM = 0x0000;
     private static final int BUS_TOP    = 0xffff;
 
+    // 32K of RAM
     private static final int MEMORY_BASE = 0x0000;
-    private static final int MEMORY_SIZE = 0xc000; // 48 KB
+    private static final int MEMORY_SIZE = 0xC000;
 
-    private static final int ROM_BASE = 0xe000;
-    private static final int ROM_SIZE = 0x2000; // 8 KB
+    // IO area at $D000
+    private static final int ACIA_BASE = 0xC000;
 
-    private static final int ACIA_BASE = 0xc000;
-
-    // The delay in microseconds between steps.
-    private static final int DELAY_BETWEEN_STEPS_NS = 1000;
+    // 8KB ROM at E000-FFFF
+    private static final int ROM_BASE = 0xD000;
+    private static final int ROM_SIZE = 0x3000;
 
     // Since it is very expensive to update the UI with Swing's Event Dispatch Thread, we can't afford
     // to refresh the view on every simulated clock cycle. Instead, we will only refresh the view after this
@@ -84,18 +84,26 @@ public class Simulator implements ActionListener, Observer {
     private JFileChooser fileChooser;
     private PreferencesDialog  preferences;
 
-    public Simulator() throws MemoryRangeException {
+    public Simulator() throws MemoryRangeException, IOException {
         this.acia = new Acia(ACIA_BASE);
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
         this.ram = new Memory(MEMORY_BASE, MEMORY_SIZE, false);
 
-        // TODO: Load this ROM from a file, of course!
-        this.rom = new Memory(ROM_BASE, ROM_SIZE, false);
+        // TODO: Make this configurable, of course.
+        File romImage = new File("rom.bin");
+        if (romImage.canRead()) {
+            logger.info("Loading ROM image from file " + romImage);
+            this.rom = Memory.makeROM(ROM_BASE, ROM_SIZE, romImage);
+        } else {
+            logger.info("No ROM file 'rom.bin' found. ROM image will be empty R/W memory.");
+            // Just make it a normal RAM image.
+            this.rom = Memory.makeRAM(ROM_BASE, ROM_SIZE);
+        }
 
         bus.addCpu(cpu);
-        bus.addDevice(acia);
         bus.addDevice(ram);
+        bus.addDevice(acia);
         bus.addDevice(rom);
     }
 
@@ -212,7 +220,7 @@ public class Simulator implements ActionListener, Observer {
      */
     public void actionPerformed(ActionEvent actionEvent) {
         if (actionEvent.getSource() == resetButton) {
-            handleReset();
+            coldReset();
         } else if (actionEvent.getSource() == stepButton) {
             handleStep();
         } else if (actionEvent.getSource() == runStopButton) {
@@ -274,7 +282,7 @@ public class Simulator implements ActionListener, Observer {
         }
     }
 
-    private void handleReset() {
+    private void coldReset() {
         if (runLoop != null && runLoop.isRunning()) {
             runLoop.requestStop();
             runLoop.interrupt();
@@ -282,7 +290,7 @@ public class Simulator implements ActionListener, Observer {
         }
 
         try {
-            logger.log(Level.INFO, "Reset requested. Resetting CPU and clearing memory.");
+            logger.log(Level.INFO, "Cold reset requested. Resetting CPU and clearing memory.");
             // Reset and clear memory
             cpu.reset();
             ram.fill(0x00);
@@ -307,6 +315,7 @@ public class Simulator implements ActionListener, Observer {
     private void handleStep() {
         try {
             step();
+
             // The simulator is lazy about updating the UI for performance reasons, so always request an
             // immediate update after stepping manually.
             SwingUtilities.invokeLater(new Runnable() {
@@ -337,8 +346,6 @@ public class Simulator implements ActionListener, Observer {
      */
     private void step() throws MemoryAccessException {
 
-        delayLoop();
-
         cpu.step();
 
         // Read from the ACIA and immediately update the console if there's
@@ -351,8 +358,12 @@ public class Simulator implements ActionListener, Observer {
 
         // If a key has been pressed, fill the ACIA.
         // TODO: Interrupt handling.
-        if (console.hasInput()) {
-            acia.rxWrite((int)console.readInputChar());
+        try {
+            if (console.hasInput()) {
+                acia.rxWrite((int)console.readInputChar());
+            }
+        } catch (FifoUnderrunException ex) {
+            logger.severe("Console type-ahead buffer underrun!");
         }
 
         // This is a very expensive update, and we're doing it without
@@ -374,8 +385,6 @@ public class Simulator implements ActionListener, Observer {
      * Load a program into memory at the simulatorDidStart address.
      */
     private void loadProgram(byte[] program, int startAddress) throws MemoryAccessException {
-        cpu.setResetVector(startAddress);
-
         int addr = startAddress, i;
         for (i = 0; i < program.length; i++) {
             bus.write(addr++, program[i] & 0xff);
@@ -387,6 +396,9 @@ public class Simulator implements ActionListener, Observer {
         // After loading, be sure to reset and
         // Reset (but don't clear memory, naturally)
         cpu.reset();
+
+        // Reset the stack program counter
+        cpu.setProgramCounter(preferences.getProgramStartAddress());
 
         // Immediately update the UI.
         SwingUtilities.invokeLater(new Runnable() {
@@ -405,8 +417,8 @@ public class Simulator implements ActionListener, Observer {
                     Simulator simulator = new Simulator();
                     simulator.createAndShowUi();
                     // Reset the simulator.
-                    simulator.handleReset();
-                } catch (MemoryRangeException e) {
+                    simulator.coldReset();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -433,15 +445,6 @@ public class Simulator implements ActionListener, Observer {
         }
     }
 
-    /*
-     * Perform a busy-loop for DELAY_BETWEEN_STEPS_NS nanoseconds
-     */
-    private void delayLoop() {
-        long startTime = System.nanoTime();
-        long stopTime = startTime + DELAY_BETWEEN_STEPS_NS;
-        // Busy loop
-        while (System.nanoTime() < stopTime) { ; }
-    }
 
     /**
      * The main run thread.

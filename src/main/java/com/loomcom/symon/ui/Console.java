@@ -7,6 +7,8 @@ import java.awt.event.MouseListener;
 
 import com.grahamedgecombe.jterminal.JTerminal;
 import com.grahamedgecombe.jterminal.vt100.Vt100TerminalModel;
+import com.loomcom.symon.exceptions.FifoUnderrunException;
+import com.loomcom.symon.util.FifoRingBuffer;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -22,16 +24,22 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
     private static final int DEFAULT_COLUMNS = 80;
     private static final int DEFAULT_ROWS = 24;
     private static final int DEFAULT_BORDER_WIDTH = 10;
+    // If true, swap CR and LF characters
+    private static final boolean SWAP_CR_AND_LF = true;
+    // If true, send CRLF (0x0d 0x0a) whenever CR is typed
+    private static final boolean SEND_CR_LF_FOR_CR = false;
 
-    private boolean hasInput = false;
-    private char keyBuffer;
+    private FifoRingBuffer typeAheadBuffer;
 
     public Console() {
         this(DEFAULT_COLUMNS, DEFAULT_ROWS);
     }
 
-	public Console(int columns, int rows) {
+    public Console(int columns, int rows) {
         super(new Vt100TerminalModel(columns, rows));
+        // A small type-ahead buffer, as might be found in any real
+        // VT100-style serial terminal.
+        this.typeAheadBuffer = new FifoRingBuffer(128);
         setBorderWidth(DEFAULT_BORDER_WIDTH);
         addKeyListener(this);
         addMouseListener(this);
@@ -39,7 +47,7 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
         Border bevelBorder = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
         Border compoundBorder = BorderFactory.createCompoundBorder(emptyBorder, bevelBorder);
         this.setBorder(compoundBorder);
-	}
+    }
 
     /**
      * Reset the console. This will cause the console to be cleared and the cursor returned to the
@@ -47,11 +55,11 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
      *
      */
     public void reset() {
+        typeAheadBuffer.reset();
         getModel().clear();
         getModel().setCursorColumn(0);
         getModel().setCursorRow(0);
         repaint();
-        this.hasInput = false;
     }
 
     /**
@@ -60,7 +68,7 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
      * @return
      */
     public boolean hasInput() {
-        return hasInput;
+        return !typeAheadBuffer.isEmpty();
     }
 
     /**
@@ -69,6 +77,24 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
      * @param keyEvent The key event.
      */
     public void keyTyped(KeyEvent keyEvent) {
+        char keyTyped = keyEvent.getKeyChar();
+
+        if (SWAP_CR_AND_LF) {
+            if (keyTyped == 0x0a) {
+                keyTyped = 0x0d;
+            }
+            else if (keyTyped == 0x0d) {
+                keyTyped = 0x0a;
+            }
+        }
+
+        if (SEND_CR_LF_FOR_CR && keyTyped == 0x0d) {
+            typeAheadBuffer.push(0x0d);
+            typeAheadBuffer.push(0x0a);
+        } else {
+            typeAheadBuffer.push(keyTyped);
+        }
+
         keyEvent.consume();
     }
 
@@ -78,8 +104,6 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
      * @param keyEvent The key event.
      */
     public void keyPressed(KeyEvent keyEvent) {
-        keyBuffer = keyEvent.getKeyChar();
-        hasInput = true;
         keyEvent.consume();
     }
 
@@ -88,9 +112,8 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
      *
      * @return The character typed.
      */
-    public char readInputChar() {
-        hasInput = false;
-        return this.keyBuffer;
+    public char readInputChar() throws FifoUnderrunException {
+        return (char)typeAheadBuffer.pop();
     }
 
     /**

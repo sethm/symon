@@ -119,7 +119,7 @@ public interface InstructionTable {
     "TYA", "STA", "TXS",  null,  null, "STA",  null,  null,
     "LDY", "LDA", "LDX",  null, "LDY", "LDA", "LDX",  null,
     "TAY", "LDA", "TAX",  null, "LDY", "LDA", "LDX",  null,
-    null,  "LDA",  null,  null, "LDY", "LDA", "LDX",  null,
+    "BCS", "LDA",  null,  null, "LDY", "LDA", "LDX",  null,
     "CLV", "LDA", "TSX",  null, "LDY", "LDA", "LDX",  null,
     "CPY", "CMP",  null,  null, "CPY", "CMP", "DEC",  null,
     "INY", "CMP", "DEX",  null, "CPY", "CMP", "DEC",  null,
@@ -173,13 +173,13 @@ public interface InstructionTable {
     Mode.ABS, Mode.ABS, Mode.ABS, Mode.NUL,   // 0x8c-0x8f
     Mode.REL, Mode.INY, Mode.NUL, Mode.NUL,   // 0x90-0x93
     Mode.ZPX, Mode.ZPX, Mode.ZPY, Mode.NUL,   // 0x94-0x97
-    Mode.IMP, Mode.ABX, Mode.IMP, Mode.NUL,   // 0x98-0x9b
-    Mode.NUL, Mode.ABY, Mode.NUL, Mode.NUL,   // 0x9c-0x9f
+    Mode.IMP, Mode.ABY, Mode.IMP, Mode.NUL,   // 0x98-0x9b
+    Mode.NUL, Mode.ABX, Mode.NUL, Mode.NUL,   // 0x9c-0x9f
     Mode.IMM, Mode.XIN, Mode.IMM, Mode.NUL,   // 0xa0-0xa3
     Mode.ZPG, Mode.ZPG, Mode.ZPG, Mode.NUL,   // 0xa4-0xa7
     Mode.IMP, Mode.IMM, Mode.IMP, Mode.NUL,   // 0xa8-0xab
     Mode.ABS, Mode.ABS, Mode.ABS, Mode.NUL,   // 0xac-0xaf
-    Mode.NUL, Mode.INY, Mode.NUL, Mode.NUL,   // 0xb0-0xb3
+    Mode.REL, Mode.INY, Mode.NUL, Mode.NUL,   // 0xb0-0xb3
     Mode.ZPX, Mode.ZPX, Mode.ZPY, Mode.NUL,   // 0xb4-0xb7
     Mode.IMP, Mode.ABX, Mode.IMP, Mode.NUL,   // 0xb8-0xbb
     Mode.ABX, Mode.ABY, Mode.ABY, Mode.NUL,   // 0xbc-0xbf
@@ -239,7 +239,7 @@ public interface InstructionTable {
     2, 6, 0, 0, 3, 3, 3, 0, 2, 0, 2, 0, 4, 4, 4, 0,
     2, 6, 0, 0, 4, 4, 4, 0, 2, 5, 2, 0, 0, 5, 0, 0,
     2, 6, 2, 0, 3, 3, 3, 0, 2, 2, 2, 0, 4, 4, 4, 0,
-    0, 5, 0, 0, 4, 4, 4, 0, 2, 4, 2, 0, 4, 4, 4, 0,
+    2, 5, 0, 0, 4, 4, 4, 0, 2, 4, 2, 0, 4, 4, 4, 0,
     2, 6, 0, 0, 3, 3, 5, 0, 2, 2, 2, 0, 4, 4, 6, 0,
     2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
     2, 6, 0, 0, 3, 3, 5, 0, 2, 2, 2, 0, 4, 4, 6, 0,

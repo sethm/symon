@@ -412,7 +412,8 @@ public class CpuAbsoluteYModeTest extends TestCase {
         bus.loadProgram(0x99, 0x10, 0xab); // STA $ab10,Y
         cpu.step();
         assertEquals(0x00, bus.read(0xab40));
-        assertTrue(cpu.getZeroFlag());
+        // STA should have NO effect on flags
+        assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
         cpu.reset();
@@ -434,7 +435,7 @@ public class CpuAbsoluteYModeTest extends TestCase {
         cpu.step();
         assertEquals(0x80, bus.read(0xab40));
         assertFalse(cpu.getZeroFlag());
-        assertTrue(cpu.getNegativeFlag());
+        assertFalse(cpu.getNegativeFlag());
     }
 
     /* LDX - Load X Register - $be */
@@ -523,7 +524,7 @@ public class CpuAbsoluteYModeTest extends TestCase {
         cpu.step();
         assertFalse(cpu.getCarryFlag());    // m < y
         assertFalse(cpu.getZeroFlag());
-        assertFalse(cpu.getNegativeFlag()); // m - y > 0
+        assertTrue(cpu.getNegativeFlag()); // $80 - $ff = $81
     }
 
     /* SBC - Subtract with Carry - $f9 */

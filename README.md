@@ -1,12 +1,11 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**NOTE: THIS IS ALPHA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT. IT IS
-NOT YET FULLY FUNCTIONAL. IT MAY BE USEFUL, BUT IT IS NOT YET INTENDED
-TO BE USED BY ANYONE BUT DEVELOPERS. Feedback is welcome!**
+**NOTE: THIS IS BETA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT.  Feedback is
+welcome!**
 
-**Version:** 0.3
-**Last Updated:** 14 October, 2012  
+**Version:** 0.5
+**Last Updated:** 21 October, 2012  
 
 Copyright (c) 2008-2012 Seth J. Morabito &lt;web@loomcom.com&gt;
 
@@ -70,22 +69,35 @@ for testing.
 
 - 'hello.prg' will continuously print "Hello, 6502 World!" to the console.
 
-### 3.3 Running
+The sample directory also contains a ROM image of Lee Davison's
+Ehanced 6502 BASIC. For instructions on loading the rom, please see
+the README file in that directory.
 
-After loading a program, clicking "Run" will start the simulator
+### 3.3 ROM files
+
+Any 12KB file named 'rom.bin' that exists in the same directory where
+Symon is launched will be loaded at address $d000. If the file is
+larger than 12KB, loading will fail. This functionality will be
+improved in a future release!
+
+### 3.4 Running
+
+After loading a program or ROM image, clicking "Run" will start the simulator
 running at address $0300.
 
 
 ## 4.0 To Do
 
-- Accurate timing (all simulated instructions currently take
-  only one step to execute)
+- Better debugging tools from the UI, including memory inspection,
+  disassembly, breakpoints, and execution tracing.
+
+- Better ROM loading (and re-loading)
+
+- More accurate timing.
   
 - Interrupt handling!
 
 - UI needs a ton more polish.
-
-- Add a simple menu interface for common tasks.
 
 - More extensive testing.
 

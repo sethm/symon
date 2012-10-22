@@ -27,9 +27,9 @@ getkey: lda iostatus   ; Read the ACIA status
 ;; Write the current char in the accumulator to the console
 
 write:  pha            ; Save accumulator
-        lda iostatus   ; Read the ACIA status
+writel: lda iostatus   ; Read the ACIA status
         and #$10       ; Is the tx register empty?
-        beq write      ; No, wait for it to empty
+        beq writel     ; No, wait for it to empty
         pla            ; Otherwise, load saved accumulator
         sta iobase     ; and write to output.
 

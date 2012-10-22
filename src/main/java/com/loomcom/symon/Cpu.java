@@ -29,6 +29,10 @@ public class Cpu implements InstructionTable {
     public static final int NMI_VECTOR_L = 0xfffe;
     public static final int NMI_VECTOR_H = 0xffff;
 
+    // The delay in microseconds between steps.
+    // TODO: Make configurable
+    private static final int CLOCK_IN_NS = 1000;
+
     /* The Bus */
     private Bus bus;
 
@@ -41,11 +45,13 @@ public class Cpu implements InstructionTable {
     private int pc;  // Program Counter register
     private int sp;  // Stack Pointer register, offset into page 1
     private int ir;  // Instruction register
+
+    private int lastPc; // The program counter before the most recent step.
     private int[] args = new int[3];  // Decoded instruction args
     private int instSize;   // # of operands for the instruction
 
     /* Scratch space for addressing mode and effective address
-  * calculations */
+     * calculations */
     private int irAddressMode; // Bits 3-5 of IR:  [ | | |X|X|X| | ]
     private int irOpMode;      // Bits 6-7 of IR:  [ | | | | | |X|X]
     private int effectiveAddress;
@@ -435,8 +441,8 @@ public class Cpu implements InstructionTable {
             /** BIT - Bit Test ******************************************************/
             case 0x24: // Zero Page
             case 0x2c: // Absolute
-                tmp = a & bus.read(effectiveAddress);
-                setZeroFlag(tmp == 0);
+                tmp = bus.read(effectiveAddress);
+                setZeroFlag((a & tmp) == 0);
                 setNegativeFlag((tmp & 0x80) != 0);
                 setOverflowFlag((tmp & 0x40) != 0);
                 break;
@@ -553,7 +559,6 @@ public class Cpu implements InstructionTable {
             case 0x99: // Absolute,Y
             case 0x9d: // Absolute,X
                 bus.write(effectiveAddress, a);
-                setArithmeticFlags(a);
                 break;
 
 
@@ -562,7 +567,6 @@ public class Cpu implements InstructionTable {
             case 0x8c: // Absolute
             case 0x94: // Zero Page,X
                 bus.write(effectiveAddress, y);
-                setArithmeticFlags(y);
                 break;
 
 
@@ -571,7 +575,6 @@ public class Cpu implements InstructionTable {
             case 0x8e: // Absolute
             case 0x96: // Zero Page,Y
                 bus.write(effectiveAddress, x);
-                setArithmeticFlags(x);
                 break;
 
 
@@ -704,6 +707,8 @@ public class Cpu implements InstructionTable {
                 setOpTrap();
                 break;
         }
+
+        delayLoop(ir);
     }
 
     /**
@@ -715,7 +720,7 @@ public class Cpu implements InstructionTable {
      * @param operand The operand
      * @return
      */
-    public int adc(int acc, int operand) {
+    private int adc(int acc, int operand) {
         int result = (operand & 0xff) + (acc & 0xff) + getCarryBit();
         int carry6 = (operand & 0x7f) + (acc & 0x7f) + getCarryBit();
         setCarryFlag((result & 0x100) != 0);
@@ -729,7 +734,7 @@ public class Cpu implements InstructionTable {
      * Add with Carry (BCD).
      */
 
-    public int adcDecimal(int acc, int operand) {
+    private int adcDecimal(int acc, int operand) {
         int l, h, result;
         l = (acc & 0x0f) + (operand & 0x0f) + getCarryBit();
         if ((l & 0xff) > 9) l += 6;
@@ -748,12 +753,8 @@ public class Cpu implements InstructionTable {
      * Common code for Subtract with Carry.  Just calls ADC of the
      * one's complement of the operand.  This lets the N, V, C, and Z
      * flags work out nicely without any additional logic.
-     *
-     * @param acc
-     * @param operand
-     * @return
      */
-    public int sbc(int acc, int operand) {
+    private int sbc(int acc, int operand) {
         int result;
         result = adc(acc, ~operand);
         setArithmeticFlags(result);
@@ -762,12 +763,8 @@ public class Cpu implements InstructionTable {
 
     /**
      * Subtract with Carry, BCD mode.
-     *
-     * @param acc
-     * @param operand
-     * @return
      */
-    public int sbcDecimal(int acc, int operand) {
+    private int sbcDecimal(int acc, int operand) {
         int l, h, result;
         l = (acc & 0x0f) - (operand & 0x0f) - (carryFlag ? 0 : 1);
         if ((l & 0x10) != 0) l -= 6;
@@ -784,23 +781,19 @@ public class Cpu implements InstructionTable {
     /**
      * Compare two values, and set carry, zero, and negative flags
      * appropriately.
-     *
-     * @param reg
-     * @param operand
      */
-    public void cmp(int reg, int operand) {
+    private void cmp(int reg, int operand) {
+        int tmp = (reg - operand) & 0xff;
         setCarryFlag(reg >= operand);
-        setZeroFlag(reg == operand);
-        setNegativeFlag((reg - operand) > 0);
+        setZeroFlag(tmp == 0);
+        setNegativeFlag((tmp & 0x80) != 0); // Negative bit set
     }
 
     /**
      * Set the Negative and Zero flags based on the current value of the
      * register operand.
-     *
-     * @param reg The register.
      */
-    public void setArithmeticFlags(int reg) {
+    private void setArithmeticFlags(int reg) {
         zeroFlag = (reg == 0);
         negativeFlag = (reg & 0x80) != 0;
     }
@@ -1134,6 +1127,10 @@ public class Cpu implements InstructionTable {
         this.y = val;
     }
 
+    public int getLastProgramCounter() {
+        return lastPc;
+    }
+
     public int getProgramCounter() {
         return pc;
     }
@@ -1285,15 +1282,15 @@ public class Cpu implements InstructionTable {
      */
     public String toString() {
         String opcode = opcode(ir, args[0], args[1]);
-        StringBuffer sb = new StringBuffer(String.format("$%04X", addr) +
-                                           "   ");
+        StringBuffer sb = new StringBuffer(getInstructionByteStatus());
+        sb.append("  ");
         sb.append(String.format("%-14s", opcode));
-        sb.append("A=" + getAccumulatorStatus() + "  ");
-        sb.append("X=" + getXRegisterStatus() + "  ");
-        sb.append("Y=" + getYRegisterStatus() + "  ");
-        sb.append("PC=" + getProgramCounterStatus() + "  ");
-        sb.append("SP=" + getStackPointerStatus() + "  ");
-        sb.append("P=" + getProcessorStatusString());
+        sb.append("A:" + String.format("%02x", a) + " ");
+        sb.append("X:" + String.format("%02x", x) + " ");
+        sb.append("Y:" + String.format("%02x", y) + " ");
+        sb.append("F:" + String.format("%02x", getProcessorStatus()) + " ");
+        sb.append("S:" + String.format("1%02x", sp) + " ");
+        sb.append(getProcessorStatusString());
         return sb.toString();
     }
 
@@ -1397,6 +1394,19 @@ public class Cpu implements InstructionTable {
         bus.write(RST_VECTOR_L, address & 0x00ff);
     }
 
+    /*
+    * Perform a busy-loop for CLOCK_IN_NS nanoseconds
+    */
+    private void delayLoop(int opcode) {
+        int clockSteps = Cpu.instructionClocks[0xff & opcode];
+        // Just a precaution. This could be better.
+        if (clockSteps == 0) { clockSteps = 1; }
+        long startTime = System.nanoTime();
+        long stopTime = startTime + (CLOCK_IN_NS * clockSteps);
+        // Busy loop
+        while (System.nanoTime() < stopTime) { ; }
+    }
+
     /**
      * Given an opcode and its operands, return a formatted name.
      *
@@ -1430,10 +1440,10 @@ public class Cpu implements InstructionTable {
                 sb.append(String.format(" ($%04X)", address(op1, op2)));
                 break;
             case XIN:
-                sb.append(String.format(" ($%02X),X", op1));
+                sb.append(String.format(" ($%02X,X)", op1));
                 break;
             case INY:
-                sb.append(String.format(" ($%02X,Y)", op1));
+                sb.append(String.format(" ($%02X),Y", op1));
                 break;
             case REL:
             case ZPG:
@@ -1449,4 +1459,19 @@ public class Cpu implements InstructionTable {
 
         return sb.toString();
     }
+    
+    public String getInstructionByteStatus() {
+        switch (Cpu.instructionSizes[ir]) {
+            case 0:
+            case 1:
+                return String.format("%04X  %02X      ", addr, ir);
+            case 2:
+                return String.format("%04X  %02X %02X   ", addr, ir, args[0]);
+            case 3:
+                return String.format("%04X  %02X %02X %02X", addr, ir, args[0], args[1]);
+            default:
+                return null;
+        }
+    }
+
 }

@@ -1,9 +1,39 @@
-A Sample Program
+Sample Programs
 ----------------
 
-When loaded at address $0300, this program will print "Hello, 6502 World!" in
-infinite loop.
+1. hello.prg
 
-Assembled with the Ophis assembler:
+  When loaded at address $0300, this program will print "Hello, 6502 World!" in
+  infinite loop.
+
+2. echo.prg
+
+  When loaded at address $0300, this program will echo back to the console
+  anything typed.
+
+
+Both hello.prg and echo.prg were assembled with the Ophis assembler:
 
    https://hkn.eecs.berkeley.edu/~mcmartin/ophis/
+
+
+3. ehbasic.rom
+
+   This is Lee Davison's Enhanced 6502 BASIC.
+
+   To use this ROM image, just copy the file 'ehbasic.rom' into the directory
+   where you run Symon. Rename the file to 'rom.bin'.  When you start Symon,
+   the ROM file will be automatically loaded at address $d000.
+
+   Click the "Run" button and EhBASIC should automatically start running.
+
+   Type 'C' to do a cold start.
+
+   Then, type $C000 when prompted for the memory size.
+
+   NOTE: EhBASIC only wants upper-case input. This confused me at first!
+
+   More information can be found in the 'ehbasic' directory, and by visiting
+   the EhBASIC web page:
+
+   http://mycorner.no-ip.org/6502/ehbasic/index.html

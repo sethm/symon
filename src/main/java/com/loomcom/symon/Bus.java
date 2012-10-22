@@ -42,9 +42,10 @@ public class Bus {
         MemoryRange memRange = device.getMemoryRange();
         for (Device d : devices) {
             if (d.getMemoryRange().overlaps(memRange)) {
-                throw new MemoryRangeException("The device being added " +
-                                               "overlaps with an existing " +
-                                               "device.");
+                throw new MemoryRangeException("The device being added at " +
+                                               String.format("$%04X", memRange.startAddress()) +
+                                               " overlaps with an existing " +
+                                               "device, '" + d + "'");
             }
         }
 
@@ -114,7 +115,7 @@ public class Bus {
                 return d.read(devAddr);
             }
         }
-        throw new MemoryAccessException("Read failed!  No device at address.");
+        throw new MemoryAccessException("Bus read failed. No device at address " + String.format("$%04X", address));
     }
 
     public void write(int address, int value) throws MemoryAccessException {
@@ -127,7 +128,7 @@ public class Bus {
                 return;
             }
         }
-        throw new MemoryAccessException("Write failed!  No device at address.");
+        throw new MemoryAccessException("Bus write failed. No device at address " + String.format("$%04X", address));
     }
 
     public SortedSet<Device> getDevices() {
