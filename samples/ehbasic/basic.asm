@@ -441,7 +441,7 @@ Ram_top		= $C000	; end of user RAM+1 (set as needed, should be page aligned)
 
 ; This start can be changed to suit your system
 
-	.org	$D000
+	.org	$C000
 
 ; BASIC cold start entry point
 

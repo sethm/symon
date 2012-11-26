@@ -10,11 +10,16 @@ import com.loomcom.symon.exceptions.*;
  */
 public class Bus {
 
+    // The default address at which to load programs
+    public static int DEFAULT_LOAD_ADDRESS = 0x0200;
+	
     // By default, our bus starts at 0, and goes up to 64K
     private int startAddress = 0x0000;
     private int endAddress = 0xffff;
+
     // The CPU
     private Cpu cpu;
+
     // Ordered list of IO devices.
     private SortedSet<Device> devices;
 
@@ -36,8 +41,13 @@ public class Bus {
         return endAddress;
     }
 
-    public void addDevice(Device device)
-    throws MemoryRangeException {
+    /**
+     * Add a device to the bus. Throws a MemoryRangeException if the device overlaps with any others.
+     *
+     * @param device
+     * @throws MemoryRangeException
+     */
+    public void addDevice(Device device) throws MemoryRangeException {
         // Make sure there's no memory overlap.
         MemoryRange memRange = device.getMemoryRange();
         for (Device d : devices) {
@@ -54,9 +64,20 @@ public class Bus {
         devices.add(device);
     }
 
+    /**
+     * Remove a device from the bus.
+     *
+     * @param device
+     */
+    public void removeDevice(Device device) {
+        if (devices.contains(device)) {
+            devices.remove(device);
+        }
+    }
+
     public void addCpu(Cpu cpu) {
-        cpu.setBus(this);
         this.cpu = cpu;
+        cpu.setBus(this);
     }
 
     /**

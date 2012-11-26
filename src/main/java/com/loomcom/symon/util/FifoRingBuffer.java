@@ -2,77 +2,57 @@ package com.loomcom.symon.util;
 
 import com.loomcom.symon.exceptions.*;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
- * A very simple and efficient FIFO ring buffer implementation backed
- * by an array. It can only hold only integers.
+ * A FIFO buffer with a bounded maximum size.
  */
-public class FifoRingBuffer {
+public class FifoRingBuffer<E> implements Iterable<E> {
 
-  private int[] fifoBuffer;
-  private int readPtr = 0;
-  private int writePtr = 0;
-  private int size = 0;
+    private Queue<E> fifoBuffer;
+    private int maxLength;
 
-  public FifoRingBuffer(int size) {
-    if (size <= 0) {
-      throw new RuntimeException("Cannot create a FifoRingBuffer with size <= 0.");
+    public FifoRingBuffer(int maxLength) {
+        this.fifoBuffer = new LinkedList<E>();
+        this.maxLength = maxLength;
     }
-    this.size = size;
-    fifoBuffer = new int[size];
-  }
 
-  public int peek() throws FifoUnderrunException {
-    if (isEmpty()) {
-      throw new FifoUnderrunException("Buffer Underrun");
+    public E pop() throws FifoUnderrunException {
+        return fifoBuffer.remove();
     }
-    return fifoBuffer[readPtr];
-  }
 
-  public int pop() throws FifoUnderrunException {
-    if (isEmpty()) {
-      throw new FifoUnderrunException("Buffer Underrun");
+    public boolean isEmpty() {
+        return fifoBuffer.isEmpty();
     }
-    int val = fifoBuffer[readPtr];
-    incrementReadPointer();
-    return val;
-  }
 
-  public boolean isEmpty() {
-    return(readPtr == writePtr);
-  }
-
-  public boolean isFull() {
-    return((readPtr == 0 && writePtr == (size - 1)) ||
-           writePtr == (readPtr - 1));
-  }
-
-  public void push(int val) {
-    fifoBuffer[writePtr] = val;
-    incrementWritePointer();
-  }
-
-  public void reset() {
-    readPtr = 0;
-    writePtr = 0;
-  }
-
-  private void incrementWritePointer() {
-    if (++writePtr == size) {
-      writePtr = 0;
+    public void push(E val) {
+        if (fifoBuffer.size() == maxLength) {
+            // Delete the oldest element.
+            fifoBuffer.remove();
+        }
+        fifoBuffer.offer(val);
     }
-    if (writePtr == readPtr) {
-      incrementReadPointer();
-    }
-  }
 
-  private void incrementReadPointer() {
-    if (++readPtr == size) {
-      readPtr = 0;
+    public E peek() {
+        return fifoBuffer.peek();
     }
-  }
 
-  public String toString() {
-    return "[FifoRingBuffer: size=" + size + "]";
-  }
+    public void reset() {
+        fifoBuffer.clear();
+    }
+
+    public int length() {
+        return fifoBuffer.size();
+    }
+
+    public String toString() {
+        return "[FifoRingBuffer: size=" + fifoBuffer.size() + "]";
+    }
+
+    public Iterator<E> iterator() {
+        return fifoBuffer.iterator();
+    }
 }
 

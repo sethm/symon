@@ -1,13 +1,36 @@
+/*
+ * Copyright (c) 2008-2012 Seth J. Morabito <sethm@loomcom.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package com.loomcom.symon;
 
 import com.loomcom.symon.exceptions.MemoryAccessException;
 
 /**
- * Main 6502 CPU Simulation.
+ * This class provides a simulation of the MOS 6502 CPU's state machine.
+ * A simple interface allows this 6502 to read and write to a simulated bus,
+ * and exposes some of the internal state for inspection and debugging.
  */
 public class Cpu implements InstructionTable {
-
-    public static final int DEFAULT_BASE_ADDRESS = 0x200;
 
     /* Process status register mnemonics */
     public static final int P_CARRY       = 0x01;
@@ -32,6 +55,9 @@ public class Cpu implements InstructionTable {
     // The delay in microseconds between steps.
     // TODO: Make configurable
     private static final int CLOCK_IN_NS = 1000;
+
+    /* Simulated behavior */
+    private static CpuBehavior behavior;
 
     /* The Bus */
     private Bus bus;
@@ -82,6 +108,11 @@ public class Cpu implements InstructionTable {
      * Construct a new CPU.
      */
     public Cpu() {
+        this(CpuBehavior.NMOS_WITH_INDIRECT_JMP_BUG);
+    }
+
+    public Cpu(CpuBehavior behavior) {
+        this.behavior = behavior;
     }
 
     /**
@@ -96,6 +127,14 @@ public class Cpu implements InstructionTable {
      */
     public Bus getBus() {
         return bus;
+    }
+
+    public void setBehavior(CpuBehavior behavior) {
+        this.behavior = behavior;
+    }
+
+    public CpuBehavior getBehavior() {
+        return behavior;
     }
 
     /**
@@ -389,7 +428,15 @@ public class Cpu implements InstructionTable {
                 break;
             case 0x6c: // JMP - Indirect
                 lo = address(args[0], args[1]); // Address of low byte
-                hi = lo + 1; // Address of high byte
+
+                if (args[0] == 0xff &&
+                    (behavior == CpuBehavior.NMOS_WITH_INDIRECT_JMP_BUG ||
+                     behavior == CpuBehavior.NMOS_WITH_ROR_BUG)) {
+                    hi = address(0x00, args[1]);
+                } else {
+                    hi = lo + 1;
+                }
+
                 pc = address(bus.read(lo), bus.read(hi));
                 /* TODO: For accuracy, allow a flag to enable broken behavior
                 * of early 6502s:
@@ -1400,11 +1447,15 @@ public class Cpu implements InstructionTable {
     private void delayLoop(int opcode) {
         int clockSteps = Cpu.instructionClocks[0xff & opcode];
         // Just a precaution. This could be better.
-        if (clockSteps == 0) { clockSteps = 1; }
+        if (clockSteps == 0) {
+            clockSteps = 1;
+        }
         long startTime = System.nanoTime();
         long stopTime = startTime + (CLOCK_IN_NS * clockSteps);
         // Busy loop
-        while (System.nanoTime() < stopTime) { ; }
+        while (System.nanoTime() < stopTime) {
+            ;
+        }
     }
 
     /**
@@ -1459,7 +1510,7 @@ public class Cpu implements InstructionTable {
 
         return sb.toString();
     }
-    
+
     public String getInstructionByteStatus() {
         switch (Cpu.instructionSizes[ir]) {
             case 0:

@@ -15,7 +15,7 @@ NMI_vec	= IRQ_vec+$0A	; NMI code vector
 
 ; setup for the 6502 simulator environment
 
-IO_AREA = $C000
+IO_AREA = $8800
 ACIAdata	= IO_AREA		; simulated ACIA r/w port
 ACIAstatus  = IO_AREA+1
 ACIAcommand = IO_AREA+2

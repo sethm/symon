@@ -4,7 +4,7 @@
     <groupId>com.loomcom.symon</groupId>
     <artifactId>symon</artifactId>
     <packaging>jar</packaging>
-    <version>0.3</version>
+    <version>0.6-snapshot</version>
     <name>symon</name>
     <url>http://www.loomcom.com/symon</url>
     <properties>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.grahamedgecombe.jterminal</groupId>
             <artifactId>jterminal</artifactId>
-            <version>1.0.2-loomcom</version>
+            <version>1.0.2.1-loomcom</version>
         </dependency>
     </dependencies>
 
@@ -79,6 +79,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
                             <mainClass>com.loomcom.symon.Simulator</mainClass>

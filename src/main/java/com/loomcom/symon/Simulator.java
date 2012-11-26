@@ -1,15 +1,41 @@
+/*
+ * Copyright (c) 2008-2012 Seth J. Morabito <sethm@loomcom.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Acia;
 import com.loomcom.symon.devices.Memory;
+import com.loomcom.symon.devices.Via;
 import com.loomcom.symon.exceptions.FifoUnderrunException;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import com.loomcom.symon.exceptions.SymonException;
+import com.loomcom.symon.ui.Console;
 import com.loomcom.symon.ui.PreferencesDialog;
 import com.loomcom.symon.ui.StatusPanel;
-import com.loomcom.symon.ui.Console;
+import sun.rmi.rmic.iiop.DirectoryLoader;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,24 +45,35 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.*;
 
+/**
+ * Symon Simulator Interface and Control.
+ *
+ * This class provides a control and I/O system for the simulated 6502 system.
+ * It includes the simulated CPU itself, as well as 32KB of RAM, 16KB of ROM,
+ * and a simulated ACIA for serial I/O. The ACIA is attached to a dumb terminal
+ * with a basic 80x25 character display.
+ *
+ */
 public class Simulator implements ActionListener, Observer {
 
     // Constants used by the simulated system. These define the memory map.
     private static final int BUS_BOTTOM = 0x0000;
     private static final int BUS_TOP    = 0xffff;
 
-    // 32K of RAM
+    // 32K of RAM from $0000 - $7FFF
     private static final int MEMORY_BASE = 0x0000;
-    private static final int MEMORY_SIZE = 0xC000;
+    private static final int MEMORY_SIZE = 0x8000;
 
-    // IO area at $D000
-    private static final int ACIA_BASE = 0xC000;
+    // VIA at $8000-$800F
+    private static final int VIA_BASE = 0x8000;
 
-    // 8KB ROM at E000-FFFF
-    private static final int ROM_BASE = 0xD000;
-    private static final int ROM_SIZE = 0x3000;
+    // ACIA at $8800-$8803
+    private static final int ACIA_BASE = 0x8800;
+
+    // 16KB ROM at $C000-$FFFF
+    private static final int ROM_BASE = 0xC000;
+    private static final int ROM_SIZE = 0x4000;
 
     // Since it is very expensive to update the UI with Swing's Event Dispatch Thread, we can't afford
     // to refresh the view on every simulated clock cycle. Instead, we will only refresh the view after this
@@ -55,8 +92,9 @@ public class Simulator implements ActionListener, Observer {
     private final Bus    bus;
     private final Cpu    cpu;
     private final Acia   acia;
+    private final Via    via;
     private final Memory ram;
-    private final Memory rom;
+    private       Memory rom;
 
     // A counter to keep track of the number of UI updates that have been
     // requested
@@ -74,37 +112,36 @@ public class Simulator implements ActionListener, Observer {
     // The most recently read key code
     private char         keyBuffer;
 
-    // TODO: loadMenuItem seriously violates encapsulation!
+    // TODO: loadProgramItem seriously violates encapsulation!
     // A far better solution would be to extend JMenu and add callback
     // methods to enable and disable menus as required.
 
     // Menu Items
-    private JMenuItem    loadMenuItem;
+    private JMenuItem    loadProgramItem;
+    private JMenuItem    loadRomItem;
 
     private JFileChooser fileChooser;
     private PreferencesDialog  preferences;
 
     public Simulator() throws MemoryRangeException, IOException {
         this.acia = new Acia(ACIA_BASE);
+        this.via = new Via(VIA_BASE);
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
         this.ram = new Memory(MEMORY_BASE, MEMORY_SIZE, false);
+
+        bus.addCpu(cpu);
+        bus.addDevice(ram);
+        bus.addDevice(via);
+        bus.addDevice(acia);
 
         // TODO: Make this configurable, of course.
         File romImage = new File("rom.bin");
         if (romImage.canRead()) {
             logger.info("Loading ROM image from file " + romImage);
             this.rom = Memory.makeROM(ROM_BASE, ROM_SIZE, romImage);
-        } else {
-            logger.info("No ROM file 'rom.bin' found. ROM image will be empty R/W memory.");
-            // Just make it a normal RAM image.
-            this.rom = Memory.makeRAM(ROM_BASE, ROM_SIZE);
+            bus.addDevice(rom);
         }
-
-        bus.addCpu(cpu);
-        bus.addDevice(ram);
-        bus.addDevice(acia);
-        bus.addDevice(rom);
     }
 
     /**
@@ -124,7 +161,7 @@ public class Simulator implements ActionListener, Observer {
         this.statusPane = new StatusPanel();
 
         // File Chooser
-        fileChooser = new JFileChooser();
+        fileChooser = new JFileChooser(System.getProperty("user.dir"));
         preferences = new PreferencesDialog(mainWindow, true);
         preferences.addObserver(this);
 
@@ -177,8 +214,11 @@ public class Simulator implements ActionListener, Observer {
 
         menuBar.add(fileMenu);
 
-        loadMenuItem = new JMenuItem("Load Program");
-        loadMenuItem.setMnemonic(KeyEvent.VK_L);
+        loadProgramItem = new JMenuItem("Load Program");
+        loadProgramItem.setMnemonic(KeyEvent.VK_L);
+
+        loadRomItem = new JMenuItem("Load ROM...");
+        loadRomItem.setMnemonic(KeyEvent.VK_R);
 
         JMenuItem prefsItem = new JMenuItem("Preferences...");
         prefsItem.setMnemonic(KeyEvent.VK_P);
@@ -186,9 +226,15 @@ public class Simulator implements ActionListener, Observer {
         JMenuItem quitItem = new JMenuItem("Quit");
         quitItem.setMnemonic(KeyEvent.VK_Q);
 
-        loadMenuItem.addActionListener(new ActionListener() {
+        loadProgramItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
                 handleProgramLoad();
+            }
+        });
+
+        loadRomItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                handleRomLoad();
             }
         });
 
@@ -204,7 +250,8 @@ public class Simulator implements ActionListener, Observer {
             }
         });
 
-        fileMenu.add(loadMenuItem);
+        fileMenu.add(loadProgramItem);
+        fileMenu.add(loadRomItem);
         fileMenu.add(prefsItem);
         fileMenu.add(quitItem);
 
@@ -224,17 +271,76 @@ public class Simulator implements ActionListener, Observer {
         } else if (actionEvent.getSource() == stepButton) {
             handleStep();
         } else if (actionEvent.getSource() == runStopButton) {
-            // Shift focus to the console.
-            console.requestFocus();
             if (runLoop != null && runLoop.isRunning()) {
-                runLoop.requestStop();
-                runLoop.interrupt();
-                runLoop = null;
+                handleStop();
             } else {
-                // Spin up the new run loop
-                runLoop = new RunLoop();
-                runLoop.start();
+                handleStart();
             }
+        }
+    }
+
+    private void handleStart() {
+        // Shift focus to the console.
+        console.requestFocus();
+        // Spin up the new run loop
+        runLoop = new RunLoop();
+        runLoop.start();
+    }
+
+    private void handleStop() {
+        runLoop.requestStop();
+        runLoop.interrupt();
+        runLoop = null;
+        simulatorDidStop();
+    }
+
+    /*
+     * Handle post-stop actions.
+     */
+    private void simulatorDidStop() {
+        // The simulator is lazy about updating the UI for performance reasons, so always request an
+        // immediate update after stopping.
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                // Now update the state
+                statusPane.updateState(cpu);
+            }
+        });
+
+        // TODO: Write to Log window, if frame is visible.
+        // TODO: Update memory window, if frame is visible.
+    }
+
+    // TODO: Alert user of errors.
+    private void handleRomLoad() {
+        try {
+            int retVal = fileChooser.showOpenDialog(mainWindow);
+            if (retVal == JFileChooser.APPROVE_OPTION) {
+                File romFile = fileChooser.getSelectedFile();
+                if (romFile.canRead()) {
+                    long fileSize = romFile.length();
+
+                    if (fileSize != ROM_SIZE) {
+                        throw new IOException("ROM file must be exactly " + String.valueOf(fileSize) + " bytes.");
+                    } else {
+                        if (rom != null) {
+                            // Unload the existing ROM image.
+                            bus.removeDevice(rom);
+                        }
+                        // Load the new ROM image
+                        bus.addDevice(Memory.makeROM(ROM_BASE, ROM_SIZE, romFile));
+
+                        logger.log(Level.INFO, "ROM File `" + romFile.getName() + "' loaded at " +
+                                               String.format("0x%04X", ROM_BASE));
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, "Unable to read file: " + ex.getMessage());
+            ex.printStackTrace();
+        } catch (MemoryRangeException ex) {
+            logger.log(Level.SEVERE, "Memory range error loading ROM");
+            ex.printStackTrace();
         }
     }
 
@@ -315,15 +421,7 @@ public class Simulator implements ActionListener, Observer {
     private void handleStep() {
         try {
             step();
-
-            // The simulator is lazy about updating the UI for performance reasons, so always request an
-            // immediate update after stepping manually.
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    // Now update the state
-                    statusPane.updateState(cpu);
-                }
-            });
+            simulatorDidStop();
         } catch (SymonException ex) {
             logger.log(Level.SEVERE, "Exception during simulator step: " + ex.getMessage());
             ex.printStackTrace();
@@ -466,9 +564,12 @@ public class Simulator implements ActionListener, Observer {
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
+                    // Tell the console to start handling key presses
+                    console.startListening();
                     // Don't allow step while the simulator is running
                     stepButton.setEnabled(false);
-                    loadMenuItem.setEnabled(false);
+                    loadProgramItem.setEnabled(false);
+                    loadRomItem.setEnabled(false);
                     // Toggle the state of the run button
                     runStopButton.setText("Stop");
                 }
@@ -486,9 +587,11 @@ public class Simulator implements ActionListener, Observer {
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
+                    console.stopListening();
                     // Allow step while the simulator is stopped
                     stepButton.setEnabled(true);
-                    loadMenuItem.setEnabled(true);
+                    loadProgramItem.setEnabled(true);
+                    loadRomItem.setEnabled(true);
                     runStopButton.setText("Run");
                     // Now update the state
                     statusPane.updateState(cpu);

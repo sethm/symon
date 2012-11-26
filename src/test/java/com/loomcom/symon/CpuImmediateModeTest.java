@@ -19,8 +19,8 @@ public class CpuImmediateModeTest extends TestCase {
         bus.addDevice(mem);
 
         // Load the reset vector.
-        bus.write(0xfffc, Cpu.DEFAULT_BASE_ADDRESS & 0x00ff);
-        bus.write(0xfffd, (Cpu.DEFAULT_BASE_ADDRESS & 0xff00) >>> 8);
+        bus.write(0xfffc, Bus.DEFAULT_LOAD_ADDRESS & 0x00ff);
+        bus.write(0xfffd, (Bus.DEFAULT_LOAD_ADDRESS & 0xff00) >>> 8);
 
         cpu.reset();
         // Assert initial state

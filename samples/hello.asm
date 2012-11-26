@@ -3,7 +3,7 @@
 ;;
 
 
-.alias iobase   $c000
+.alias iobase   $8000
 .alias iostatus [iobase + 1]
 .alias iocmd    [iobase + 2]
 .alias ioctrl   [iobase + 3]

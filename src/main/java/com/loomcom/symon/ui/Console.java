@@ -4,6 +4,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.grahamedgecombe.jterminal.JTerminal;
 import com.grahamedgecombe.jterminal.vt100.Vt100TerminalModel;
@@ -21,15 +23,18 @@ import javax.swing.border.Border;
 
 public class Console extends JTerminal implements KeyListener, MouseListener {
 
-    private static final int DEFAULT_COLUMNS = 80;
-    private static final int DEFAULT_ROWS = 24;
-    private static final int DEFAULT_BORDER_WIDTH = 10;
-    // If true, swap CR and LF characters
-    private static final boolean SWAP_CR_AND_LF = true;
+    private static final int     DEFAULT_COLUMNS      = 80;
+    private static final int     DEFAULT_ROWS         = 24;
+    private static final int     DEFAULT_BORDER_WIDTH = 10;
+    // If true, swap CR and LF characters.
+    private static final boolean SWAP_CR_AND_LF       = true;
     // If true, send CRLF (0x0d 0x0a) whenever CR is typed
-    private static final boolean SEND_CR_LF_FOR_CR = false;
+    private static final boolean SEND_CR_LF_FOR_CR    = false;
 
-    private FifoRingBuffer typeAheadBuffer;
+    // If true, the console is actively listening for key input.
+    private boolean isListening;
+
+    private FifoRingBuffer<Character> typeAheadBuffer;
 
     public Console() {
         this(DEFAULT_COLUMNS, DEFAULT_ROWS);
@@ -39,7 +44,8 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
         super(new Vt100TerminalModel(columns, rows));
         // A small type-ahead buffer, as might be found in any real
         // VT100-style serial terminal.
-        this.typeAheadBuffer = new FifoRingBuffer(128);
+        this.typeAheadBuffer = new FifoRingBuffer<Character>(128);
+        this.isListening = false;
         setBorderWidth(DEFAULT_BORDER_WIDTH);
         addKeyListener(this);
         addMouseListener(this);
@@ -52,7 +58,6 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
     /**
      * Reset the console. This will cause the console to be cleared and the cursor returned to the
      * home position.
-     *
      */
     public void reset() {
         typeAheadBuffer.reset();
@@ -60,6 +65,14 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
         getModel().setCursorColumn(0);
         getModel().setCursorRow(0);
         repaint();
+    }
+
+    public void startListening() {
+        this.isListening = true;
+    }
+
+    public void stopListening() {
+        this.isListening = false;
     }
 
     /**
@@ -77,22 +90,23 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
      * @param keyEvent The key event.
      */
     public void keyTyped(KeyEvent keyEvent) {
-        char keyTyped = keyEvent.getKeyChar();
+        if (isListening) {
+            char keyTyped = keyEvent.getKeyChar();
 
-        if (SWAP_CR_AND_LF) {
-            if (keyTyped == 0x0a) {
-                keyTyped = 0x0d;
+            if (SWAP_CR_AND_LF) {
+                if (keyTyped == 0x0a) {
+                    keyTyped = 0x0d;
+                } else if (keyTyped == 0x0d) {
+                    keyTyped = 0x0a;
+                }
             }
-            else if (keyTyped == 0x0d) {
-                keyTyped = 0x0a;
-            }
-        }
 
-        if (SEND_CR_LF_FOR_CR && keyTyped == 0x0d) {
-            typeAheadBuffer.push(0x0d);
-            typeAheadBuffer.push(0x0a);
-        } else {
-            typeAheadBuffer.push(keyTyped);
+            if (SEND_CR_LF_FOR_CR && keyTyped == 0x0d) {
+                typeAheadBuffer.push((char) 0x0d);
+                typeAheadBuffer.push((char) 0x0a);
+            } else {
+                typeAheadBuffer.push(keyTyped);
+            }
         }
 
         keyEvent.consume();
@@ -113,7 +127,7 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
      * @return The character typed.
      */
     public char readInputChar() throws FifoUnderrunException {
-        return (char)typeAheadBuffer.pop();
+        return typeAheadBuffer.pop();
     }
 
     /**
