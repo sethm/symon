@@ -328,7 +328,8 @@ public class Simulator implements ActionListener, Observer {
                             bus.removeDevice(rom);
                         }
                         // Load the new ROM image
-                        bus.addDevice(Memory.makeROM(ROM_BASE, ROM_SIZE, romFile));
+                        rom = Memory.makeROM(ROM_BASE, ROM_SIZE, romFile);
+                        bus.addDevice(rom);
 
                         logger.log(Level.INFO, "ROM File `" + romFile.getName() + "' loaded at " +
                                                String.format("0x%04X", ROM_BASE));
