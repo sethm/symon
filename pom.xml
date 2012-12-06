@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.grahamedgecombe.jterminal</groupId>
             <artifactId>jterminal</artifactId>
-            <version>1.0.2.1-loomcom</version>
+            <version>1.0.2.2-loomcom</version>
         </dependency>
     </dependencies>
 

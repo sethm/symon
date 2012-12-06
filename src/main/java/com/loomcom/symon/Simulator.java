@@ -33,9 +33,9 @@ import com.loomcom.symon.exceptions.SymonException;
 import com.loomcom.symon.ui.Console;
 import com.loomcom.symon.ui.PreferencesDialog;
 import com.loomcom.symon.ui.StatusPanel;
-import sun.rmi.rmic.iiop.DirectoryLoader;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -55,7 +55,7 @@ import java.util.logging.Logger;
  * with a basic 80x25 character display.
  *
  */
-public class Simulator implements ActionListener, Observer {
+public class Simulator implements Observer {
 
     // Constants used by the simulated system. These define the memory map.
     private static final int BUS_BOTTOM = 0x0000;
@@ -74,6 +74,9 @@ public class Simulator implements ActionListener, Observer {
     // 16KB ROM at $C000-$FFFF
     private static final int ROM_BASE = 0xC000;
     private static final int ROM_SIZE = 0x4000;
+
+    private static final int DEFAULT_FONT_SIZE = 12;
+    private static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
 
     // Since it is very expensive to update the UI with Swing's Event Dispatch Thread, we can't afford
     // to refresh the view on every simulated clock cycle. Instead, we will only refresh the view after this
@@ -100,25 +103,37 @@ public class Simulator implements ActionListener, Observer {
     // requested
     private int stepsSinceLastUpdate = 0;
 
-    private JFrame       mainWindow;
-    private RunLoop      runLoop;
-    private Console      console;
-    private StatusPanel  statusPane;
+    /**
+     * The Main Window is the primary control point for the simulator.
+     * It is in charge of the menu, and sub-windows. It also shows the
+     * CPU status at all times.
+     */
+    private JFrame mainWindow;
 
-    private JButton      runStopButton;
-    private JButton      stepButton;
-    private JButton      resetButton;
+    /**
+     * The Console Window is connected to the ACIA's TX and RX lines.
+     */
+    private JFrame consoleWindow;
 
-    // The most recently read key code
-    private char         keyBuffer;
+    /**
+     * The Trace Window shows the most recent 50,000 CPU states.
+     */
+    private JFrame traceWindow;
 
-    // TODO: loadProgramItem seriously violates encapsulation!
-    // A far better solution would be to extend JMenu and add callback
-    // methods to enable and disable menus as required.
+    /**
+     * The Zero Page Window shows the contents of page 0.
+     */
+    private JFrame zeroPageWindow;
 
-    // Menu Items
-    private JMenuItem    loadProgramItem;
-    private JMenuItem    loadRomItem;
+    private SimulatorMenu menuBar;
+
+    private RunLoop runLoop;
+    private Console console;
+    private StatusPanel statusPane;
+
+    private JButton runStopButton;
+    private JButton stepButton;
+    private JButton resetButton;
 
     private JFileChooser fileChooser;
     private PreferencesDialog  preferences;
@@ -154,10 +169,11 @@ public class Simulator implements ActionListener, Observer {
         mainWindow.getContentPane().setLayout(new BorderLayout());
 
         // The Menu
-        mainWindow.setJMenuBar(createMenuBar());
+        menuBar = new SimulatorMenu();
+        mainWindow.setJMenuBar(menuBar);
 
         // UI components used for I/O.
-        this.console = new com.loomcom.symon.ui.Console();
+        this.console = new com.loomcom.symon.ui.Console(80, 25, DEFAULT_FONT);
         this.statusPane = new StatusPanel();
 
         // File Chooser
@@ -166,15 +182,11 @@ public class Simulator implements ActionListener, Observer {
         preferences.addObserver(this);
 
         // Panel for Console and Buttons
-        JPanel controlsContainer = new JPanel();
+        JPanel consoleContainer = new JPanel();
         JPanel buttonContainer = new JPanel();
-        Dimension buttonPanelSize = new Dimension(console.getWidth(), 36);
 
-        buttonContainer.setMinimumSize(buttonPanelSize);
-        buttonContainer.setMaximumSize(buttonPanelSize);
-        buttonContainer.setPreferredSize(buttonPanelSize);
-
-        controlsContainer.setLayout(new BorderLayout());
+        consoleContainer.setLayout(new BorderLayout());
+        consoleContainer.setBorder(new EmptyBorder(10, 10, 10, 0));
         buttonContainer.setLayout(new FlowLayout());
 
         runStopButton = new JButton("Run");
@@ -186,8 +198,8 @@ public class Simulator implements ActionListener, Observer {
         buttonContainer.add(resetButton);
 
         // Left side - console
-        controlsContainer.add(console, BorderLayout.PAGE_START);
-        mainWindow.getContentPane().add(controlsContainer, BorderLayout.LINE_START);
+        consoleContainer.add(console, BorderLayout.CENTER);
+        mainWindow.getContentPane().add(consoleContainer, BorderLayout.LINE_START);
 
         // Right side - status pane
         mainWindow.getContentPane().add(statusPane, BorderLayout.LINE_END);
@@ -195,9 +207,27 @@ public class Simulator implements ActionListener, Observer {
         // Bottom - buttons.
         mainWindow.getContentPane().add(buttonContainer, BorderLayout.PAGE_END);
 
-        runStopButton.addActionListener(this);
-        stepButton.addActionListener(this);
-        resetButton.addActionListener(this);
+        runStopButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (runLoop != null && runLoop.isRunning()) {
+                    handleStop();
+                } else {
+                    handleStart();
+                }
+            }
+        });
+
+        stepButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                handleStep();
+            }
+        });
+
+        resetButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                handleReset();
+            }
+        });
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -205,78 +235,6 @@ public class Simulator implements ActionListener, Observer {
 
         mainWindow.pack();
         mainWindow.setVisible(true);
-    }
-
-    private JMenuBar createMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
-
-        JMenu fileMenu = new JMenu("File");
-
-        menuBar.add(fileMenu);
-
-        loadProgramItem = new JMenuItem("Load Program");
-        loadProgramItem.setMnemonic(KeyEvent.VK_L);
-
-        loadRomItem = new JMenuItem("Load ROM...");
-        loadRomItem.setMnemonic(KeyEvent.VK_R);
-
-        JMenuItem prefsItem = new JMenuItem("Preferences...");
-        prefsItem.setMnemonic(KeyEvent.VK_P);
-
-        JMenuItem quitItem = new JMenuItem("Quit");
-        quitItem.setMnemonic(KeyEvent.VK_Q);
-
-        loadProgramItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                handleProgramLoad();
-            }
-        });
-
-        loadRomItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                handleRomLoad();
-            }
-        });
-
-        prefsItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                showAndUpdatePreferences();
-            }
-        });
-
-        quitItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                handleQuit();
-            }
-        });
-
-        fileMenu.add(loadProgramItem);
-        fileMenu.add(loadRomItem);
-        fileMenu.add(prefsItem);
-        fileMenu.add(quitItem);
-
-        return menuBar;
-    }
-
-    public void showAndUpdatePreferences() {
-        preferences.getDialog().setVisible(true);
-    }
-
-    /**
-     * Receive an ActionEvent from the UI, and act on it.
-     */
-    public void actionPerformed(ActionEvent actionEvent) {
-        if (actionEvent.getSource() == resetButton) {
-            coldReset();
-        } else if (actionEvent.getSource() == stepButton) {
-            handleStep();
-        } else if (actionEvent.getSource() == runStopButton) {
-            if (runLoop != null && runLoop.isRunning()) {
-                handleStop();
-            } else {
-                handleStart();
-            }
-        }
     }
 
     private void handleStart() {
@@ -311,85 +269,10 @@ public class Simulator implements ActionListener, Observer {
         // TODO: Update memory window, if frame is visible.
     }
 
-    // TODO: Alert user of errors.
-    private void handleRomLoad() {
-        try {
-            int retVal = fileChooser.showOpenDialog(mainWindow);
-            if (retVal == JFileChooser.APPROVE_OPTION) {
-                File romFile = fileChooser.getSelectedFile();
-                if (romFile.canRead()) {
-                    long fileSize = romFile.length();
-
-                    if (fileSize != ROM_SIZE) {
-                        throw new IOException("ROM file must be exactly " + String.valueOf(fileSize) + " bytes.");
-                    } else {
-                        if (rom != null) {
-                            // Unload the existing ROM image.
-                            bus.removeDevice(rom);
-                        }
-                        // Load the new ROM image
-                        rom = Memory.makeROM(ROM_BASE, ROM_SIZE, romFile);
-                        bus.addDevice(rom);
-
-                        logger.log(Level.INFO, "ROM File `" + romFile.getName() + "' loaded at " +
-                                               String.format("0x%04X", ROM_BASE));
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Unable to read file: " + ex.getMessage());
-            ex.printStackTrace();
-        } catch (MemoryRangeException ex) {
-            logger.log(Level.SEVERE, "Memory range error loading ROM");
-            ex.printStackTrace();
-        }
-    }
-
-    /**
-     * Display a file chooser prompting the user to load a binary program.
-     * After the user selects a file, read it in starting at PROGRAM_START_ADDRESS.
+    /*
+     * Perform a reset.
      */
-    private void handleProgramLoad() {
-        try {
-            int retVal = fileChooser.showOpenDialog(mainWindow);
-            if (retVal == JFileChooser.APPROVE_OPTION) {
-                File f = fileChooser.getSelectedFile();
-                if (f.canRead()) {
-                    long fileSize = f.length();
-
-                    if (fileSize > MEMORY_SIZE) {
-                        throw new IOException("Program will not fit in available memory.");
-                    } else {
-                        byte[] program = new byte[(int) fileSize];
-                        int i = 0;
-                        FileInputStream fis = new FileInputStream(f);
-                        BufferedInputStream bis = new BufferedInputStream(fis);
-                        DataInputStream dis = new DataInputStream(bis);
-                        while (dis.available() != 0) {
-                            program[i++] = dis.readByte();
-                        }
-
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                console.reset();
-                            }
-                        });
-
-                        // Now load the program at the starting address.
-                        loadProgram(program, preferences.getProgramStartAddress());
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Unable to read file: " + ex.getMessage());
-            ex.printStackTrace();
-        } catch (MemoryAccessException ex) {
-            logger.log(Level.SEVERE, "Memory access error loading program");
-            ex.printStackTrace();
-        }
-    }
-
-    private void coldReset() {
+    private void handleReset() {
         if (runLoop != null && runLoop.isRunning()) {
             runLoop.requestStop();
             runLoop.interrupt();
@@ -412,7 +295,6 @@ public class Simulator implements ActionListener, Observer {
             });
         } catch (MemoryAccessException ex) {
             logger.log(Level.SEVERE, "Exception during simulator reset: " + ex.getMessage());
-            ex.printStackTrace();
         }
     }
 
@@ -427,17 +309,6 @@ public class Simulator implements ActionListener, Observer {
             logger.log(Level.SEVERE, "Exception during simulator step: " + ex.getMessage());
             ex.printStackTrace();
         }
-    }
-
-    /**
-     * Handle a request to quit.
-     */
-    private void handleQuit() {
-        if (runLoop != null && runLoop.isRunning()) {
-            runLoop.requestStop();
-            runLoop.interrupt();
-        }
-        System.exit(0);
     }
 
     /**
@@ -516,7 +387,7 @@ public class Simulator implements ActionListener, Observer {
                     Simulator simulator = new Simulator();
                     simulator.createAndShowUi();
                     // Reset the simulator.
-                    simulator.coldReset();
+                    simulator.handleReset();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -533,8 +404,6 @@ public class Simulator implements ActionListener, Observer {
     public void update(Observable observable, Object o) {
         // Instance equality should work here, there is only one instance.
         if (observable == preferences) {
-            // TODO: Update ACIA base address if it has changed.
-
             int oldBorderWidth = console.getBorderWidth();
             if (oldBorderWidth != preferences.getBorderWidth()) {
                 // Resize the main window if the border width has changed.
@@ -543,7 +412,6 @@ public class Simulator implements ActionListener, Observer {
             }
         }
     }
-
 
     /**
      * The main run thread.
@@ -569,16 +437,14 @@ public class Simulator implements ActionListener, Observer {
                     console.startListening();
                     // Don't allow step while the simulator is running
                     stepButton.setEnabled(false);
-                    loadProgramItem.setEnabled(false);
-                    loadRomItem.setEnabled(false);
+                    menuBar.simulatorDidStart();
                     // Toggle the state of the run button
                     runStopButton.setText("Stop");
                 }
             });
 
             try {
-                // TODO: Interrupts - both software and hardware. i.e., jump to address stored in FFFE/FFFF on BRK.
-                while (isRunning && !cpu.getBreakFlag()) {
+                while (isRunning && !(preferences.getHaltOnBreak() && cpu.getBreakFlag())) {
                     step();
                 }
             } catch (SymonException ex) {
@@ -591,16 +457,235 @@ public class Simulator implements ActionListener, Observer {
                     console.stopListening();
                     // Allow step while the simulator is stopped
                     stepButton.setEnabled(true);
-                    loadProgramItem.setEnabled(true);
-                    loadRomItem.setEnabled(true);
+                    menuBar.simulatorDidStop();
                     runStopButton.setText("Run");
                     // Now update the state
                     statusPane.updateState(cpu);
                 }
             });
 
-            logger.log(Level.INFO, "Exiting main run loop. BREAK=" + cpu.getBreakBit() + "; RUN_FLAG=" + isRunning);
             isRunning = false;
         }
     }
+
+    class LoadProgramAction extends AbstractAction {
+        public LoadProgramAction() {
+            super("Load Program...", null);
+            putValue(SHORT_DESCRIPTION, "Load a program into memory");
+            putValue(MNEMONIC_KEY, KeyEvent.VK_L);
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            // TODO: Error dialogs on failure.
+            try {
+                int retVal = fileChooser.showOpenDialog(mainWindow);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File f = fileChooser.getSelectedFile();
+                    if (f.canRead()) {
+                        long fileSize = f.length();
+
+                        if (fileSize > MEMORY_SIZE) {
+                            throw new IOException("Program will not fit in available memory.");
+                        } else {
+                            byte[] program = new byte[(int) fileSize];
+                            int i = 0;
+                            FileInputStream fis = new FileInputStream(f);
+                            BufferedInputStream bis = new BufferedInputStream(fis);
+                            DataInputStream dis = new DataInputStream(bis);
+                            while (dis.available() != 0) {
+                                program[i++] = dis.readByte();
+                            }
+
+                            SwingUtilities.invokeLater(new Runnable() {
+                                public void run() {
+                                    console.reset();
+                                }
+                            });
+
+                            // Now load the program at the starting address.
+                            loadProgram(program, preferences.getProgramStartAddress());
+                        }
+                    }
+                }
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, "Unable to read program file: " + ex.getMessage());
+            } catch (MemoryAccessException ex) {
+                logger.log(Level.SEVERE, "Memory access error loading program: " + ex.getMessage());
+            }
+        }
+    }
+
+    class LoadRomAction extends AbstractAction {
+        public LoadRomAction() {
+            super("Load ROM...", null);
+            putValue(SHORT_DESCRIPTION, "Load a ROM image");
+            putValue(MNEMONIC_KEY, KeyEvent.VK_R);
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            // TODO: Error dialogs on failure.
+            try {
+                int retVal = fileChooser.showOpenDialog(mainWindow);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File romFile = fileChooser.getSelectedFile();
+                    if (romFile.canRead()) {
+                        long fileSize = romFile.length();
+
+                        if (fileSize != ROM_SIZE) {
+                            throw new IOException("ROM file must be exactly " + String.valueOf(ROM_SIZE) + " bytes.");
+                        } else {
+                            if (rom != null) {
+                                // Unload the existing ROM image.
+                                bus.removeDevice(rom);
+                            }
+                            // Load the new ROM image
+                            rom = Memory.makeROM(ROM_BASE, ROM_SIZE, romFile);
+                            bus.addDevice(rom);
+
+                            // Now, reset
+                            cpu.reset();
+
+                            logger.log(Level.INFO, "ROM File `" + romFile.getName() + "' loaded at " +
+                                                   String.format("0x%04X", ROM_BASE));
+                        }
+                    }
+                }
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, "Unable to read ROM file: " + ex.getMessage());
+            } catch (MemoryRangeException ex) {
+                logger.log(Level.SEVERE, "Memory range error while loading ROM file: " + ex.getMessage());
+            } catch (MemoryAccessException ex) {
+                logger.log(Level.SEVERE, "Memory access error while loading ROM file: " + ex.getMessage());
+            }
+        }
+    }
+
+    class ShowPrefsAction extends AbstractAction {
+        public ShowPrefsAction() {
+            super("Preferences...", null);
+            putValue(SHORT_DESCRIPTION, "Show Preferences Dialog");
+            putValue(MNEMONIC_KEY, KeyEvent.VK_P);
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            preferences.getDialog().setVisible(true);
+        }
+    }
+
+    class QuitAction extends AbstractAction {
+        public QuitAction() {
+            super("Quit", null);
+            putValue(SHORT_DESCRIPTION, "Exit the Simulator");
+            putValue(MNEMONIC_KEY, KeyEvent.VK_Q);
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            if (runLoop != null && runLoop.isRunning()) {
+                runLoop.requestStop();
+                runLoop.interrupt();
+            }
+            System.exit(0);
+        }
+    }
+
+    class SetFontAction extends AbstractAction {
+        private int size;
+
+        public SetFontAction(int size) {
+            super(Integer.toString(size) + " pt", null);
+            this.size = size;
+            putValue(SHORT_DESCRIPTION, "Set font to " + Integer.toString(size) + "pt.");
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    console.setFont(new Font("Monospaced", Font.PLAIN, size));
+                    mainWindow.pack();
+                }
+            });
+        }
+    }
+
+    class SimulatorMenu extends JMenuBar {
+        // Menu Items
+        private JMenuItem    loadProgramItem;
+        private JMenuItem    loadRomItem;
+
+        /**
+         * Create a new SimulatorMenu instance.
+         */
+        public SimulatorMenu() {
+            initMenu();
+        }
+
+        /**
+         * Disable menu items that should not be available during simulator execution.
+         */
+        public void simulatorDidStart() {
+            loadProgramItem.setEnabled(false);
+            loadRomItem.setEnabled(false);
+        }
+
+        /**
+         * Enable menu items that should be available while the simulator is stopped.
+         */
+        public void simulatorDidStop() {
+            loadProgramItem.setEnabled(true);
+            loadRomItem.setEnabled(true);
+        }
+
+        private void initMenu() {
+            /*
+             * File Menu
+             */
+
+            JMenu fileMenu = new JMenu("File");
+
+            loadProgramItem = new JMenuItem(new LoadProgramAction());
+            loadRomItem = new JMenuItem(new LoadRomAction());
+            JMenuItem prefsItem = new JMenuItem(new ShowPrefsAction());
+            JMenuItem quitItem = new JMenuItem(new QuitAction());
+
+            fileMenu.add(loadProgramItem);
+            fileMenu.add(loadRomItem);
+            fileMenu.add(prefsItem);
+            fileMenu.add(quitItem);
+
+            add(fileMenu);
+
+            /*
+             * View Menu
+             */
+
+            JMenu viewMenu = new JMenu("View");
+            JMenu fontSubMenu = new JMenu("Font Size");
+            ButtonGroup group = new ButtonGroup();
+
+            makeFontSizeMenuItem(10, fontSubMenu, group);
+            makeFontSizeMenuItem(11, fontSubMenu, group);
+            makeFontSizeMenuItem(12, fontSubMenu, group);
+            makeFontSizeMenuItem(13, fontSubMenu, group);
+            makeFontSizeMenuItem(14, fontSubMenu, group);
+            makeFontSizeMenuItem(15, fontSubMenu, group);
+            makeFontSizeMenuItem(16, fontSubMenu, group);
+            makeFontSizeMenuItem(17, fontSubMenu, group);
+            makeFontSizeMenuItem(18, fontSubMenu, group);
+            makeFontSizeMenuItem(19, fontSubMenu, group);
+            makeFontSizeMenuItem(20, fontSubMenu, group);
+
+            viewMenu.add(fontSubMenu);
+            add(viewMenu);
+        }
+
+        private void makeFontSizeMenuItem(int size, JMenu fontSubMenu, ButtonGroup group) {
+            Action action = new SetFontAction(size);
+
+            JRadioButtonMenuItem item = new JRadioButtonMenuItem(action);
+            item.setSelected(size == DEFAULT_FONT_SIZE);
+            fontSubMenu.add(item);
+            group.add(item);
+        }
+    }
+
 }

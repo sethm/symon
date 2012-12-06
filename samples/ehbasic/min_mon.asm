@@ -37,10 +37,12 @@ RES_vec
 
 ; Initialize the ACIA
 ACIA_init
-	LDA	#$09
-	STA	ACIAcommand
-	LDA	#$1A			; Set output for 8-N-1 2400
-	STA	ACIAcontrol
+	LDA	#$00
+	STA	ACIAstatus		; Soft reset
+	LDA	#$0B
+	STA	ACIAcommand		; Parity disabled, IRQ disabled
+	LDA	#$1E
+	STA	ACIAcontrol		; Set output for 8-N-1 9600
 
 ; set up vectors and interrupt code, copy them to page 2
 
@@ -77,25 +79,33 @@ LAB_nokey
 LAB_dowarm
 	JMP	LAB_WARM		; do EhBASIC warm start
 
-; byte out to simulated ACIA
+; byte out to ACIA
 ACIAout
 	PHA				; save accumulator
-ACIAout_w
+@loop
 	LDA	ACIAstatus		; Read 6551 status
 	AND	#$10			; Is tx buffer full?
-	BEQ	ACIAout_w		; if not, loop back
+	BEQ	@loop			; if not, loop back
 	PLA				; Otherwise, restore accumulator
 	STA	ACIAdata		; write byte to 6551
 	RTS
 
-; byte in from simulated ACIA
-
+;
+; byte in from ACIA. This subroutine will also force
+; all lowercase letters to be uppercase.
+;
 ACIAin
 	LDA	ACIAstatus		; Read 6551 status
 	AND	#$08			;
 	BEQ	LAB_nobyw		; If rx buffer empty, no byte
 
 	LDA	ACIAdata		; Read byte from 6551
+	CMP	#'a'			; Is it < 'a'?
+	BCC	@done			; Yes, we're done
+	CMP	#'{'			; Is it >= '{'?
+	BCS	@done			; Yes, we're done
+	AND	#$5f			; Otherwise, mask to uppercase
+@done
 	SEC				; Flag byte received
 	RTS
 
@@ -137,16 +147,19 @@ NMI_CODE
 
 END_CODE
 
+; sign on string
+
 LAB_mess
-	.byte	$0D,$0A,"6502 EhBASIC [C]old/[W]arm ?",$00
-					; sign on string
+	.byte	$0D,$0A,"Symon 6502 SBC (c) 2012, Seth Morabito"
+	.byte   $0D,$0A,"[C]old/[W]arm ?",$00
+
 
 ; system vectors
 
 .segment "VECTORS"
 	.org	$FFFA
 
-	.word	0			; NMI vector
+	.word	NMI_vec		; NMI vector
 	.word	RES_vec		; RESET vector
-	.word	0			; IRQ vector
+	.word	IRQ_vec		; IRQ vector
 

@@ -1,5 +1,6 @@
 package com.loomcom.symon.ui;
 
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -36,12 +37,8 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
 
     private FifoRingBuffer<Character> typeAheadBuffer;
 
-    public Console() {
-        this(DEFAULT_COLUMNS, DEFAULT_ROWS);
-    }
-
-    public Console(int columns, int rows) {
-        super(new Vt100TerminalModel(columns, rows));
+    public Console(int columns, int rows, Font font) {
+        super(new Vt100TerminalModel(columns, rows), font);
         // A small type-ahead buffer, as might be found in any real
         // VT100-style serial terminal.
         this.typeAheadBuffer = new FifoRingBuffer<Character>(128);

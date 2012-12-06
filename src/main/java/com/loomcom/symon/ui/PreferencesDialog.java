@@ -12,13 +12,13 @@ public class PreferencesDialog extends Observable implements Preferences {
 
     private final JDialog dialog;
 
-    private JTextField aciaAddressField;
+    private JCheckBox  haltOnBreakCheckBox;
     private JTextField programLoadAddressField;
     private JTextField borderWidthField;
 
     private int programLoadAddress = DEFAULT_PROGRAM_LOAD_ADDRESS;
-    private int aciaAddress = DEFAULT_ACIA_ADDRESS;
     private int borderWidth = DEFAULT_BORDER_WIDTH;
+    private boolean haltOnBreak = DEFAULT_HALT_ON_BREAK;
 
     public PreferencesDialog(Frame parent, boolean modal) {
         this.dialog = new JDialog(parent, modal);
@@ -43,15 +43,14 @@ public class PreferencesDialog extends Observable implements Preferences {
         GridBagLayout layout = new GridBagLayout();
         settingsContainer.setLayout(layout);
 
-        final JLabel aciaAddressLabel = new JLabel("ACIA Address");
+        final JLabel haltOnBreakLabel = new JLabel("Halt on BRK");
         final JLabel programLoadAddressLabel = new JLabel("Program Load Address");
         final JLabel borderWidthLabel = new JLabel("Console Border Width");
 
-        aciaAddressField = new JTextField(8);
+        haltOnBreakCheckBox = new JCheckBox();
         programLoadAddressField = new JTextField(8);
         borderWidthField = new JTextField(8);
 
-        aciaAddressLabel.setLabelFor(aciaAddressField);
         programLoadAddressLabel.setLabelFor(programLoadAddressField);
         borderWidthLabel.setLabelFor(borderWidthField);
 
@@ -61,11 +60,10 @@ public class PreferencesDialog extends Observable implements Preferences {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.gridx = 0;
         constraints.gridy = 0;
-
-        settingsContainer.add(aciaAddressLabel, constraints);
+        settingsContainer.add(haltOnBreakLabel, constraints);
 
         constraints.gridx = 1;
-        settingsContainer.add(aciaAddressField, constraints);
+        settingsContainer.add(haltOnBreakCheckBox, constraints);
 
         constraints.gridy = 1;
         constraints.gridx = 0;
@@ -94,8 +92,8 @@ public class PreferencesDialog extends Observable implements Preferences {
 
         applyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
+                haltOnBreak = haltOnBreakCheckBox.isSelected();
                 programLoadAddress = hexToInt(programLoadAddressField.getText());
-                aciaAddress = hexToInt(aciaAddressField.getText());
                 borderWidth = Integer.parseInt(borderWidthField.getText());
                 updateUi();
                 // TODO: Actually check to see if values have changed, don't assume.
@@ -118,10 +116,6 @@ public class PreferencesDialog extends Observable implements Preferences {
         return programLoadAddress;
     }
 
-    public int getAciaAddress() {
-        return aciaAddress;
-    }
-
     /**
      * @return The width of the console border, in pixels.
      */
@@ -129,8 +123,15 @@ public class PreferencesDialog extends Observable implements Preferences {
         return borderWidth;
     }
 
+    /**
+     * @return True if 'halt on break' is desired, false otherwise.
+     */
+    public boolean getHaltOnBreak() {
+        return haltOnBreak;
+    }
+
     public void updateUi() {
-        aciaAddressField.setText(intToHex(aciaAddress));
+        haltOnBreakCheckBox.setSelected(haltOnBreak);
         programLoadAddressField.setText(intToHex(programLoadAddress));
         borderWidthField.setText(Integer.toString(borderWidth));
     }

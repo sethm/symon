@@ -3,7 +3,7 @@
 ;;
 
 
-.alias iobase   $8000
+.alias iobase   $8800
 .alias iostatus [iobase + 1]
 .alias iocmd    [iobase + 2]
 .alias ioctrl   [iobase + 3]
@@ -11,7 +11,7 @@
 .org $0300
 
 start:  cli
-        lda #$09
+        lda #$0b
         sta iocmd      ; Set command status
         lda #$1a
         sta ioctrl     ; 0 stop bits, 8 bit word, 2400 baud

@@ -26,6 +26,7 @@ public class StatusPanel extends JPanel {
     private final ImageIcon negativeOn;
     private final ImageIcon negativeOff;
 
+    private final JLabel statusFlagsLabel;
     private final JLabel carryFlagLabel;
     private final JLabel zeroFlagLabel;
     private final JLabel irqDisableFlagLabel;
@@ -40,7 +41,6 @@ public class StatusPanel extends JPanel {
     private JTextField aField;
     private JTextField xField;
     private JTextField yField;
-//    private JTextField stepCountField;
 
     private final JLabel opcodeLabel;
     private final JLabel pcLabel;
@@ -48,11 +48,10 @@ public class StatusPanel extends JPanel {
     private final JLabel aLabel;
     private final JLabel xLabel;
     private final JLabel yLabel;
-//    private final JLabel stepCountLabel;
 
-    private static final int EMPTY_BORDER = 5;
-    private static final Border LABEL_BORDER = BorderFactory.createEmptyBorder(0, 4, 0, 0);
-    private static final Font LABEL_FONT = new Font("sansserif", Font.PLAIN, 11);
+    private static final int EMPTY_BORDER = 10;
+    private static final Border LABEL_BORDER = BorderFactory.createEmptyBorder(0, 5, 0, 0);
+    private static final Font LABEL_FONT = new Font(Font.SANS_SERIF, Font.BOLD, 12);
 
     public StatusPanel() {
         super();
@@ -63,7 +62,10 @@ public class StatusPanel extends JPanel {
 
         setBorder(BorderFactory.createCompoundBorder(emptyBorder, etchedBorder));
 
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        GridBagLayout layout = new GridBagLayout();
+        GridBagConstraints constraints = new GridBagConstraints();
+
+        setLayout(layout);
 
         JPanel statusFlagsPanel = new JPanel();
         statusFlagsPanel.setAlignmentX(LEFT_ALIGNMENT);
@@ -101,37 +103,72 @@ public class StatusPanel extends JPanel {
         statusFlagsPanel.add(carryFlagLabel);
 
         // Create and add register and address labels
-        opcodeLabel = makeLabel("Instruction");
-        pcLabel = makeLabel("Program Counter");
-        spLabel = makeLabel("Stack Pointer");
-        aLabel = makeLabel("Accumulator");
-        xLabel = makeLabel("X Register");
-        yLabel = makeLabel("Y Register");
-//        stepCountLabel = new JLabel("Steps");
+        statusFlagsLabel = makeLabel("Flags");
+        opcodeLabel = makeLabel("IR");
+        pcLabel = makeLabel("PC");
+        spLabel = makeLabel("SP");
+        aLabel = makeLabel("A");
+        xLabel = makeLabel("X");
+        yLabel = makeLabel("Y");
 
-        opcodeField = makeTextField();
-        pcField = makeTextField();
-        spField = makeTextField();
-        aField = makeTextField();
-        xField = makeTextField();
-        yField = makeTextField();
-//        stepCountField = new JTextField("");
+        opcodeField = makeTextField(LARGE_TEXT_FIELD_SIZE);
+        pcField = makeTextField(LARGE_TEXT_FIELD_SIZE);
+        spField = makeTextField(SMALL_TEXT_FIELD_SIZE);
+        aField = makeTextField(SMALL_TEXT_FIELD_SIZE);
+        xField = makeTextField(SMALL_TEXT_FIELD_SIZE);
+        yField = makeTextField(SMALL_TEXT_FIELD_SIZE);
 
-        add(statusFlagsPanel);
-        add(opcodeLabel);
-        add(opcodeField);
-        add(pcLabel);
-        add(pcField);
-        add(spLabel);
-        add(spField);
-        add(aLabel);
-        add(aField);
-        add(xLabel);
-        add(xField);
-        add(yLabel);
-        add(yField);
-//        add(stepCountLabel);
-//        add(stepCountField);
+        constraints.anchor = GridBagConstraints.LINE_START;
+        constraints.gridwidth = 2;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        add(statusFlagsLabel, constraints);
+        constraints.gridy = 1;
+        add(statusFlagsPanel, constraints);
+
+        constraints.insets = new Insets(5, 0, 0, 0);
+        constraints.gridy = 2;
+        add(opcodeLabel, constraints);
+
+        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.gridy = 3;
+        add(opcodeField, constraints);
+
+        constraints.insets = new Insets(5, 0, 0, 0);
+        constraints.gridy = 4;
+        add(pcLabel, constraints);
+
+        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.gridy = 5;
+        add(pcField, constraints);
+
+        constraints.insets = new Insets(5, 0, 0, 0);
+        constraints.gridwidth = 1;
+        constraints.gridy = 6;
+        add(spLabel, constraints);
+        constraints.gridx = 1;
+        add(aLabel, constraints);
+
+        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.gridx = 0;
+        constraints.gridy = 7;
+        add(spField, constraints);
+        constraints.gridx = 1;
+        add(aField, constraints);
+
+        constraints.insets = new Insets(5, 0, 0, 0);
+        constraints.gridx = 0;
+        constraints.gridy = 8;
+        add(yLabel, constraints);
+        constraints.gridx = 1;
+        add(xLabel, constraints);
+
+        constraints.insets = new Insets(0, 0, 5, 0);
+        constraints.gridx = 0;
+        constraints.gridy = 9;
+        add(xField, constraints);
+        constraints.gridx = 1;
+        add(yField, constraints);
     }
 
     /**
@@ -158,7 +195,6 @@ public class StatusPanel extends JPanel {
         aField.setText(cpu.getAccumulatorStatus());
         xField.setText(cpu.getXRegisterStatus());
         yField.setText(cpu.getYRegisterStatus());
-//        stepCountField.setText(Long.toString(cpu.getStepCounter()));
 
         repaint();
     }
@@ -228,10 +264,16 @@ public class StatusPanel extends JPanel {
         return label;
     }
 
-    private JTextField makeTextField() {
+    private static final Dimension LARGE_TEXT_FIELD_SIZE = new Dimension(134, 22);
+    private static final Dimension SMALL_TEXT_FIELD_SIZE = new Dimension(65, 22);
+
+    private JTextField makeTextField(Dimension size) {
         JTextField textField = new JTextField("");
         textField.setAlignmentX(LEFT_ALIGNMENT);
         textField.setEditable(false);
+        textField.setMinimumSize(size);
+        textField.setMaximumSize(size);
+        textField.setPreferredSize(size);
         return textField;
     }
 

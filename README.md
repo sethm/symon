@@ -47,20 +47,33 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.5 or greater, just type:
 
-    $ java -jar symon-0.6-jar-with-dependencies.jar
+    $ java -jar symon-0.6-snapshot.jar
 
 When Symon is running, you should be presented with a simple graphical
 interface.
 
+### 3.2 ROM images
 
-### 3.2 Loading A Program
+The simulator requires a 16KB ROM image loaded at address $C000 to $FFFF to
+work properly. Without a ROM in memory, the simulator will not be able to
+reset, since the reset vector for the 6502 is located in this address space.
 
-Programs in the form of raw binary object files can be loaded directly
-into memory with the "Load" button.
+By default, any 16KB file named 'rom.bin' that exists in the same directory
+where Symon is launched will be loaded as a ROM image. ROM images can also
+be swapped out at run-time with the "Load ROM Image..." in the File menu.
 
-Right now, all programs are loaded starting at addres $0300.  After
-loading, the simulated CPU's reset vector is loaded with the values
-$00, $03, and the CPU is reset.
+The "samples" directory contains a ROM image named 'ehbasic.rom', containing
+Lee Davison's Enhanced 6502 BASIC. This serves as a good starting point for
+exploration.
+
+### 3.3 Loading A Program
+
+In addition to ROM images, programs in the form of raw binary object files can
+be loaded directly into memory from "Load Program..." in the File menu.
+
+Programs are loaded starting at addres $0300.  After loading the program, the
+simulated CPU's reset vector is loaded with the values $00, $03, and the CPU is
+reset.
 
 There are two very simple sample program in the "samples" directory,
 for testing.
@@ -69,33 +82,23 @@ for testing.
 
 - 'hello.prg' will continuously print "Hello, 6502 World!" to the console.
 
-The sample directory also contains a ROM image of Lee Davison's
-Ehanced 6502 BASIC. For instructions on loading the rom, please see
-the README file in that directory.
-
-### 3.3 ROM files
-
-Any 12KB file named 'rom.bin' that exists in the same directory where
-Symon is launched will be loaded at address $d000. If the file is
-larger than 12KB, loading will fail. This functionality will be
-improved in a future release!
-
 ### 3.4 Running
 
 After loading a program or ROM image, clicking "Run" will start the simulator
-running at address $0300.
-
+running.
 
 ## 4.0 To Do
+
+- Feedback (in the form of dialogs, status bar, etc).
+
+- Better ROM image handling
 
 - Better debugging tools from the UI, including memory inspection,
   disassembly, breakpoints, and execution tracing.
 
-- Better ROM loading (and re-loading)
-
 - More accurate timing.
   
-- Interrupt handling!
+- Smarter interrupt handling.
 
 - UI needs a ton more polish.
 
@@ -108,8 +111,6 @@ running at address $0300.
   address.
 
 - Implement CMOS 65C02 instructions and NMOS / CMOS mode flag.
-
-- Allow a flag to disable breaking to monitor on BRK.
 
 - Allow displaying ACIA status and dumping ACIA buffers, for
   debugging.

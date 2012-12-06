@@ -170,8 +170,8 @@ public class Acia extends Device {
      */
     private long calculateBaudRateDelay() {
         if (baudRate > 0) {
-            // This is a pretty rough approximation based on 8 bits per character,
-            // and 1/baudRate per bit.
+            // TODO: This is a pretty rough approximation based on 8 bits per character,
+            // and 1/baudRate per bit. It could certainly be improved
             return (long)((1.0 / baudRate) * 1000000000 * 8);
         } else {
             return 0;
