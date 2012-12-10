@@ -247,6 +247,7 @@ public class Simulator implements Observer {
         // Spin up the new run loop
         runLoop = new RunLoop();
         runLoop.start();
+        traceLog.simulatorDidStart();
     }
 
     private void handleStop() {
@@ -268,6 +269,7 @@ public class Simulator implements Observer {
                 statusPane.updateState(cpu);
             }
         });
+        traceLog.simulatorDidStop();
         if (traceLog.isVisible()) {
             traceLog.refresh();
         }
@@ -291,6 +293,8 @@ public class Simulator implements Observer {
             ram.fill(0x00);
             // Clear the console.
             console.reset();
+            // Reset the trace log.
+            traceLog.reset();
             // Update status.
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
@@ -320,13 +324,9 @@ public class Simulator implements Observer {
      * Perform a single step of the simulated system.
      */
     private void step() throws MemoryAccessException {
-
         cpu.step();
-        // TODO: We need to profile this for performance. Possibly allow
-        // a flag to turn trace on/off
-        synchronized(traceLog) {
-            traceLog.append(cpu.getCpuState());
-        }
+
+        traceLog.append(cpu.getCpuState());
 
         // Read from the ACIA and immediately update the console if there's
         // output ready.

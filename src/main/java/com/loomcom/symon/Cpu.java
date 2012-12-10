@@ -24,6 +24,7 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.exceptions.MemoryAccessException;
+import com.loomcom.symon.util.HexUtil;
 
 /**
  * This class provides a simulation of the MOS 6502 CPU's state machine.
@@ -1134,23 +1135,23 @@ public class Cpu implements InstructionTable {
     }
 
     public String getAccumulatorStatus() {
-        return String.format("$%02X", state.a);
+        return "$" + HexUtil.byteToHex(state.a);
     }
 
     public String getXRegisterStatus() {
-        return String.format("$%02X", state.x);
+        return "$" + HexUtil.byteToHex(state.x);
     }
 
     public String getYRegisterStatus() {
-        return String.format("$%02X", state.y);
+        return "$" + HexUtil.byteToHex(state.y);
     }
 
     public String getProgramCounterStatus() {
-        return String.format("$%04X", state.pc);
+        return "$" + HexUtil.wordToHex(state.pc);
     }
 
     public String getStackPointerStatus() {
-        return String.format("$%02X", state.sp);
+        return "$" + HexUtil.byteToHex(state.sp);
     }
 
     public int getProcessorStatus() {
@@ -1270,7 +1271,7 @@ public class Cpu implements InstructionTable {
 
 
     /**
-     * A compact representation of CPU state;
+     * A compact, struct-like representation of CPU state.
      */
     public static class CpuState {
         /**
@@ -1301,6 +1302,7 @@ public class Cpu implements InstructionTable {
         public int[] args = new int[2];
         public int instSize;
         public boolean opTrap;
+
         /* Status Flag Register bits */
         public boolean carryFlag;
         public boolean negativeFlag;
@@ -1319,7 +1321,8 @@ public class Cpu implements InstructionTable {
         /**
          * Snapshot a copy of the CpuState.
          *
-         * (This is a copy constructor rather than an implementation of Clonable based on Josh Bloch's recommendation)
+         * (This is a copy constructor rather than an implementation of <code>Clonable</code>
+         * based on Josh Bloch's recommendation)
          *
          * @param s The CpuState to copy.
          */
@@ -1346,19 +1349,21 @@ public class Cpu implements InstructionTable {
         }
 
         /**
-         * Returns a string representing the CPU state.
+         * Returns a string formatted for the trace log.
+         *
+         * @return a string formatted for the trace log.
          */
-        public String toString() {
+        public String toTraceEvent() {
             String opcode = disassembleOp();
             StringBuilder sb = new StringBuilder(getInstructionByteStatus());
             sb.append("  ");
             sb.append(String.format("%-14s", opcode));
-            sb.append("A:" + String.format("%02x", a) + " ");
-            sb.append("X:" + String.format("%02x", x) + " ");
-            sb.append("Y:" + String.format("%02x", y) + " ");
-            sb.append("F:" + String.format("%02x", getStatusFlag()) + " ");
-            sb.append("S:" + String.format("1%02x", sp) + " ");
-            sb.append(getProcessorStatusString());
+            sb.append("A:" + HexUtil.byteToHex(a) + " ");
+            sb.append("X:" + HexUtil.byteToHex(x) + " ");
+            sb.append("Y:" + HexUtil.byteToHex(y) + " ");
+            sb.append("F:" + HexUtil.byteToHex(getStatusFlag()) + " ");
+            sb.append("S:1" + HexUtil.byteToHex(sp) + " ");
+            sb.append(getProcessorStatusString() + "\n");
             return sb.toString();
         }
 
@@ -1395,11 +1400,17 @@ public class Cpu implements InstructionTable {
             switch (Cpu.instructionSizes[ir]) {
                 case 0:
                 case 1:
-                    return String.format("%04X  %02X      ", lastPc, ir);
+                    return HexUtil.wordToHex(lastPc) + "  " +
+                           HexUtil.byteToHex(ir) + "      ";
                 case 2:
-                    return String.format("%04X  %02X %02X   ", lastPc, ir, args[0]);
+                    return HexUtil.wordToHex(lastPc) + "  " +
+                           HexUtil.byteToHex(ir) + " " +
+                           HexUtil.byteToHex(args[0]) + "   ";
                 case 3:
-                    return String.format("%04X  %02X %02X %02X", lastPc, ir, args[0], args[1]);
+                    return HexUtil.wordToHex(lastPc) + "  " +
+                           HexUtil.byteToHex(ir) + " " +
+                           HexUtil.byteToHex(args[0]) + " " +
+                           HexUtil.byteToHex(args[1]);
                 default:
                     return null;
             }
@@ -1422,35 +1433,35 @@ public class Cpu implements InstructionTable {
 
             switch (instructionModes[ir]) {
                 case ABS:
-                    sb.append(String.format(" $%04X", address(args[0], args[1])));
+                    sb.append(" $" + HexUtil.wordToHex(address(args[0], args[1])));
                     break;
                 case ABX:
-                    sb.append(String.format(" $%04X,X", address(args[0], args[1])));
+                    sb.append(" $" + HexUtil.wordToHex(address(args[0], args[1])) + ",X");
                     break;
                 case ABY:
-                    sb.append(String.format(" $%04X,Y", address(args[0], args[1])));
+                    sb.append(" $" + HexUtil.wordToHex(address(args[0], args[1])) + ",Y");
                     break;
                 case IMM:
-                    sb.append(String.format(" #$%02X", args[0]));
+                    sb.append(" #$" + HexUtil.byteToHex(args[0]));
                     break;
                 case IND:
-                    sb.append(String.format(" ($%04X)", address(args[0], args[1])));
+                    sb.append(" ($" + HexUtil.wordToHex(address(args[0], args[1])) + ")");
                     break;
                 case XIN:
-                    sb.append(String.format(" ($%02X,X)", args[0]));
+                    sb.append(" ($" + HexUtil.byteToHex(args[0]) + ",X)");
                     break;
                 case INY:
-                    sb.append(String.format(" ($%02X),Y", args[0]));
+                    sb.append(" ($" + HexUtil.byteToHex(args[0]) + "),Y");
                     break;
                 case REL:
                 case ZPG:
-                    sb.append(String.format(" $%02X", args[0]));
+                    sb.append(" $" + HexUtil.byteToHex(args[0]));
                     break;
                 case ZPX:
-                    sb.append(String.format(" $%02X,X", a));
+                    sb.append(" $" + HexUtil.byteToHex(a) + ",X");
                     break;
                 case ZPY:
-                    sb.append(String.format(" $%02X,Y", a));
+                    sb.append(" $" + HexUtil.byteToHex(a) + ",Y");
                     break;
             }
 
