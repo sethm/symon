@@ -688,24 +688,27 @@ public class Simulator implements Observer {
 
             JMenu viewMenu = new JMenu("View");
             JMenu fontSubMenu = new JMenu("Font Size");
-            ButtonGroup group = new ButtonGroup();
 
-            makeFontSizeMenuItem(10, fontSubMenu, group);
-            makeFontSizeMenuItem(11, fontSubMenu, group);
-            makeFontSizeMenuItem(12, fontSubMenu, group);
-            makeFontSizeMenuItem(13, fontSubMenu, group);
-            makeFontSizeMenuItem(14, fontSubMenu, group);
-            makeFontSizeMenuItem(15, fontSubMenu, group);
-            makeFontSizeMenuItem(16, fontSubMenu, group);
-            makeFontSizeMenuItem(17, fontSubMenu, group);
-            makeFontSizeMenuItem(18, fontSubMenu, group);
-            makeFontSizeMenuItem(19, fontSubMenu, group);
-            makeFontSizeMenuItem(20, fontSubMenu, group);
+            ButtonGroup fontSizeGroup = new ButtonGroup();
+
+            makeFontSizeMenuItem(10, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(11, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(12, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(13, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(14, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(15, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(16, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(17, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(18, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(19, fontSubMenu, fontSizeGroup);
+            makeFontSizeMenuItem(20, fontSubMenu, fontSizeGroup);
 
             viewMenu.add(fontSubMenu);
 
-            JMenuItem showTraceLog = new JMenuItem(new ToggleTraceWindowAction());
+            JRadioButtonMenuItem showTraceLog = new JRadioButtonMenuItem(new ToggleTraceWindowAction());
+
             viewMenu.add(showTraceLog);
+
             add(viewMenu);
         }
 
