@@ -5,6 +5,7 @@ SYMON - A 6502 System Simulator
 welcome!**
 
 **Version:** 0.7.0
+
 **Last Updated:** 9 December, 2012
 
 Copyright (c) 2008-2012 Seth J. Morabito &lt;web@loomcom.com&gt;
@@ -87,7 +88,16 @@ for testing.
 After loading a program or ROM image, clicking "Run" will start the simulator
 running.
 
-## 4.0 To Do
+## 4.0 Revision History
+
+  - 0.7.0: 9 December, 2012
+  - 0.6: 5 November, 2012
+  - 0.5: 21 October, 2012
+  - 0.3: 14 October, 2012
+  - 0.2: 22 April, 2012
+  - 0.1: 20 January, 2010
+
+## 5.0 To Do
 
 - Feedback (in the form of dialogs, status bar, etc).
 
@@ -116,7 +126,7 @@ running.
   debugging.
 
 
-## 5.0 Licensing
+## 6.0 Licensing
 
 Symon is free software.  It is distributed under the MIT License.
 Please see the file 'COPYING' for full details of the license.
