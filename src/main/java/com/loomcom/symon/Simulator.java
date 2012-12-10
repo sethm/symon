@@ -33,6 +33,7 @@ import com.loomcom.symon.exceptions.SymonException;
 import com.loomcom.symon.ui.Console;
 import com.loomcom.symon.ui.PreferencesDialog;
 import com.loomcom.symon.ui.StatusPanel;
+import com.loomcom.symon.ui.TraceLog;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -118,7 +119,7 @@ public class Simulator implements Observer {
     /**
      * The Trace Window shows the most recent 50,000 CPU states.
      */
-    private JFrame traceWindow;
+    private TraceLog traceLog;
 
     /**
      * The Zero Page Window shows the contents of page 0.
@@ -229,6 +230,9 @@ public class Simulator implements Observer {
             }
         });
 
+        // Prepare the log window
+        traceLog = new TraceLog();
+
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         console.requestFocus();
@@ -264,8 +268,9 @@ public class Simulator implements Observer {
                 statusPane.updateState(cpu);
             }
         });
-
-        // TODO: Write to Log window, if frame is visible.
+        if (traceLog.isVisible()) {
+            traceLog.refresh();
+        }
         // TODO: Update memory window, if frame is visible.
     }
 
@@ -317,6 +322,11 @@ public class Simulator implements Observer {
     private void step() throws MemoryAccessException {
 
         cpu.step();
+        // TODO: We need to profile this for performance. Possibly allow
+        // a flag to turn trace on/off
+        synchronized(traceLog) {
+            traceLog.append(cpu.getCpuState());
+        }
 
         // Read from the ACIA and immediately update the console if there's
         // output ready.
@@ -607,6 +617,24 @@ public class Simulator implements Observer {
         }
     }
 
+    class ToggleTraceWindowAction extends AbstractAction {
+        public ToggleTraceWindowAction() {
+            super("Trace Log", null);
+            putValue(SHORT_DESCRIPTION, "Show or Hide the Trace Log Window");
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            synchronized(traceLog) {
+                if (traceLog.isVisible()) {
+                    traceLog.setVisible(false);
+                } else {
+                    traceLog.refresh();
+                    traceLog.setVisible(true);
+                }
+            }
+        }
+    }
+
     class SimulatorMenu extends JMenuBar {
         // Menu Items
         private JMenuItem    loadProgramItem;
@@ -675,6 +703,9 @@ public class Simulator implements Observer {
             makeFontSizeMenuItem(20, fontSubMenu, group);
 
             viewMenu.add(fontSubMenu);
+
+            JMenuItem showTraceLog = new JMenuItem(new ToggleTraceWindowAction());
+            viewMenu.add(showTraceLog);
             add(viewMenu);
         }
 

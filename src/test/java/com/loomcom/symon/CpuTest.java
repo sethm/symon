@@ -392,27 +392,4 @@ public class CpuTest extends TestCase {
         cpu.setYRegister(0x95);
         assertEquals(0x15, cpu.zpyAddress(0x80));
     }
-
-    public void testPcStatus() {
-        cpu.setProgramCounter(0x03fa);
-        assertEquals("$03FA", cpu.getProgramCounterStatus());
-    }
-
-    public void testOpcodeStatus() throws MemoryAccessException {
-        // LDA (immediate)
-        bus.write(0x0200, 0xa9);
-        bus.write(0x0201, 0xef);
-        cpu.step();
-        assertEquals("LDA #$EF", cpu.getOpcodeStatus());
-
-        // BRK instruction
-        bus.write(0x0202, 0x00);
-        cpu.step();
-        assertEquals("BRK", cpu.getOpcodeStatus());
-
-        // Illegal opcode
-        cpu.step();
-        assertEquals("BRK", cpu.getOpcodeStatus());
-    }
-
 }

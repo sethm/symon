@@ -24,17 +24,61 @@
 
 package com.loomcom.symon.ui;
 
+import com.loomcom.symon.Cpu;
 import com.loomcom.symon.util.FifoRingBuffer;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * This frame displays a trace of CPU execution. The most recent TRACE_LENGTH lines
  * are captured in a buffer and rendered to the JFrame's main text area upon request.
  */
-public class TraceLog extends JFrame {
+public class TraceLog {
 
-    private FifoRingBuffer<String> traceLog;
+    private FifoRingBuffer<Cpu.CpuState> traceLog;
+    private JFrame                       traceLogWindow;
+    private JTextArea                    logArea;
 
+    private static final Dimension SIZE           = new Dimension(640, 480);
+    private static final int       MAX_LOG_LENGTH = 10000;
 
+    public TraceLog() {
+        traceLog = new FifoRingBuffer<Cpu.CpuState>(MAX_LOG_LENGTH);
+        traceLogWindow = new JFrame();
+        traceLogWindow.setPreferredSize(SIZE);
+        traceLogWindow.setResizable(true);
+
+        traceLogWindow.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+
+        logArea = new JTextArea();
+        logArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+
+        JScrollPane scrollableView = new JScrollPane(logArea);
+
+        traceLogWindow.getContentPane().add(scrollableView);
+        traceLogWindow.pack();
+        // Don't show the frame. That action is controlled by the Simulator.
+    }
+
+    public void refresh() {
+        StringBuilder logString = new StringBuilder();
+        for (Cpu.CpuState state : traceLog) {
+            logString.append(state.toString());
+            logString.append("\n");
+        }
+        logArea.setText(logString.toString());
+    }
+
+    public void append(Cpu.CpuState state) {
+        traceLog.push(new Cpu.CpuState(state));
+    }
+
+    public boolean isVisible() {
+        return traceLogWindow.isVisible();
+    }
+
+    public void setVisible(boolean b) {
+        traceLogWindow.setVisible(b);
+    }
 }

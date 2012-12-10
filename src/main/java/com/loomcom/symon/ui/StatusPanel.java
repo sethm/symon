@@ -177,19 +177,21 @@ public class StatusPanel extends JPanel {
      * @param cpu The simulated 6502 CPU.
      */
     public void updateState(Cpu cpu) {
-        // Update the Processor Status Flag display
-        int state = cpu.getProcessorStatus();
+        Cpu.CpuState cpuState = cpu.getCpuState();
 
-        carryFlagLabel.setIcon(iconForFlag(state, 0));
-        zeroFlagLabel.setIcon(iconForFlag(state, 1));
-        irqDisableFlagLabel.setIcon(iconForFlag(state, 2));
-        decimalModeFlagLabel.setIcon(iconForFlag(state, 3));
-        breakFlagLabel.setIcon(iconForFlag(state, 4));
-        overflowFlagLabel.setIcon(iconForFlag(state, 6));
-        negativeFlagLabel.setIcon(iconForFlag(state, 7));
+        // Update the Processor Status Flag display
+        int status = cpu.getCpuState().getStatusFlag();
+
+        carryFlagLabel.setIcon(iconForFlag(status, 0));
+        zeroFlagLabel.setIcon(iconForFlag(status, 1));
+        irqDisableFlagLabel.setIcon(iconForFlag(status, 2));
+        decimalModeFlagLabel.setIcon(iconForFlag(status, 3));
+        breakFlagLabel.setIcon(iconForFlag(status, 4));
+        overflowFlagLabel.setIcon(iconForFlag(status, 6));
+        negativeFlagLabel.setIcon(iconForFlag(status, 7));
 
         // Update the register and address displays
-        opcodeField.setText(cpu.getOpcodeStatus());
+        opcodeField.setText(cpu.getCpuState().disassembleOp());
         pcField.setText(cpu.getProgramCounterStatus());
         spField.setText(cpu.getStackPointerStatus());
         aField.setText(cpu.getAccumulatorStatus());
