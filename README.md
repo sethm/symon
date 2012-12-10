@@ -4,8 +4,8 @@ SYMON - A 6502 System Simulator
 **NOTE: THIS IS BETA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT.  Feedback is
 welcome!**
 
-**Version:** 0.6
-**Last Updated:** 5 November, 2012
+**Version:** 0.7.0
+**Last Updated:** 9 December, 2012
 
 Copyright (c) 2008-2012 Seth J. Morabito &lt;web@loomcom.com&gt;
 
@@ -47,7 +47,7 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.5 or greater, just type:
 
-    $ java -jar symon-0.6-snapshot.jar
+    $ java -jar symon-0.7.0.jar
 
 When Symon is running, you should be presented with a simple graphical
 interface.
