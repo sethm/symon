@@ -49,12 +49,11 @@ import java.util.logging.Logger;
 
 /**
  * Symon Simulator Interface and Control.
- *
+ * <p/>
  * This class provides a control and I/O system for the simulated 6502 system.
  * It includes the simulated CPU itself, as well as 32KB of RAM, 16KB of ROM,
  * and a simulated ACIA for serial I/O. The ACIA is attached to a dumb terminal
  * with a basic 80x25 character display.
- *
  */
 public class Simulator implements Observer {
 
@@ -76,8 +75,8 @@ public class Simulator implements Observer {
     private static final int ROM_BASE = 0xC000;
     private static final int ROM_SIZE = 0x4000;
 
-    private static final int DEFAULT_FONT_SIZE = 12;
-    private static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
+    private static final int  DEFAULT_FONT_SIZE = 12;
+    private static final Font DEFAULT_FONT      = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
 
     // Since it is very expensive to update the UI with Swing's Event Dispatch Thread, we can't afford
     // to refresh the view on every simulated clock cycle. Instead, we will only refresh the view after this
@@ -128,16 +127,16 @@ public class Simulator implements Observer {
 
     private SimulatorMenu menuBar;
 
-    private RunLoop runLoop;
-    private Console console;
+    private RunLoop     runLoop;
+    private Console     console;
     private StatusPanel statusPane;
 
     private JButton runStopButton;
     private JButton stepButton;
     private JButton resetButton;
 
-    private JFileChooser fileChooser;
-    private PreferencesDialog  preferences;
+    private JFileChooser      fileChooser;
+    private PreferencesDialog preferences;
 
     public Simulator() throws MemoryRangeException, IOException {
         this.acia = new Acia(ACIA_BASE);
@@ -156,8 +155,12 @@ public class Simulator implements Observer {
         if (romImage.canRead()) {
             logger.info("Loading ROM image from file " + romImage);
             this.rom = Memory.makeROM(ROM_BASE, ROM_SIZE, romImage);
-            bus.addDevice(rom);
+        } else {
+            logger.info("Default ROM file " + romImage +
+                        " not found, loading empty R/W memory image.");
+            this.rom = Memory.makeRAM(ROM_BASE, ROM_SIZE);
         }
+        bus.addDevice(rom);
     }
 
     /**
@@ -254,26 +257,6 @@ public class Simulator implements Observer {
         runLoop.requestStop();
         runLoop.interrupt();
         runLoop = null;
-        simulatorDidStop();
-    }
-
-    /*
-     * Handle post-stop actions.
-     */
-    private void simulatorDidStop() {
-        // The simulator is lazy about updating the UI for performance reasons, so always request an
-        // immediate update after stopping.
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                // Now update the state
-                statusPane.updateState(cpu);
-            }
-        });
-        traceLog.simulatorDidStop();
-        if (traceLog.isVisible()) {
-            traceLog.refresh();
-        }
-        // TODO: Update memory window, if frame is visible.
     }
 
     /*
@@ -313,7 +296,9 @@ public class Simulator implements Observer {
     private void handleStep() {
         try {
             step();
-            simulatorDidStop();
+            if (traceLog.isVisible()) {
+                traceLog.refresh();
+            }
         } catch (SymonException ex) {
             logger.log(Level.SEVERE, "Exception during simulator step: " + ex.getMessage());
             ex.printStackTrace();
@@ -332,7 +317,7 @@ public class Simulator implements Observer {
         // output ready.
         if (acia.hasTxChar()) {
             // This is thread-safe
-            console.print(Character.toString((char)acia.txRead()));
+            console.print(Character.toString((char) acia.txRead()));
             console.repaint();
         }
 
@@ -340,7 +325,7 @@ public class Simulator implements Observer {
         // TODO: Interrupt handling.
         try {
             if (console.hasInput()) {
-                acia.rxWrite((int)console.readInputChar());
+                acia.rxWrite((int) console.readInputChar());
             }
         } catch (FifoUnderrunException ex) {
             logger.severe("Console type-ahead buffer underrun!");
@@ -389,22 +374,6 @@ public class Simulator implements Observer {
         });
     }
 
-    public static void main(String args[]) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    // Create the main UI window
-                    Simulator simulator = new Simulator();
-                    simulator.createAndShowUi();
-                    // Reset the simulator.
-                    simulator.handleReset();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
     /**
      * The configuration has changed. Re-load.
      *
@@ -421,6 +390,28 @@ public class Simulator implements Observer {
                 mainWindow.pack();
             }
         }
+    }
+
+    /**
+     * Main entry point to the simulator. Creates a simulator and shows the main
+     * window.
+     *
+     * @param args
+     */
+    public static void main(String args[]) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    // Create the main UI window
+                    Simulator simulator = new Simulator();
+                    simulator.createAndShowUi();
+                    // Reset the simulator.
+                    simulator.handleReset();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     /**
@@ -464,13 +455,15 @@ public class Simulator implements Observer {
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    console.stopListening();
-                    // Allow step while the simulator is stopped
-                    stepButton.setEnabled(true);
-                    menuBar.simulatorDidStop();
-                    runStopButton.setText("Run");
-                    // Now update the state
                     statusPane.updateState(cpu);
+                    runStopButton.setText("Run");
+                    stepButton.setEnabled(true);
+                    if (traceLog.isVisible()) {
+                        traceLog.refresh();
+                    }
+                    menuBar.simulatorDidStop();
+                    traceLog.simulatorDidStop();
+                    // TODO: Update memory window, if frame is visible.
                 }
             });
 
@@ -624,7 +617,7 @@ public class Simulator implements Observer {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            synchronized(traceLog) {
+            synchronized (traceLog) {
                 if (traceLog.isVisible()) {
                     traceLog.setVisible(false);
                 } else {
@@ -637,8 +630,8 @@ public class Simulator implements Observer {
 
     class SimulatorMenu extends JMenuBar {
         // Menu Items
-        private JMenuItem    loadProgramItem;
-        private JMenuItem    loadRomItem;
+        private JMenuItem loadProgramItem;
+        private JMenuItem loadRomItem;
 
         /**
          * Create a new SimulatorMenu instance.

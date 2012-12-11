@@ -33,4 +33,10 @@ public class HexUtilTest extends TestCase {
         assertEquals("FFFE", HexUtil.wordToHex(0xfffffe));
         assertEquals("FF00", HexUtil.wordToHex(0xffff00));
     }
+
+    public void testAllBytesAreCorrect() {
+        for (int i = 0; i <= 0xff; i++) {
+            assertEquals(String.format("%02X", i), HexUtil.byteToHex(i));
+        }
+    }
 }

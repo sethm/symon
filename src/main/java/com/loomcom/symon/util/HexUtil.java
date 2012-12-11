@@ -14,8 +14,8 @@ package com.loomcom.symon.util;
  * The most convenient way to get a formatted hex value from an integer is with the <code>String.format</code>
  * method, but this turns out to be extremely inefficient. Formatting a million integers
  * with <code>String.format</code> takes something like 1600ms. Formatting the same number of integers
- * with <code>HexUtil</code> takes only 160ms. This is on part with <code>Integer.toHexString</code>,
- * but also allows the desired padding.
+ * with <code>HexUtil</code> takes only 160ms. This is on par with <code>Integer.toHexString</code>,
+ * but also gives the desired padding.
  *
  */
 public class HexUtil {
