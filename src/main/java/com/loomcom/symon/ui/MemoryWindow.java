@@ -45,11 +45,11 @@ public class MemoryWindow extends JFrame implements ActionListener {
     private JTable memoryTable;
     private JTextField pageNumberTextField;
 
-    private static final Dimension MINIMUM_SIZE = new Dimension(400, 450);
+    private static final Dimension MINIMUM_SIZE = new Dimension(380, 580);
 
     public MemoryWindow(Bus bus) {
         this.memoryTableModel = new MemoryTableModel(bus);
-        this.createUi();
+        createUi();
     }
 
     /**

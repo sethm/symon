@@ -34,29 +34,29 @@ import java.awt.*;
  */
 public class StatusPanel extends JPanel {
 
-    private final ImageIcon carryOn;
-    private final ImageIcon carryOff;
-    private final ImageIcon zeroOn;
-    private final ImageIcon zeroOff;
-    private final ImageIcon irqOn;
-    private final ImageIcon irqOff;
-    private final ImageIcon decimalOn;
-    private final ImageIcon decimalOff;
-    private final ImageIcon breakOn;
-    private final ImageIcon breakOff;
-    private final ImageIcon overflowOn;
-    private final ImageIcon overflowOff;
-    private final ImageIcon negativeOn;
-    private final ImageIcon negativeOff;
+    private ImageIcon carryOn;
+    private ImageIcon carryOff;
+    private ImageIcon zeroOn;
+    private ImageIcon zeroOff;
+    private ImageIcon irqOn;
+    private ImageIcon irqOff;
+    private ImageIcon decimalOn;
+    private ImageIcon decimalOff;
+    private ImageIcon breakOn;
+    private ImageIcon breakOff;
+    private ImageIcon overflowOn;
+    private ImageIcon overflowOff;
+    private ImageIcon negativeOn;
+    private ImageIcon negativeOff;
 
-    private final JLabel statusFlagsLabel;
-    private final JLabel carryFlagLabel;
-    private final JLabel zeroFlagLabel;
-    private final JLabel irqDisableFlagLabel;
-    private final JLabel decimalModeFlagLabel;
-    private final JLabel breakFlagLabel;
-    private final JLabel overflowFlagLabel;
-    private final JLabel negativeFlagLabel;
+    private JLabel statusFlagsLabel;
+    private JLabel carryFlagLabel;
+    private JLabel zeroFlagLabel;
+    private JLabel irqDisableFlagLabel;
+    private JLabel decimalModeFlagLabel;
+    private JLabel breakFlagLabel;
+    private JLabel overflowFlagLabel;
+    private JLabel negativeFlagLabel;
 
     private JTextField opcodeField;
     private JTextField pcField;
@@ -65,12 +65,12 @@ public class StatusPanel extends JPanel {
     private JTextField xField;
     private JTextField yField;
 
-    private final JLabel opcodeLabel;
-    private final JLabel pcLabel;
-    private final JLabel spLabel;
-    private final JLabel aLabel;
-    private final JLabel xLabel;
-    private final JLabel yLabel;
+    private JLabel opcodeLabel;
+    private JLabel pcLabel;
+    private JLabel spLabel;
+    private JLabel aLabel;
+    private JLabel xLabel;
+    private JLabel yLabel;
 
     private static final int EMPTY_BORDER = 10;
     private static final Border LABEL_BORDER = BorderFactory.createEmptyBorder(0, 5, 0, 0);
@@ -80,7 +80,10 @@ public class StatusPanel extends JPanel {
 
     public StatusPanel() {
         super();
+        createUi();
+    }
 
+    private void createUi() {
         Border emptyBorder = BorderFactory.createEmptyBorder(EMPTY_BORDER, EMPTY_BORDER,
                                                              EMPTY_BORDER, EMPTY_BORDER);
         Border etchedBorder = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);

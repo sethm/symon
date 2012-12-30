@@ -34,10 +34,9 @@ import java.awt.*;
  * This frame displays a trace of CPU execution. The most recent <code>TRACE_LENGTH</code> lines
  * are captured in a buffer and rendered to the JFrame's main text area upon request.
  */
-public class TraceLog {
+public class TraceLog extends JFrame {
 
     private FifoRingBuffer<Cpu.CpuState> traceLog;
-    private JFrame                       traceLogFrame;
     private JTextArea                    traceLogTextArea;
 
     private static final Dimension MIN_SIZE       = new Dimension(320, 200);
@@ -46,13 +45,12 @@ public class TraceLog {
 
     public TraceLog() {
         traceLog = new FifoRingBuffer<Cpu.CpuState>(MAX_LOG_LENGTH);
-        traceLogFrame = new JFrame();
-        traceLogFrame.setMinimumSize(MIN_SIZE);
-        traceLogFrame.setPreferredSize(PREFERRED_SIZE);
-        traceLogFrame.setResizable(true);
-        traceLogFrame.setTitle("Trace Log");
+        setMinimumSize(MIN_SIZE);
+        setPreferredSize(PREFERRED_SIZE);
+        setResizable(true);
+        setTitle("Trace Log");
 
-        traceLogFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         traceLogTextArea = new JTextArea();
         traceLogTextArea.setFont(new Font(Font.MONOSPACED, Font.BOLD, 12));
@@ -60,9 +58,8 @@ public class TraceLog {
 
         JScrollPane scrollableView = new JScrollPane(traceLogTextArea);
 
-        traceLogFrame.getContentPane().add(scrollableView);
-        traceLogFrame.pack();
-        // Don't show the frame. That action is controlled by the Simulator.
+        getContentPane().add(scrollableView);
+        pack();
     }
 
     /**
@@ -110,20 +107,4 @@ public class TraceLog {
         traceLogTextArea.setEnabled(true);
     }
 
-    /**
-     * Returns true if the Trace Log window is currently visible.
-     * @return ture if the Trace Log window is currently visible.
-     */
-    public boolean isVisible() {
-        return traceLogFrame.isVisible();
-    }
-
-    /**
-     * Sets the visibility of the Trace Log window.
-     *
-     * @param b True to make the Trace Log window visible, false to hide it.
-     */
-    public void setVisible(boolean b) {
-        traceLogFrame.setVisible(b);
-    }
 }

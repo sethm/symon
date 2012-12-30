@@ -36,9 +36,7 @@ import com.loomcom.symon.ui.Console;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.*;
 import java.util.Observable;
 import java.util.Observer;
@@ -170,10 +168,6 @@ public class Simulator implements Observer {
         mainWindow.setResizable(false);
         mainWindow.getContentPane().setLayout(new BorderLayout());
 
-        // The Menu
-        menuBar = new SimulatorMenu();
-        mainWindow.setJMenuBar(menuBar);
-
         // UI components used for I/O.
         this.console = new com.loomcom.symon.ui.Console(80, 25, DEFAULT_FONT);
         this.statusPane = new StatusPanel();
@@ -238,6 +232,11 @@ public class Simulator implements Observer {
         memoryWindow = new MemoryWindow(bus);
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // The Menu. This comes last, because it relies on other components having
+        // already been initialized.
+        menuBar = new SimulatorMenu();
+        mainWindow.setJMenuBar(menuBar);
 
         console.requestFocus();
 
@@ -719,10 +718,24 @@ public class Simulator implements Observer {
             makeFontSizeMenuItem(20, fontSubMenu, fontSizeGroup);
             viewMenu.add(fontSubMenu);
 
-            JRadioButtonMenuItem showTraceLog = new JRadioButtonMenuItem(new ToggleTraceWindowAction());
+            final JCheckBoxMenuItem showTraceLog = new JCheckBoxMenuItem(new ToggleTraceWindowAction());
+            // Un-check the menu item if the user closes the window directly
+            traceLog.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    showTraceLog.setSelected(false);
+                }
+            });
             viewMenu.add(showTraceLog);
 
-            JRadioButtonMenuItem showMemoryTable = new JRadioButtonMenuItem(new ToggleMemoryWindowAction());
+            final JCheckBoxMenuItem showMemoryTable = new JCheckBoxMenuItem(new ToggleMemoryWindowAction());
+            // Un-check the menu item if the user closes the window directly
+            memoryWindow.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    showMemoryTable.setSelected(false);
+                }
+            });
             viewMenu.add(showMemoryTable);
 
             add(viewMenu);
@@ -731,7 +744,7 @@ public class Simulator implements Observer {
         private void makeFontSizeMenuItem(int size, JMenu fontSubMenu, ButtonGroup group) {
             Action action = new SetFontAction(size);
 
-            JRadioButtonMenuItem item = new JRadioButtonMenuItem(action);
+            JCheckBoxMenuItem item = new JCheckBoxMenuItem(action);
             item.setSelected(size == DEFAULT_FONT_SIZE);
             fontSubMenu.add(item);
             group.add(item);

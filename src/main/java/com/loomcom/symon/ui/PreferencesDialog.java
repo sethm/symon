@@ -48,7 +48,8 @@ public class PreferencesDialog extends Observable implements Preferences {
 
     public PreferencesDialog(Frame parent, boolean modal) {
         this.dialog = new JDialog(parent, modal);
-        initComponents();
+
+        createUi();
         updateUi();
     }
 
@@ -59,7 +60,7 @@ public class PreferencesDialog extends Observable implements Preferences {
     /**
      * TODO: Validation of input.
      */
-    private void initComponents() {
+    private void createUi() {
         dialog.setTitle("Preferences");
         Container contents = dialog.getContentPane();
 
