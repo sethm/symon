@@ -29,6 +29,9 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
+/**
+ * UI component that displays the current state of the simulated CPU.
+ */
 public class StatusPanel extends JPanel {
 
     private final ImageIcon carryOn;

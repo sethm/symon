@@ -36,15 +36,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Display a page of memory.
+ * This Frame displays the contents of a page of memory. The page number to be displayed
+ * is selectable by the user.
  */
 public class MemoryWindow extends JFrame implements ActionListener {
 
     private MemoryTableModel memoryTableModel;
     private JTable memoryTable;
-    private JScrollPane scrollPane;
     private JTextField pageNumberTextField;
-    private JLabel pageNumberLabel;
 
     private static final Dimension MINIMUM_SIZE = new Dimension(400, 450);
 
@@ -62,14 +61,26 @@ public class MemoryWindow extends JFrame implements ActionListener {
         memoryTableModel.setPageNumber(pageNumber);
     }
 
+    /**
+     * Returns the current page number being inspected by the table.
+     *
+     * @return The page number being inspected, from 0 to 255 (00 to FF hex)
+     */
     public int getPageNumber() {
         return memoryTableModel.getPageNumber();
     }
 
+    /**
+     * Set the contents of the page number text field with the current
+     * page number, in hex.
+     */
     private void updatePageNumberTextField() {
         pageNumberTextField.setText(HexUtil.byteToHex(getPageNumber()));
     }
 
+    /**
+     * Set-up the UI.
+     */
     private void createUi() {
         setTitle("Memory Contents");
         this.memoryTable = new JTable(memoryTableModel);
@@ -78,7 +89,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
         memoryTable.setCellSelectionEnabled(false);
         memoryTable.setShowGrid(false);
 
-        pageNumberLabel = new JLabel("Page Number");
+        JLabel pageNumberLabel = new JLabel("Page Number");
         pageNumberTextField = new JTextField(8);
         pageNumberTextField.addActionListener(this);
 
@@ -91,7 +102,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
         controlPanel.add(pageNumberLabel);
         controlPanel.add(pageNumberTextField);
 
-        this.scrollPane = new JScrollPane(memoryTable);
+        JScrollPane scrollPane = new JScrollPane(memoryTable);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
