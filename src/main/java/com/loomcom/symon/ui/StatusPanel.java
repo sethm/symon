@@ -1,6 +1,26 @@
-/**
+/*
+ * Copyright (c) 2008-2012 Seth J. Morabito <sethm@loomcom.com>
  *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 package com.loomcom.symon.ui;
 
 import com.loomcom.symon.Cpu;
@@ -52,6 +72,8 @@ public class StatusPanel extends JPanel {
     private static final int EMPTY_BORDER = 10;
     private static final Border LABEL_BORDER = BorderFactory.createEmptyBorder(0, 5, 0, 0);
     private static final Font LABEL_FONT = new Font(Font.SANS_SERIF, Font.BOLD, 12);
+    private static final Dimension LARGE_TEXT_FIELD_SIZE = new Dimension(134, 22);
+    private static final Dimension SMALL_TEXT_FIELD_SIZE = new Dimension(65, 22);
 
     public StatusPanel() {
         super();
@@ -126,11 +148,12 @@ public class StatusPanel extends JPanel {
         constraints.gridy = 1;
         add(statusFlagsPanel, constraints);
 
+
         constraints.insets = new Insets(5, 0, 0, 0);
         constraints.gridy = 2;
         add(opcodeLabel, constraints);
 
-        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.insets = new Insets(2, 2, 2, 2);
         constraints.gridy = 3;
         add(opcodeField, constraints);
 
@@ -138,7 +161,7 @@ public class StatusPanel extends JPanel {
         constraints.gridy = 4;
         add(pcLabel, constraints);
 
-        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.insets = new Insets(2, 2, 2, 2);
         constraints.gridy = 5;
         add(pcField, constraints);
 
@@ -149,7 +172,7 @@ public class StatusPanel extends JPanel {
         constraints.gridx = 1;
         add(aLabel, constraints);
 
-        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.insets = new Insets(2, 2, 2, 2);
         constraints.gridx = 0;
         constraints.gridy = 7;
         add(spField, constraints);
@@ -163,7 +186,7 @@ public class StatusPanel extends JPanel {
         constraints.gridx = 1;
         add(xLabel, constraints);
 
-        constraints.insets = new Insets(0, 0, 5, 0);
+        constraints.insets = new Insets(2, 2, 2, 2);
         constraints.gridx = 0;
         constraints.gridy = 9;
         add(xField, constraints);
@@ -266,9 +289,6 @@ public class StatusPanel extends JPanel {
         return label;
     }
 
-    private static final Dimension LARGE_TEXT_FIELD_SIZE = new Dimension(134, 22);
-    private static final Dimension SMALL_TEXT_FIELD_SIZE = new Dimension(65, 22);
-
     private JTextField makeTextField(Dimension size) {
         JTextField textField = new JTextField("");
         textField.setAlignmentX(LEFT_ALIGNMENT);
@@ -276,6 +296,7 @@ public class StatusPanel extends JPanel {
         textField.setMinimumSize(size);
         textField.setMaximumSize(size);
         textField.setPreferredSize(size);
+        textField.setBackground(Color.WHITE);
         return textField;
     }
 

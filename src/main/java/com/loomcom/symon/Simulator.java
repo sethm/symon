@@ -30,10 +30,8 @@ import com.loomcom.symon.exceptions.FifoUnderrunException;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import com.loomcom.symon.exceptions.SymonException;
+import com.loomcom.symon.ui.*;
 import com.loomcom.symon.ui.Console;
-import com.loomcom.symon.ui.PreferencesDialog;
-import com.loomcom.symon.ui.StatusPanel;
-import com.loomcom.symon.ui.TraceLog;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -79,8 +77,8 @@ public class Simulator implements Observer {
     private static final Font DEFAULT_FONT      = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
 
     // Since it is very expensive to update the UI with Swing's Event Dispatch Thread, we can't afford
-    // to refresh the view on every simulated clock cycle. Instead, we will only refresh the view after this
-    // number of steps when running normally.
+    // to refresh the status view on every simulated clock cycle. Instead, we will only refresh the status view
+    // after this number of steps when running normally.
     //
     // Since we're simulating a 1MHz 6502 here, we have a 1 us delay between steps. Setting this to 10000
     // should give us a status update every 10 ms.
@@ -111,14 +109,14 @@ public class Simulator implements Observer {
     private JFrame mainWindow;
 
     /**
-     * The Console Window is connected to the ACIA's TX and RX lines.
-     */
-    private JFrame consoleWindow;
-
-    /**
      * The Trace Window shows the most recent 50,000 CPU states.
      */
     private TraceLog traceLog;
+
+    /**
+     * The Memory Window shows the contents of one page of memory.
+     */
+    private MemoryWindow memoryWindow;
 
     /**
      * The Zero Page Window shows the contents of page 0.
@@ -236,6 +234,9 @@ public class Simulator implements Observer {
         // Prepare the log window
         traceLog = new TraceLog();
 
+        // Prepare the memory window
+        memoryWindow = new MemoryWindow(bus);
+
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         console.requestFocus();
@@ -296,9 +297,14 @@ public class Simulator implements Observer {
     private void handleStep() {
         try {
             step();
-            if (traceLog.isVisible()) {
-                traceLog.refresh();
-            }
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    if (traceLog.isVisible()) {
+                        traceLog.refresh();
+                    }
+                    statusPane.updateState(cpu);
+                }
+            });
         } catch (SymonException ex) {
             logger.log(Level.SEVERE, "Exception during simulator step: " + ex.getMessage());
             ex.printStackTrace();
@@ -402,6 +408,7 @@ public class Simulator implements Observer {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     // Create the main UI window
                     Simulator simulator = new Simulator();
                     simulator.createAndShowUi();
@@ -628,6 +635,23 @@ public class Simulator implements Observer {
         }
     }
 
+    class ToggleMemoryWindowAction extends AbstractAction {
+        public ToggleMemoryWindowAction() {
+            super("Memory Window", null);
+            putValue(SHORT_DESCRIPTION, "Show or Hide the Memory Window");
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            synchronized (memoryWindow) {
+                if (memoryWindow.isVisible()) {
+                    memoryWindow.setVisible(false);
+                } else {
+                    memoryWindow.setVisible(true);
+                }
+            }
+        }
+    }
+
     class SimulatorMenu extends JMenuBar {
         // Menu Items
         private JMenuItem loadProgramItem;
@@ -680,10 +704,8 @@ public class Simulator implements Observer {
              */
 
             JMenu viewMenu = new JMenu("View");
-            JMenu fontSubMenu = new JMenu("Font Size");
-
+            JMenu fontSubMenu = new JMenu("Console Font Size");
             ButtonGroup fontSizeGroup = new ButtonGroup();
-
             makeFontSizeMenuItem(10, fontSubMenu, fontSizeGroup);
             makeFontSizeMenuItem(11, fontSubMenu, fontSizeGroup);
             makeFontSizeMenuItem(12, fontSubMenu, fontSizeGroup);
@@ -695,12 +717,13 @@ public class Simulator implements Observer {
             makeFontSizeMenuItem(18, fontSubMenu, fontSizeGroup);
             makeFontSizeMenuItem(19, fontSubMenu, fontSizeGroup);
             makeFontSizeMenuItem(20, fontSubMenu, fontSizeGroup);
-
             viewMenu.add(fontSubMenu);
 
             JRadioButtonMenuItem showTraceLog = new JRadioButtonMenuItem(new ToggleTraceWindowAction());
-
             viewMenu.add(showTraceLog);
+
+            JRadioButtonMenuItem showMemoryTable = new JRadioButtonMenuItem(new ToggleMemoryWindowAction());
+            viewMenu.add(showMemoryTable);
 
             add(viewMenu);
         }

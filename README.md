@@ -4,9 +4,9 @@ SYMON - A 6502 System Simulator
 **NOTE: THIS IS BETA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT.  Feedback is
 welcome!**
 
-**Version:** 0.7.0
+**Version:** 0.8.0
 
-**Last Updated:** 9 December, 2012
+**Last Updated:** 29 December, 2012
 
 Copyright (c) 2008-2012 Seth J. Morabito &lt;web@loomcom.com&gt;
 
@@ -90,6 +90,7 @@ running.
 
 ## 4.0 Revision History
 
+  - 0.8.0: 29 December, 2012
   - 0.7.0: 9 December, 2012
   - 0.6: 5 November, 2012
   - 0.5: 21 October, 2012
