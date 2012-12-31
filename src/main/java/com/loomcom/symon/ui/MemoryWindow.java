@@ -28,6 +28,7 @@ import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.util.HexUtil;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -45,8 +46,14 @@ public class MemoryWindow extends JFrame implements ActionListener {
     private JTable memoryTable;
     private JTextField pageNumberTextField;
 
-    private static final Dimension MINIMUM_SIZE = new Dimension(380, 580);
+    private static final Dimension MINIMUM_SIZE = new Dimension(380, 400);
 
+    /**
+     * Initialize a new MemoryWindow frame with the specified Bus.
+     * The MemoryWindow frame will not be visible.
+     *
+     * @param bus The Bus the memory window will query for data.
+     */
     public MemoryWindow(Bus bus) {
         this.memoryTableModel = new MemoryTableModel(bus);
         createUi();
@@ -87,7 +94,17 @@ public class MemoryWindow extends JFrame implements ActionListener {
 
         memoryTable.setDragEnabled(false);
         memoryTable.setCellSelectionEnabled(false);
-        memoryTable.setShowGrid(false);
+        memoryTable.setShowGrid(true);
+        memoryTable.setShowHorizontalLines(true);
+        memoryTable.setShowVerticalLines(true);
+        memoryTable.setGridColor(Color.LIGHT_GRAY);
+        memoryTable.getTableHeader().setReorderingAllowed(false);
+        memoryTable.getTableHeader().setResizingAllowed(false);
+        memoryTable.getTableHeader().setVisible(false);
+
+        // Turn off tool-tips for the table.
+        ToolTipManager.sharedInstance().unregisterComponent(memoryTable);
+        ToolTipManager.sharedInstance().unregisterComponent(memoryTable.getTableHeader());
 
         JLabel pageNumberLabel = new JLabel("Page Number");
         pageNumberTextField = new JTextField(8);
@@ -98,6 +115,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
         JPanel controlPanel = new JPanel();
         JPanel memoryPanel = new JPanel();
         memoryPanel.setLayout(new BorderLayout());
+        memoryPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         controlPanel.add(pageNumberLabel);
         controlPanel.add(pageNumberTextField);
