@@ -33,7 +33,14 @@ Symon simulates a complete system with a 1 MHz NMOS 6502, 32KB of RAM,
 
 ## 3.0 Features
 
-### 3.1 Serial Console and CPU Status
+### 3.1 Memory Map
+
+  - `$0000`--`$7FFF`: 32KB RAM
+  - `$8000`--`$800F`: 6522 VIA
+  - `$8800`--`$8803`: 6551 ACIA (Serial Console)
+  - `$C000`--`$FFFF`: 16KB ROM
+
+### 3.2 Serial Console and CPU Status
 
 ![Serial Console] (https://github.com/sethm/symon/raw/master/screenshots/console.png)
 
@@ -52,7 +59,7 @@ register, and stack pointer are all displayed.
 
 The console supports font sizes from 10 to 20 points.
 
-### 3.2 16 KB ROM Loading
+### 3.3 16 KB ROM Loading
 
 ![ROM Loading] (https://github.com/sethm/symon/raw/master/screenshots/load_rom.png)
 
@@ -60,13 +67,13 @@ Symon can load any 16 KB (16384 bytes) ROM image from the "File"
 menu. The selected ROM will be placed in memory from locations `$C000`
 to `$FFFF`
 
-### 3.3 Memory Window
+### 3.4 Memory Window
 
 ![Memory Window] (https://github.com/sethm/symon/raw/master/screenshots/memory_window.png)
 
 Memory contents can be viewed (and edited) one page at a time through the Memory Window.
 
-### 3.4 Trace Log
+### 3.5 Trace Log
 
 ![Trace Log] (https://github.com/sethm/symon/raw/master/screenshots/trace_log.png)
 
