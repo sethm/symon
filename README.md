@@ -4,11 +4,11 @@ SYMON - A 6502 System Simulator
 **NOTE: THIS IS BETA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT.  Feedback is
 welcome!**
 
-**Version:** 0.8.1
+**Version:** 0.8.2
 
-**Last Updated:** 30 December, 2012
+**Last Updated:** 01 January, 2013
 
-Copyright (c) 2008-2012 Seth J. Morabito &lt;web@loomcom.com&gt;
+Copyright (c) 2008-2013 Seth J. Morabito &lt;web@loomcom.com&gt;
 
 See the file COPYING for license.
 
@@ -24,6 +24,11 @@ documentation, and extensive test suites for validating correctness.
 
 Symon simulates a complete system with a 1 MHz NMOS 6502, 32KB of RAM,
 16KB of ROM, a 6551 ACIA, and a 6522 VIA.
+
+Symon has extensive unit tests to verify correctness, and fully passes
+Klaus Dormann's 6502 Functional Test Suite as of version 0.8.2
+(See [this thread on the 6502.org Forums] (http://forum.6502.org/viewtopic.php?f=2&t=2241)
+for more information about this functional test suite).
 
 ## 2.0 Requirements
 
@@ -135,14 +140,15 @@ running.
 
 ## 5.0 Revision History
 
-  - 0.8.1: 30 December, 2012
-  - 0.8.0: 29 December, 2012
-  - 0.7.0: 9 December, 2012
-  - 0.6: 5 November, 2012
-  - 0.5: 21 October, 2012
-  - 0.3: 14 October, 2012
-  - 0.2: 22 April, 2012
-  - 0.1: 20 January, 2010
+  - **0.8.2:** 01 January, 2013 - Fully passes Klaus Dormann's 6502 Functional Test suite!
+  - **0.8.1:** 30 December, 2012
+  - **0.8.0:** 29 December, 2012
+  - **0.7.0:** 9 December, 2012
+  - **0.6:** 5 November, 2012
+  - **0.5:** 21 October, 2012 - Able to run Enhanced BASIC for the first time.
+  - **0.3:** 14 October, 2012
+  - **0.2:** 22 April, 2012
+  - **0.1:** 20 January, 2010
 
 ## 6.0 To Do
 

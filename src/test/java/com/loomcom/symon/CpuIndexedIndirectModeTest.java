@@ -49,6 +49,32 @@ public class CpuIndexedIndirectModeTest {
     }
 
     @Test
+    public void testZeroPageWrap() throws Exception {
+        bus.write(0x0020, 0x01);
+        bus.write(0x0021, 0x07); // ($0701)
+        bus.write(0x0701, 0xaa);
+
+        bus.write(0x000f, 0x02);
+        bus.write(0x0010, 0x08); // ($0802)
+        bus.write(0x0802, 0xbb);
+
+        bus.write(0x010f, 0x03);
+        bus.write(0x0110, 0x09); // ($0903)
+        bus.write(0x0903, 0xcc);
+
+        cpu.setXRegister(0x10);
+
+        // No wrap needed
+        bus.loadProgram(0xa1, 0x10,  // LDA ($10,X) = ($10 + $10) & $ff =  $20
+                        0xa1, 0xff); // LDA ($ff,X) = ($ff + $10) & $ff =  $0f, NOT $10f!
+        cpu.step(1);
+        assertEquals(0xaa, cpu.getAccumulator());
+
+        cpu.step(1);
+        assertEquals(0xbb, cpu.getAccumulator());
+    }
+
+    @Test
     public void test_ORA() throws Exception {
         bus.write(0x0012, 0x1f);
         bus.write(0x0013, 0xc5);

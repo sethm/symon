@@ -44,14 +44,14 @@ public class Cpu implements InstructionTable {
     public static final int P_NEGATIVE    = 0x80;
 
     // NMI vector
-    public static final int IRQ_VECTOR_L = 0xfffa;
-    public static final int IRQ_VECTOR_H = 0xfffb;
+    public static final int NMI_VECTOR_L = 0xfffa;
+    public static final int NMI_VECTOR_H = 0xfffb;
     // Reset vector
     public static final int RST_VECTOR_L = 0xfffc;
     public static final int RST_VECTOR_H = 0xfffd;
     // IRQ vector
-    public static final int NMI_VECTOR_L = 0xfffe;
-    public static final int NMI_VECTOR_H = 0xffff;
+    public static final int IRQ_VECTOR_L = 0xfffe;
+    public static final int IRQ_VECTOR_H = 0xffff;
 
     // The delay in microseconds between steps.
     // TODO: Make configurable
@@ -214,7 +214,7 @@ public class Cpu implements InstructionTable {
             case 1:
                 switch (irAddressMode) {
                     case 0: // (Zero Page,X)
-                        tmp = state.args[0] + state.x;
+                        tmp = (state.args[0] + state.x) & 0xff;
                         effectiveAddress = address(bus.read(tmp), bus.read(tmp + 1));
                         break;
                     case 1: // Zero Page
@@ -252,9 +252,9 @@ public class Cpu implements InstructionTable {
                 if (!getIrqDisableFlag()) {
                     // Set the break flag before pushing.
                     setBreakFlag();
-                    // Push program counter + 2 onto the stack
-                    stackPush((state.pc + 2 >> 8) & 0xff); // PC high byte
-                    stackPush(state.pc + 2 & 0xff);        // PC low byte
+                    // Push program counter + 1 onto the stack
+                    stackPush((state.pc + 1 >> 8) & 0xff); // PC high byte
+                    stackPush(state.pc + 1 & 0xff);        // PC low byte
                     stackPush(state.getStatusFlag());
                     // Set the Interrupt Disabled flag.  RTI will clear it.
                     setIrqDisableFlag();
@@ -263,7 +263,8 @@ public class Cpu implements InstructionTable {
                 }
                 break;
             case 0x08: // PHP - Push Processor Status - Implied
-                stackPush(state.getStatusFlag());
+                // Break flag is always set in the stack value.
+                stackPush(state.getStatusFlag() | 0x10); 
                 break;
             case 0x10: // BPL - Branch if Positive - Relative
                 if (!getNegativeFlag()) {
@@ -1094,6 +1095,11 @@ public class Cpu implements InstructionTable {
     public void setStackPointer(int offset) {
         state.sp = offset;
     }
+
+    public int getInstruction() {
+        return state.ir;
+    }
+
     /**
      * @value The value of the Process Status Register bits to be set.
      */

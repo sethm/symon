@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012 Seth J. Morabito <sethm@loomcom.com>
+ * Copyright (c) 2008-2013 Seth J. Morabito <sethm@loomcom.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -451,9 +451,9 @@ public class Simulator implements Observer {
             });
 
             try {
-                while (isRunning && !(preferences.getHaltOnBreak() && cpu.getBreakFlag())) {
+                do {
                     step();
-                }
+                } while (shouldContinue());
             } catch (SymonException ex) {
                 logger.log(Level.SEVERE, "Exception in main simulator run thread. Exiting run.");
                 ex.printStackTrace();
@@ -474,6 +474,15 @@ public class Simulator implements Observer {
             });
 
             isRunning = false;
+        }
+
+        /**
+         * Returns true if the run loop should proceed to the next step.
+         *
+         * @return True if the run loop should proceed to the next step.
+         */
+        private boolean shouldContinue() {
+            return isRunning && !(preferences.getHaltOnBreak() && cpu.getInstruction() == 0x00);
         }
     }
 

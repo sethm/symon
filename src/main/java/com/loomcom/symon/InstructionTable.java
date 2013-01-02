@@ -241,8 +241,8 @@ public interface InstructionTable {
         Mode.ABS, Mode.ABS, Mode.ABS, Mode.NUL,   // 0xac-0xaf
         Mode.REL, Mode.INY, Mode.NUL, Mode.NUL,   // 0xb0-0xb3
         Mode.ZPX, Mode.ZPX, Mode.ZPY, Mode.NUL,   // 0xb4-0xb7
-        Mode.IMP, Mode.ABX, Mode.IMP, Mode.NUL,   // 0xb8-0xbb
-        Mode.ABX, Mode.ABY, Mode.ABY, Mode.NUL,   // 0xbc-0xbf
+        Mode.IMP, Mode.ABY, Mode.IMP, Mode.NUL,   // 0xb8-0xbb
+        Mode.ABX, Mode.ABX, Mode.ABY, Mode.NUL,   // 0xbc-0xbf
         Mode.IMM, Mode.XIN, Mode.NUL, Mode.NUL,   // 0xc0-0xc3
         Mode.ZPG, Mode.ZPG, Mode.ZPG, Mode.NUL,   // 0xc4-0xc7
         Mode.IMP, Mode.IMM, Mode.IMP, Mode.NUL,   // 0xc8-0xcb
