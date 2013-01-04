@@ -152,32 +152,44 @@ running.
 
 ## 6.0 To Do
 
-- Feedback (in the form of dialogs, status bar, etc).
+  - Feedback (in the form of dialogs, status bar, etc).
 
-- Better debugging tools from the UI, including breakpoints
-  and disassebly.
+  - Better debugging tools from the UI, including breakpoints
+    and disassebly.
 
-- More accurate timing.
+  - More accurate timing.
   
-- Smarter interrupt handling.
+  - Smarter interrupt handling.
 
-- UI needs a ton more polish.
+  - UI needs a ton more polish.
 
-- More extensive testing.
+  - More extensive testing.
 
-- Clean up JavaDoc.
+  - Clean up JavaDoc.
 
-- Busses are defined by start address and length. Devices are defined
-  by start address and end address. They should both use start/end
-  address.
+  - Busses are defined by start address and length. Devices are defined
+    by start address and end address. They should both use start/end
+    address.
 
-- Implement CMOS 65C02 instructions and NMOS / CMOS mode flag.
+  - Implement CMOS 65C02 instructions and NMOS / CMOS mode flag.
 
-- Allow displaying ACIA status and dumping ACIA buffers, for
-  debugging.
+  - Allow displaying ACIA status and dumping ACIA buffers, for
+    debugging.
 
+## 7.0 Acknowledgements
 
-## 7.0 Licensing
+This project would not have been possible without the following resources:
+
+  - [Graham Edgecombe's JTerminal project] (https://github.com/grahamedgecombe/jterminal),
+    which forms the core of Symon's console.
+
+  - [Andrew Jacobs' 6502 Pages] (http://www.obelisk.demon.co.uk/6502/), for 
+    wonderfully detailed information about the 6502
+
+  - [Neil Parker's "The 6502/65C02/65C816 Instruction Set Decoded"] (http://www.llx.com/~nparker/a2/opcodes.html),
+    for information about how instructions are coded
+
+## 8.0 Licensing
 
 Symon is free software.  It is distributed under the MIT License.
 Please see the file 'COPYING' for full details of the license.
