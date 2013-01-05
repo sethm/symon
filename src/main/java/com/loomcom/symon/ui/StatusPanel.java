@@ -188,9 +188,9 @@ public class StatusPanel extends JPanel {
         constraints.insets = new Insets(5, 0, 0, 0);
         constraints.gridx = 0;
         constraints.gridy = 8;
-        add(yLabel, constraints);
-        constraints.gridx = 1;
         add(xLabel, constraints);
+        constraints.gridx = 1;
+        add(yLabel, constraints);
 
         constraints.insets = new Insets(2, 2, 2, 2);
         constraints.gridx = 0;
