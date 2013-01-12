@@ -122,6 +122,18 @@ public class StatusPanel extends JPanel {
         overflowFlagLabel = new JLabel(overflowOff, JLabel.CENTER);
         negativeFlagLabel = new JLabel(negativeOff, JLabel.CENTER);
 
+        // Add tool-tip text
+        carryFlagLabel.setToolTipText("Carry: The last operation caused an overflow " +
+                                      "from bit 7 of the result or an underflow from bit 0");
+        zeroFlagLabel.setToolTipText("Zero: The result of the last operation was 0");
+        irqDisableFlagLabel.setToolTipText("Interrupt Disable: Processor will not respond to IRQ");
+        decimalModeFlagLabel.setToolTipText("Decimal Mode");
+        breakFlagLabel.setToolTipText("Break: BRK instruction occurred");
+        overflowFlagLabel.setToolTipText("Overflow: The result of the last operation was " +
+                                         "an invalid 2's complement result");
+        negativeFlagLabel.setToolTipText("Negative: The result of the last operation set bit 7");
+
+
         statusFlagsPanel.add(negativeFlagLabel);
         statusFlagsPanel.add(overflowFlagLabel);
         statusFlagsPanel.add(breakFlagLabel);
@@ -138,6 +150,11 @@ public class StatusPanel extends JPanel {
         aLabel = makeLabel("A");
         xLabel = makeLabel("X");
         yLabel = makeLabel("Y");
+
+        statusFlagsLabel.setToolTipText("6502 Processor Status Flags");
+        opcodeLabel.setToolTipText("Instruction Register");
+        pcLabel.setToolTipText("Program Counter");
+        spLabel.setToolTipText("Stack Pointer");
 
         opcodeField = makeTextField(LARGE_TEXT_FIELD_SIZE);
         pcField = makeTextField(LARGE_TEXT_FIELD_SIZE);

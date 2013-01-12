@@ -4,9 +4,9 @@ SYMON - A 6502 System Simulator
 **NOTE: THIS IS BETA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT.  Feedback is
 welcome!**
 
-**Version:** 0.8.2
+**Version:** 0.8.3
 
-**Last Updated:** 01 January, 2013
+**Last Updated:** 12 January, 2013
 
 Copyright (c) 2008-2013 Seth J. Morabito &lt;web@loomcom.com&gt;
 
@@ -140,14 +140,25 @@ running.
 
 ## 5.0 Revision History
 
+  - **0.8.3:** 12 January, 2013 - Added tool-tip text. Memory is no longer
+    cleared when resetting. Fixed swapped register labels.
+
   - **0.8.2:** 01 January, 2013 - Fully passes Klaus Dormann's 6502 Functional Test suite!
+
   - **0.8.1:** 30 December, 2012
+
   - **0.8.0:** 29 December, 2012
+
   - **0.7.0:** 9 December, 2012
+
   - **0.6:** 5 November, 2012
+
   - **0.5:** 21 October, 2012 - Able to run Enhanced BASIC for the first time.
+
   - **0.3:** 14 October, 2012
+
   - **0.2:** 22 April, 2012
+
   - **0.1:** 20 January, 2010
 
 ## 6.0 To Do

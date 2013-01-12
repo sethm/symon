@@ -55,9 +55,6 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
     // If true, send CRLF (0x0d 0x0a) whenever CR is typed
     private static final boolean SEND_CR_LF_FOR_CR    = false;
 
-    // If true, the console is actively listening for key input.
-    private boolean isListening;
-
     private FifoRingBuffer<Character> typeAheadBuffer;
 
     public Console(int columns, int rows, Font font) {
@@ -65,7 +62,6 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
         // A small type-ahead buffer, as might be found in any real
         // VT100-style serial terminal.
         this.typeAheadBuffer = new FifoRingBuffer<Character>(128);
-        this.isListening = false;
         setBorderWidth(DEFAULT_BORDER_WIDTH);
         addKeyListener(this);
         addMouseListener(this);
@@ -87,14 +83,6 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
         repaint();
     }
 
-    public void startListening() {
-        this.isListening = true;
-    }
-
-    public void stopListening() {
-        this.isListening = false;
-    }
-
     /**
      * Returns true if a key has been pressed since the last time input was read.
      *
@@ -110,23 +98,21 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
      * @param keyEvent The key event.
      */
     public void keyTyped(KeyEvent keyEvent) {
-        if (isListening) {
-            char keyTyped = keyEvent.getKeyChar();
+        char keyTyped = keyEvent.getKeyChar();
 
-            if (SWAP_CR_AND_LF) {
-                if (keyTyped == 0x0a) {
-                    keyTyped = 0x0d;
-                } else if (keyTyped == 0x0d) {
-                    keyTyped = 0x0a;
-                }
+        if (SWAP_CR_AND_LF) {
+            if (keyTyped == 0x0a) {
+                keyTyped = 0x0d;
+            } else if (keyTyped == 0x0d) {
+                keyTyped = 0x0a;
             }
+        }
 
-            if (SEND_CR_LF_FOR_CR && keyTyped == 0x0d) {
-                typeAheadBuffer.push((char) 0x0d);
-                typeAheadBuffer.push((char) 0x0a);
-            } else {
-                typeAheadBuffer.push(keyTyped);
-            }
+        if (SEND_CR_LF_FOR_CR && keyTyped == 0x0d) {
+            typeAheadBuffer.push((char) 0x0d);
+            typeAheadBuffer.push((char) 0x0a);
+        } else {
+            typeAheadBuffer.push(keyTyped);
         }
 
         keyEvent.consume();

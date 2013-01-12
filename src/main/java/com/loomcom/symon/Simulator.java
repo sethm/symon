@@ -270,10 +270,9 @@ public class Simulator implements Observer {
         }
 
         try {
-            logger.log(Level.INFO, "Cold reset requested. Resetting CPU and clearing memory.");
+            logger.log(Level.INFO, "Reset requested. Resetting CPU.");
             // Reset and clear memory
             cpu.reset();
-            ram.fill(0x00);
             // Clear the console.
             console.reset();
             // Reset the trace log.
@@ -440,8 +439,6 @@ public class Simulator implements Observer {
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    // Tell the console to start handling key presses
-                    console.startListening();
                     // Don't allow step while the simulator is running
                     stepButton.setEnabled(false);
                     menuBar.simulatorDidStart();
