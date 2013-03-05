@@ -1464,10 +1464,10 @@ public class Cpu implements InstructionTable {
                     sb.append(" $" + HexUtil.byteToHex(args[0]));
                     break;
                 case ZPX:
-                    sb.append(" $" + HexUtil.byteToHex(a) + ",X");
+                    sb.append(" $" + HexUtil.byteToHex(args[0]) + ",X");
                     break;
                 case ZPY:
-                    sb.append(" $" + HexUtil.byteToHex(a) + ",Y");
+                    sb.append(" $" + HexUtil.byteToHex(args[0]) + ",Y");
                     break;
             }
 
