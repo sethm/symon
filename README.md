@@ -4,9 +4,9 @@ SYMON - A 6502 System Simulator
 **NOTE: THIS IS BETA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT.  Feedback is
 welcome!**
 
-**Version:** 0.8.3
+**Version:** 0.8.4
 
-**Last Updated:** 12 January, 2013
+**Last Updated:** 4 March, 2013
 
 Copyright (c) 2008-2013 Seth J. Morabito &lt;web@loomcom.com&gt;
 
@@ -98,7 +98,7 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.5 or greater, just type:
 
-    $ java -jar symon-0.8.1.jar
+    $ java -jar symon-0.8.4.jar
 
 When Symon is running, you should be presented with a simple graphical
 interface.
@@ -139,6 +139,9 @@ After loading a program or ROM image, clicking "Run" will start the simulator
 running.
 
 ## 5.0 Revision History
+
+  - **0.8.4:** 4 March, 2013 - Fix for ZPX, ZPY display in the trace log
+    (change contributed by jsissom)
 
   - **0.8.3:** 12 January, 2013 - Added tool-tip text. Memory is no longer
     cleared when resetting. Fixed swapped register labels.
