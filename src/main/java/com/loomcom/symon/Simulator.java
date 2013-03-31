@@ -37,6 +37,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.util.Observable;
 import java.util.Observer;
@@ -51,7 +53,7 @@ import java.util.logging.Logger;
  * and a simulated ACIA for serial I/O. The ACIA is attached to a dumb terminal
  * with a basic 80x25 character display.
  */
-public class Simulator implements Observer {
+public class Simulator {
 
     // Constants used by the simulated system. These define the memory map.
     private static final int BUS_BOTTOM = 0x0000;
@@ -71,8 +73,10 @@ public class Simulator implements Observer {
     private static final int ROM_BASE = 0xC000;
     private static final int ROM_SIZE = 0x4000;
 
-    private static final int  DEFAULT_FONT_SIZE = 12;
-    private static final Font DEFAULT_FONT      = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
+    // UI constants
+    private static final int  DEFAULT_FONT_SIZE    = 12;
+    private static final Font DEFAULT_FONT         = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
+    private static final int  CONSOLE_BORDER_WIDTH = 10;
 
     // Since it is very expensive to update the UI with Swing's Event Dispatch Thread, we can't afford
     // to refresh the status view on every simulated clock cycle. Instead, we will only refresh the status view
@@ -98,6 +102,9 @@ public class Simulator implements Observer {
     // A counter to keep track of the number of UI updates that have been
     // requested
     private int stepsSinceLastUpdate = 0;
+
+    // The number of steps to run per click of the "Step" button
+    private int stepsPerClick = 1;
 
     /**
      * The Main Window is the primary control point for the simulator.
@@ -130,9 +137,15 @@ public class Simulator implements Observer {
     private JButton runStopButton;
     private JButton stepButton;
     private JButton resetButton;
+    private JComboBox stepCountBox;
 
     private JFileChooser      fileChooser;
     private PreferencesDialog preferences;
+
+    /**
+     * The list of step counts that will appear in the "Step" drop-down.
+     */
+    private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
     public Simulator() throws MemoryRangeException, IOException {
         this.acia = new Acia(ACIA_BASE);
@@ -172,10 +185,11 @@ public class Simulator implements Observer {
         this.console = new com.loomcom.symon.ui.Console(80, 25, DEFAULT_FONT);
         this.statusPane = new StatusPanel();
 
+        console.setBorderWidth(CONSOLE_BORDER_WIDTH);
+
         // File Chooser
         fileChooser = new JFileChooser(System.getProperty("user.dir"));
         preferences = new PreferencesDialog(mainWindow, true);
-        preferences.addObserver(this);
 
         // Panel for Console and Buttons
         JPanel consoleContainer = new JPanel();
@@ -189,8 +203,22 @@ public class Simulator implements Observer {
         stepButton = new JButton("Step");
         resetButton = new JButton("Reset");
 
+        stepCountBox = new JComboBox(STEPS);
+        stepCountBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    JComboBox cb = (JComboBox) actionEvent.getSource();
+                    stepsPerClick = Integer.parseInt((String) cb.getSelectedItem());
+                } catch (NumberFormatException ex) {
+                    stepsPerClick = 1;
+                    stepCountBox.setSelectedIndex(0);
+                }
+            }
+        });
+
         buttonContainer.add(runStopButton);
         buttonContainer.add(stepButton);
+        buttonContainer.add(stepCountBox);
         buttonContainer.add(resetButton);
 
         // Left side - console
@@ -215,7 +243,7 @@ public class Simulator implements Observer {
 
         stepButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
-                handleStep();
+                handleStep(stepsPerClick);
             }
         });
 
@@ -290,11 +318,13 @@ public class Simulator implements Observer {
     }
 
     /**
-     * Step once, and immediately refresh the UI.
+     * Step the requested number of times, and immediately refresh the UI.
      */
-    private void handleStep() {
+    private void handleStep(int numSteps) {
         try {
-            step();
+            for (int i = 0; i < numSteps; i++) {
+                step();
+            }
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     if (traceLog.isVisible()) {
@@ -379,24 +409,6 @@ public class Simulator implements Observer {
     }
 
     /**
-     * The configuration has changed. Re-load.
-     *
-     * @param observable
-     * @param o
-     */
-    public void update(Observable observable, Object o) {
-        // Instance equality should work here, there is only one instance.
-        if (observable == preferences) {
-            int oldBorderWidth = console.getBorderWidth();
-            if (oldBorderWidth != preferences.getBorderWidth()) {
-                // Resize the main window if the border width has changed.
-                console.setBorderWidth(preferences.getBorderWidth());
-                mainWindow.pack();
-            }
-        }
-    }
-
-    /**
      * Main entry point to the simulator. Creates a simulator and shows the main
      * window.
      *
@@ -441,6 +453,7 @@ public class Simulator implements Observer {
                 public void run() {
                     // Don't allow step while the simulator is running
                     stepButton.setEnabled(false);
+                    stepCountBox.setEnabled(false);
                     menuBar.simulatorDidStart();
                     // Toggle the state of the run button
                     runStopButton.setText("Stop");
@@ -461,6 +474,7 @@ public class Simulator implements Observer {
                     statusPane.updateState(cpu);
                     runStopButton.setText("Run");
                     stepButton.setEnabled(true);
+                    stepCountBox.setEnabled(true);
                     if (traceLog.isVisible()) {
                         traceLog.refresh();
                     }

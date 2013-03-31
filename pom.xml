@@ -4,7 +4,7 @@
     <groupId>com.loomcom.symon</groupId>
     <artifactId>symon</artifactId>
     <packaging>jar</packaging>
-    <version>0.8.4</version>
+    <version>0.8.5</version>
     <name>symon</name>
     <url>http://www.loomcom.com/symon</url>
     <properties>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.7</version>
+            <version>4.10</version>
             <scope>test</scope>
         </dependency>
         <dependency>

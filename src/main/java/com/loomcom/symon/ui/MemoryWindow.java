@@ -28,11 +28,19 @@ import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.util.HexUtil;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.EventObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,8 +53,22 @@ public class MemoryWindow extends JFrame implements ActionListener {
     private MemoryTableModel memoryTableModel;
     private JTable memoryTable;
     private JTextField pageNumberTextField;
+    private JButton previousPageButton;
+    private JButton nextPageButton;
 
-    private static final Dimension MINIMUM_SIZE = new Dimension(380, 400);
+    private static final Dimension MINIMUM_SIZE = new Dimension(320, 600);
+
+    // The width of column 0 (address), in pixels
+    private static final int ADDR_COL_WIDTH = 48;
+
+    private static final int HEX_COL_WIDTH = 32;
+
+    // The width of the ASCII cells, in pixels
+    private static final int ASCII_COL_WIDTH = 8;
+
+    // The start/end columns of the ASCII view
+    private static final int ASCII_COL_START = 9;
+    private static final int ASCII_COL_END = 16;
 
     /**
      * Initialize a new MemoryWindow frame with the specified Bus.
@@ -81,8 +103,12 @@ public class MemoryWindow extends JFrame implements ActionListener {
      * Set the contents of the page number text field with the current
      * page number, in hex.
      */
-    private void updatePageNumberTextField() {
-        pageNumberTextField.setText(HexUtil.byteToHex(getPageNumber()));
+    private void updateControls() {
+        int pageNumber = getPageNumber();
+
+        previousPageButton.setEnabled(pageNumber > 0x00);
+        nextPageButton.setEnabled(pageNumber < 0xff);
+        pageNumberTextField.setText(HexUtil.byteToHex(pageNumber));
     }
 
     /**
@@ -90,35 +116,54 @@ public class MemoryWindow extends JFrame implements ActionListener {
      */
     private void createUi() {
         setTitle("Memory Contents");
-        this.memoryTable = new JTable(memoryTableModel);
+        this.memoryTable = new MemoryTable(memoryTableModel);
 
         memoryTable.setDragEnabled(false);
         memoryTable.setCellSelectionEnabled(false);
-        memoryTable.setShowGrid(true);
-        memoryTable.setShowHorizontalLines(true);
-        memoryTable.setShowVerticalLines(true);
-        memoryTable.setGridColor(Color.LIGHT_GRAY);
+        memoryTable.setIntercellSpacing(new Dimension(0, 0));
         memoryTable.getTableHeader().setReorderingAllowed(false);
         memoryTable.getTableHeader().setResizingAllowed(false);
         memoryTable.getTableHeader().setVisible(false);
+
+        memoryTable.getColumnModel().getColumn(0).setMaxWidth(ADDR_COL_WIDTH);
+
+        for (int i = 1; i < ASCII_COL_START; i++) {
+            memoryTable.getColumnModel().getColumn(i).setMaxWidth(HEX_COL_WIDTH);
+        }
+
+        for (int i = ASCII_COL_START; i <= ASCII_COL_END; i++) {
+            memoryTable.getColumnModel().getColumn(i).setMaxWidth(ASCII_COL_WIDTH);
+        }
+
+        MemoryTableCellRenderer memoryTableCellRenderer = new MemoryTableCellRenderer();
+
+        memoryTableCellRenderer.setHorizontalAlignment(JLabel.CENTER);
+        memoryTable.setDefaultRenderer(String.class, memoryTableCellRenderer);
 
         // Turn off tool-tips for the table.
         ToolTipManager.sharedInstance().unregisterComponent(memoryTable);
         ToolTipManager.sharedInstance().unregisterComponent(memoryTable.getTableHeader());
 
-        JLabel pageNumberLabel = new JLabel("Page Number");
+        JLabel pageNumberLabel = new JLabel("Page");
         pageNumberTextField = new JTextField(8);
         pageNumberTextField.addActionListener(this);
 
-        updatePageNumberTextField();
+        nextPageButton = new JButton("Next >>");
+        previousPageButton = new JButton("<< Prev");
+        nextPageButton.addActionListener(this);
+        previousPageButton.addActionListener(this);
+
+        updateControls();
 
         JPanel controlPanel = new JPanel();
         JPanel memoryPanel = new JPanel();
         memoryPanel.setLayout(new BorderLayout());
         memoryPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
+        controlPanel.add(previousPageButton);
         controlPanel.add(pageNumberLabel);
         controlPanel.add(pageNumberTextField);
+        controlPanel.add(nextPageButton);
 
         JScrollPane scrollPane = new JScrollPane(memoryTable);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -131,7 +176,8 @@ public class MemoryWindow extends JFrame implements ActionListener {
         getContentPane().add(memoryPanel, BorderLayout.CENTER);
 
         setMinimumSize(MINIMUM_SIZE);
-        setPreferredSize(MINIMUM_SIZE);
+        memoryPanel.setPreferredSize(memoryTable.getPreferredSize());
+        setPreferredSize(memoryPanel.getPreferredSize());
 
         pack();
     }
@@ -142,8 +188,21 @@ public class MemoryWindow extends JFrame implements ActionListener {
      * @param e The action event
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == pageNumberTextField) {
-
+        if (e.getSource() == previousPageButton) {
+            int currentPage = getPageNumber();
+            if (currentPage > 0x00) {
+                setPageNumber(currentPage - 1);
+                updateControls();
+                memoryTable.updateUI();
+            }
+        } else if (e.getSource() == nextPageButton) {
+            int currentPage = getPageNumber();
+            if (currentPage < 0xff) {
+                setPageNumber(currentPage + 1);
+                updateControls();
+                memoryTable.updateUI();
+            }
+        } else if (e.getSource() == pageNumberTextField) {
             String pageNumberInput = pageNumberTextField.getText();
             try {
                 // Try to parse a hex value out of the pageNumber.
@@ -156,7 +215,50 @@ public class MemoryWindow extends JFrame implements ActionListener {
                 Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Can't parse page number " +
                         pageNumberInput);
             }
-            updatePageNumberTextField();
+            updateControls();
+        }
+    }
+
+    /**
+     * A JTable that will automatically select all text in a cell
+     * being edited.
+     */
+    private class MemoryTable extends JTable {
+
+        public MemoryTable(TableModel tableModel) {
+            super(tableModel);
+        }
+
+        @Override
+        public boolean editCellAt(int row, int col, EventObject e) {
+            boolean result = super.editCellAt(row, col, e);
+
+            final Component editor = getEditorComponent();
+
+            if (editor != null && editor instanceof JTextComponent) {
+                ((JTextComponent) editor).selectAll();
+            }
+
+            return result;
+        }
+    }
+
+    private class MemoryTableCellRenderer extends DefaultTableCellRenderer {
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int col) {
+            final Component cell = super.getTableCellRendererComponent(table, value,
+                                                                       isSelected, hasFocus,
+                                                                       row, col);
+
+            if (isSelected) {
+                cell.setBackground(Color.LIGHT_GRAY);
+                cell.setForeground(Color.BLACK);
+            }
+
+            return cell;
         }
     }
 
@@ -168,7 +270,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
         private Bus bus;
         private int pageNumber;
 
-        private static final int COLUMN_COUNT = 9;
+        private static final int COLUMN_COUNT = 17;
         private static final int ROW_COUNT = 32;
 
         public MemoryTableModel(Bus bus) {
@@ -213,15 +315,19 @@ public class MemoryWindow extends JFrame implements ActionListener {
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column > 0;
+            return (column > 0 && column < ASCII_COL_START);
         }
 
         public Object getValueAt(int row, int column) {
             try {
                 if (column == 0) {
                     return HexUtil.wordToHex(fullAddress(row, 1));
-                } else {
+                } else if (column < 9) {
+                    // Display hex value of the data
                     return HexUtil.byteToHex(bus.read(fullAddress(row, column)));
+                } else {
+                    // Display the ASCII equivalent (if printable)
+                    return HexUtil.byteToAscii(bus.read(fullAddress(row, column - 8)));
                 }
             } catch (MemoryAccessException ex) {
                 return "??";
@@ -234,7 +340,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
                 try {
                     String hexValue = (String)o;
                     int fullAddress = fullAddress(row, column);
-                    int newValue = Integer.parseInt(hexValue, 16);
+                    int newValue = Integer.parseInt(hexValue, 16) & 0xff;
                     bus.write(fullAddress, newValue);
                 } catch (MemoryAccessException ex) {
                     ;

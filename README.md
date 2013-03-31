@@ -1,12 +1,11 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**NOTE: THIS IS BETA QUALITY SOFTWARE UNDER ACTIVE DEVELOPMENT.  Feedback is
-welcome!**
+**NOTE: THIS SOFTWARE IS UNDER ACTIVE DEVELOPMENT. Feedback is welcome!**
 
-**Version:** 0.8.4
+**Version:** 0.8.5
 
-**Last Updated:** 4 March, 2013
+**Last Updated:** 30 March, 2013
 
 Copyright (c) 2008-2013 Seth J. Morabito &lt;web@loomcom.com&gt;
 
@@ -98,7 +97,7 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.5 or greater, just type:
 
-    $ java -jar symon-0.8.4.jar
+    $ java -jar symon-0.8.5.jar
 
 When Symon is running, you should be presented with a simple graphical
 interface.
@@ -140,6 +139,9 @@ running.
 
 ## 5.0 Revision History
 
+  - **0.8.5:** 30 March, 2013 - ASCII display for memory window.
+    Allows user to select a step count from a drop-down box.
+
   - **0.8.4:** 4 March, 2013 - Fix for ZPX, ZPY display in the trace log
     (change contributed by jsissom)
 
@@ -169,7 +171,7 @@ running.
   - Feedback (in the form of dialogs, status bar, etc).
 
   - Better debugging tools from the UI, including breakpoints
-    and disassebly.
+    and disassembly.
 
   - More accurate timing.
   
