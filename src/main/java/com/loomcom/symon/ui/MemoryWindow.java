@@ -124,6 +124,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
         memoryTable.getTableHeader().setReorderingAllowed(false);
         memoryTable.getTableHeader().setResizingAllowed(false);
         memoryTable.getTableHeader().setVisible(false);
+        memoryTable.setShowGrid(false);
 
         memoryTable.getColumnModel().getColumn(0).setMaxWidth(ADDR_COL_WIDTH);
 
