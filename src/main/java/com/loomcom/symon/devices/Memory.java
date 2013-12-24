@@ -42,7 +42,7 @@ public class Memory extends Device {
             throws MemoryRangeException {
         super(startAddress, endAddress, (readOnly ? "RO Memory" : "RW Memory"));
         this.readOnly = readOnly;
-        this.mem = new int[endAddress - startAddress + 1];
+        this.mem = new int[this.size];
         this.fill(DEFAULT_FILL);
     }
 
