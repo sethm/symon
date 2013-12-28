@@ -24,6 +24,7 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Acia;
+import com.loomcom.symon.devices.Crtc;
 import com.loomcom.symon.devices.Memory;
 import com.loomcom.symon.devices.Via;
 import com.loomcom.symon.exceptions.FifoUnderrunException;
@@ -37,11 +38,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.*;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,6 +65,10 @@ public class Simulator {
 
     // ACIA at $8800-$8803
     private static final int ACIA_BASE = 0x8800;
+
+    // CRTC at $9000-$9001
+    private static final int CRTC_BASE = 0x9000;
+    private static final int VIDEO_RAM_BASE = 0x7000;
 
     // 16KB ROM at $C000-$FFFF
     private static final int ROM_BASE = 0xC000;
@@ -96,12 +97,18 @@ public class Simulator {
     private final Cpu    cpu;
     private final Acia   acia;
     private final Via    via;
+    private final Crtc   crtc;
     private final Memory ram;
     private       Memory rom;
+
+    // Number of CPU steps between CRT repaints.
+    // TODO: Dynamically refresh the value at runtime based on performance figures to reach ~ 30fps.
+    private long stepsBetweenCrtcRefreshes = 2500;
 
     // A counter to keep track of the number of UI updates that have been
     // requested
     private int stepsSinceLastUpdate = 0;
+    private int stepsSinceLastCrtcRefresh = 0;
 
     // The number of steps to run per click of the "Step" button
     private int stepsPerClick = 1;
@@ -123,10 +130,7 @@ public class Simulator {
      */
     private MemoryWindow memoryWindow;
 
-    /**
-     * The Zero Page Window shows the contents of page 0.
-     */
-    private JFrame zeroPageWindow;
+    private VideoWindow videoWindow;
 
     private SimulatorMenu menuBar;
 
@@ -153,6 +157,7 @@ public class Simulator {
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
         this.ram = new Memory(MEMORY_BASE, MEMORY_SIZE, false);
+        this.crtc = new Crtc(CRTC_BASE, ram, VIDEO_RAM_BASE);
 
         bus.addCpu(cpu);
         bus.addDevice(ram);
@@ -259,6 +264,9 @@ public class Simulator {
         // Prepare the memory window
         memoryWindow = new MemoryWindow(bus);
 
+        // Prepare the video window
+        videoWindow = new VideoWindow(crtc.getCrtPanel());
+
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // The Menu. This comes last, because it relies on other components having
@@ -266,10 +274,10 @@ public class Simulator {
         menuBar = new SimulatorMenu();
         mainWindow.setJMenuBar(menuBar);
 
-        console.requestFocus();
-
         mainWindow.pack();
         mainWindow.setVisible(true);
+
+        console.requestFocus();
     }
 
     private void handleStart() {
@@ -363,6 +371,11 @@ public class Simulator {
             }
         } catch (FifoUnderrunException ex) {
             logger.severe("Console type-ahead buffer underrun!");
+        }
+
+        if (stepsSinceLastCrtcRefresh++ > stepsBetweenCrtcRefreshes) {
+            videoWindow.refreshDisplay();
+            stepsSinceLastCrtcRefresh = 0;
         }
 
         // This is a very expensive update, and we're doing it without
@@ -671,6 +684,23 @@ public class Simulator {
         }
     }
 
+    class ToggleVideoWindowAction extends AbstractAction {
+        public ToggleVideoWindowAction() {
+            super("Video Window", null);
+            putValue(SHORT_DESCRIPTION, "Show or Hide the Video Window");
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            synchronized (videoWindow) {
+                if (videoWindow.isVisible()) {
+                    videoWindow.setVisible(false);
+                } else {
+                    videoWindow.setVisible(true);
+                }
+            }
+        }
+    }
+
     class SimulatorMenu extends JMenuBar {
         // Menu Items
         private JMenuItem loadProgramItem;
@@ -757,6 +787,15 @@ public class Simulator {
                 }
             });
             viewMenu.add(showMemoryTable);
+
+            final JCheckBoxMenuItem showVideoWindow = new JCheckBoxMenuItem(new ToggleVideoWindowAction());
+            videoWindow.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    showVideoWindow.setSelected(false);
+                }
+            });
+            viewMenu.add(showVideoWindow);
 
             add(viewMenu);
         }

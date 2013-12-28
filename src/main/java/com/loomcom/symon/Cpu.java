@@ -161,10 +161,8 @@ public class Cpu implements InstructionTable {
         irAddressMode = (state.ir >> 2) & 0x07;
         irOpMode = state.ir & 0x03;
 
-        // Increment PC
         incrementPC();
 
-        // Clear the illegal opcode trap.
         clearOpTrap();
 
         // Decode the instruction and operands
@@ -175,7 +173,6 @@ public class Cpu implements InstructionTable {
             incrementPC();
         }
 
-        // Increment step counter
         state.stepCounter++;
 
         // Get the data from the effective address (if any)
@@ -412,18 +409,17 @@ public class Cpu implements InstructionTable {
                 }
 
                 state.pc = address(bus.read(lo), bus.read(hi));
-                /* TODO: For accuracy, allow a flag to enable broken behavior
-                * of early 6502s:
-                *
-                * "An original 6502 has does not correctly fetch the target
-                * address if the indirect vector falls on a page boundary
-                * (e.g. $xxFF where xx is and value from $00 to $FF). In this
-                * case fetches the LSB from $xxFF as expected but takes the MSB
-                * from $xx00. This is fixed in some later chips like the 65SC02
-                * so for compatibility always ensure the indirect vector is not
-                * at the end of the page."
-                * (http://www.obelisk.demon.co.uk/6502/reference.html#JMP)
-                */
+                /* TODO: For accuracy, allow a flag to enable broken behavior of early 6502s:
+                 *
+                 * "An original 6502 has does not correctly fetch the target
+                 * address if the indirect vector falls on a page boundary
+                 * (e.g. $xxFF where xx is and value from $00 to $FF). In this
+                 * case fetches the LSB from $xxFF as expected but takes the MSB
+                 * from $xx00. This is fixed in some later chips like the 65SC02
+                 * so for compatibility always ensure the indirect vector is not
+                 * at the end of the page."
+                 * (http://www.obelisk.demon.co.uk/6502/reference.html#JMP)
+                 */
                 break;
 
 
@@ -724,6 +720,7 @@ public class Cpu implements InstructionTable {
                 break;
 
             /** Unimplemented Instructions ****************************************/
+            // TODO: Create a flag to enable highly-accurate emulation of unimplemented instructions.
             default:
                 setOpTrap();
                 break;

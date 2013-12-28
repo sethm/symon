@@ -109,4 +109,7 @@ public class Memory extends Device {
         return "Memory: " + getMemoryRange().toString();
     }
 
+    public int[] getDmaAccess() {
+        return mem;
+    }
 }
