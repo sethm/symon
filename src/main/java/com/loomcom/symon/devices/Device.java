@@ -35,20 +35,24 @@ public abstract class Device implements Comparable<Device> {
   /** The memory range for this device. */
   private MemoryRange memoryRange;
 
+  /** Size of the device in memory **/
+  int size;
+
   /** The name of the device. */
   private String name;
 
   /** Reference to the bus where this Device is attached. */
   private Bus bus;
 
-  public Device(int address, int size, String name)
+  public Device(int startAddress, int endAddress, String name)
     throws MemoryRangeException {
-    this.memoryRange = new MemoryRange(address, address + size - 1);
+    this.memoryRange = new MemoryRange(startAddress, endAddress);
+    this.size = endAddress - startAddress + 1;
     this.name = name;
   }
 
-  public Device(int address, int size) throws MemoryRangeException {
-    this(address, size, null);
+  public Device(int startAddress, int endAddress) throws MemoryRangeException {
+    this(startAddress, endAddress, null);
   }
 
   /* Methods required to be implemented by inheriting classes. */
@@ -78,6 +82,10 @@ public abstract class Device implements Comparable<Device> {
 
   public String getName() {
     return name;
+  }
+
+  public int getSize(){
+    return size;
   }
 
   public void setName(String name) {

@@ -38,26 +38,26 @@ public class Memory extends Device {
     /* Initialize all locations to 0x00 (BRK) */
     private static final int DEFAULT_FILL = 0x00;
 
-    public Memory(int address, int size, boolean readOnly)
+    public Memory(int startAddress, int endAddress, boolean readOnly)
             throws MemoryRangeException {
-        super(address, size, (readOnly ? "RO Memory" : "RW Memory"));
+        super(startAddress, endAddress, (readOnly ? "RO Memory" : "RW Memory"));
         this.readOnly = readOnly;
-        this.mem = new int[size];
+        this.mem = new int[this.size];
         this.fill(DEFAULT_FILL);
     }
 
-    public Memory(int address, int size) throws MemoryRangeException {
-        this(address, size, false);
+    public Memory(int startAddress, int endAddress) throws MemoryRangeException {
+        this(startAddress, endAddress, false);
     }
 
-    public static Memory makeROM(int address, int size, File f) throws MemoryRangeException, IOException {
-        Memory memory = new Memory(address, size, true);
+    public static Memory makeROM(int startAddress, int endAddress, File f) throws MemoryRangeException, IOException {
+        Memory memory = new Memory(startAddress, endAddress, true);
         memory.loadFromFile(f);
         return memory;
     }
 
-    public static Memory makeRAM(int address, int size) throws MemoryRangeException {
-        Memory memory = new Memory(address, size, false);
+    public static Memory makeRAM(int startAddress, int endAddress) throws MemoryRangeException {
+        Memory memory = new Memory(startAddress, endAddress, false);
         return memory;
     }
 
