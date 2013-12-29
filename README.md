@@ -91,6 +91,10 @@ This feature is highly experimental. It's possible to open a video window from t
 This window simulates the output of a MOS 6545 CRT Controller located at address `$9000` and
 `$9001`.
 
+By default, the 40 x 25 character display uses video memory located at base address `$7000`.
+This means that the memory from address `$7000` (28672 decimal) to `$73E8` (29672 decimal)
+is directly mapped to video.
+
 The CRTC emulation is very rough around the edges at the moment. Only the following registers
 are supported:
 
