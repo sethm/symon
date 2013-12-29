@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013 Seth J. Morabito <sethm@loomcom.com>
+ * Copyright (c) 2013 Seth J. Morabito <web@loomcom.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,14 +23,6 @@
 
 package com.loomcom.symon.ui;
 
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.grahamedgecombe.jterminal.JTerminal;
 import com.grahamedgecombe.jterminal.vt100.Vt100TerminalModel;
 import com.loomcom.symon.exceptions.FifoUnderrunException;
@@ -39,6 +31,11 @@ import com.loomcom.symon.util.FifoRingBuffer;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 /**
  * The Console is a simulated 80 column x 24 row VT-100 terminal attached to

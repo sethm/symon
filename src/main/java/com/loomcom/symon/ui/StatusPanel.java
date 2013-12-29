@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013 Seth J. Morabito <sethm@loomcom.com>
+ * Copyright (c) 2013 Seth J. Morabito <web@loomcom.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -26,7 +26,8 @@ package com.loomcom.symon.ui;
 import com.loomcom.symon.Cpu;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import java.awt.*;
 
 /**

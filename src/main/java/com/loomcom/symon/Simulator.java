@@ -152,17 +152,20 @@ public class Simulator {
     private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
     public Simulator() throws MemoryRangeException, IOException {
-        this.acia = new Acia(ACIA_BASE);
-        this.via = new Via(VIA_BASE);
+        this.ram = new Memory(MEMORY_BASE, MEMORY_SIZE, false);
+
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
-        this.ram = new Memory(MEMORY_BASE, MEMORY_SIZE, false);
-        this.crtc = new Crtc(CRTC_BASE, ram, VIDEO_RAM_BASE);
+        this.via = new Via(VIA_BASE);
+        this.acia = new Acia(ACIA_BASE);
+        this.crtc = new Crtc(CRTC_BASE, ram);
 
         bus.addCpu(cpu);
+
         bus.addDevice(ram);
         bus.addDevice(via);
         bus.addDevice(acia);
+        bus.addDevice(crtc);
 
         // TODO: Make this configurable, of course.
         File romImage = new File("rom.bin");
@@ -174,13 +177,14 @@ public class Simulator {
                         " not found, loading empty R/W memory image.");
             this.rom = Memory.makeRAM(ROM_BASE, ROM_SIZE);
         }
+
         bus.addDevice(rom);
     }
 
     /**
      * Display the main simulator UI.
      */
-    public void createAndShowUi() {
+    public void createAndShowUi() throws IOException {
         mainWindow = new JFrame();
         mainWindow.setTitle("Symon 6502 Simulator");
         mainWindow.setResizable(false);
@@ -264,8 +268,8 @@ public class Simulator {
         // Prepare the memory window
         memoryWindow = new MemoryWindow(bus);
 
-        // Prepare the video window
-        videoWindow = new VideoWindow(crtc.getCrtPanel());
+        // Composite Video and 6545 CRTC
+        videoWindow = new VideoWindow(crtc, 2, 2);
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
