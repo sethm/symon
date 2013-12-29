@@ -75,7 +75,7 @@ public class Acia extends Device {
     private boolean txEmpty = true;
 
     public Acia(int address) throws MemoryRangeException {
-        super(address, ACIA_SIZE, "ACIA");
+        super(address, address + ACIA_SIZE - 1, "ACIA");
         this.baseAddress = address;
     }
 

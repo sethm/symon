@@ -47,7 +47,7 @@ public class Via extends Device {
     private static final int ORA_H = 15;
 
     public Via(int address) throws MemoryRangeException {
-      super(address, VIA_SIZE, "VIA");
+      super(address, address + VIA_SIZE - 1, "VIA");
     }
 
     @Override

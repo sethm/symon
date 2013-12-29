@@ -114,40 +114,14 @@ public class Bus {
             return false;
         }
 
-        // Loop over devices and ensure they are contiguous.
-        MemoryRange prev = null;
-        int i = 0;
-        int length = devices.size();
+        // Loop over devices and add their size
+        int filledMemory = 0;
         for (Device d : devices) {
-            MemoryRange cur = d.getMemoryRange();
-            if (i == 0) {
-                // If the first entry doesn't start at 'startAddress', return false.
-                if (cur.startAddress() != startAddress) {
-                    return false;
-                }
-            }
-
-            if (prev != null && i < length - 1) {
-                // Otherwise, compare previous map's end against this map's
-                // endAddress.  They must be adjacent!
-                if (cur.startAddress() - 1 != prev.endAddress()) {
-                    return false;
-                }
-            }
-
-            if (i == length - 1) {
-                // If the last entry doesn't end at endAddress, return false;
-                if (cur.endAddress() != endAddress) {
-                    return false;
-                }
-            }
-
-            i++;
-            prev = cur;
+            filledMemory += d.getSize();
         }
 
-        // Must be complete.
-        return true;
+        // Returns if the total size of the devices fill the bus' memory space
+        return filledMemory == endAddress - startAddress + 1;
     }
 
     public int read(int address) throws MemoryAccessException {

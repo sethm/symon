@@ -3,11 +3,11 @@ SYMON - A 6502 System Simulator
 
 **NOTE: THIS SOFTWARE IS UNDER ACTIVE DEVELOPMENT. Feedback is welcome!**
 
-**Version:** 0.8.5
+**Version:** 0.9.0
 
-**Last Updated:** 30 March, 2013
+**Last Updated:** 29 December, 2013
 
-Copyright (c) 2008-2013 Seth J. Morabito &lt;web@loomcom.com&gt;
+Copyright (c) 2013 Seth J. Morabito &lt;web@loomcom.com&gt;
 
 See the file COPYING for license.
 
@@ -138,6 +138,8 @@ After loading a program or ROM image, clicking "Run" will start the simulator
 running.
 
 ## 5.0 Revision History
+
+  - **0.9.0:** 29 December, 2013 - First pass at a 6545 CRTC simulation.
 
   - **0.8.5:** 30 March, 2013 - ASCII display for memory window.
     Allows user to select a step count from a drop-down box.

@@ -38,6 +38,11 @@ import java.util.Set;
 public abstract class Device implements Comparable<Device> {
 
     /**
+     * Size of the device in memory
+     */
+    int size;
+
+    /**
      * The memory range for this device.
      */
     private MemoryRange memoryRange;
@@ -57,15 +62,16 @@ public abstract class Device implements Comparable<Device> {
      */
     private Set<DeviceChangeListener> deviceChangeListeners;
 
-    public Device(int address, int size, String name)
+    public Device(int startAddress, int endAddress, String name)
             throws MemoryRangeException {
-        this.memoryRange = new MemoryRange(address, address + size - 1);
+        this.memoryRange = new MemoryRange(startAddress, endAddress);
+        this.size = endAddress - startAddress + 1;
         this.name = name;
         this.deviceChangeListeners = new HashSet<DeviceChangeListener>();
     }
 
-    public Device(int address, int size) throws MemoryRangeException {
-        this(address, size, null);
+    public Device(int startAddress, int endAddress) throws MemoryRangeException {
+        this(startAddress, endAddress, null);
     }
 
     /* Methods required to be implemented by inheriting classes. */
@@ -101,6 +107,10 @@ public abstract class Device implements Comparable<Device> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getSize() {
+        return size;
     }
 
     public void registerListener(DeviceChangeListener listener) {

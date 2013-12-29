@@ -61,6 +61,7 @@ public class Simulator {
     private static final int MEMORY_SIZE = 0x8000;
 
     // VIA at $8000-$800F
+
     private static final int VIA_BASE = 0x8000;
 
     // ACIA at $8800-$8803
@@ -152,10 +153,9 @@ public class Simulator {
     private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
     public Simulator() throws MemoryRangeException, IOException {
-        this.ram = new Memory(MEMORY_BASE, MEMORY_SIZE, false);
-
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
+        this.ram = new Memory(MEMORY_BASE, MEMORY_BASE + MEMORY_SIZE - 1, false);
         this.via = new Via(VIA_BASE);
         this.acia = new Acia(ACIA_BASE);
         this.crtc = new Crtc(CRTC_BASE, ram);
@@ -171,11 +171,11 @@ public class Simulator {
         File romImage = new File("rom.bin");
         if (romImage.canRead()) {
             logger.info("Loading ROM image from file " + romImage);
-            this.rom = Memory.makeROM(ROM_BASE, ROM_SIZE, romImage);
+            this.rom = Memory.makeROM(ROM_BASE, ROM_BASE + ROM_SIZE - 1, romImage);
         } else {
             logger.info("Default ROM file " + romImage +
                         " not found, loading empty R/W memory image.");
-            this.rom = Memory.makeRAM(ROM_BASE, ROM_SIZE);
+            this.rom = Memory.makeRAM(ROM_BASE, ROM_BASE + ROM_SIZE - 1);
         }
 
         bus.addDevice(rom);
@@ -585,7 +585,7 @@ public class Simulator {
                                 bus.removeDevice(rom);
                             }
                             // Load the new ROM image
-                            rom = Memory.makeROM(ROM_BASE, ROM_SIZE, romFile);
+                            rom = Memory.makeROM(ROM_BASE, ROM_BASE + ROM_SIZE - 1, romFile);
                             bus.addDevice(rom);
 
                             // Now, reset

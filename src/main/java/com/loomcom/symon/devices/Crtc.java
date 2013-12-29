@@ -68,7 +68,7 @@ public class Crtc extends Device {
     private Memory memory;
 
     public Crtc(int deviceAddress, Memory memory) throws MemoryRangeException, IOException {
-        super(deviceAddress, 2, "CRTC");
+        super(deviceAddress, deviceAddress + 2, "CRTC");
         this.memory = memory;
 
         // Defaults
