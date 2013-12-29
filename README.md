@@ -132,7 +132,7 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.5 or greater, just type:
 
-    $ java -jar symon-0.8.5.jar
+    $ java -jar symon-0.9.0.jar
 
 When Symon is running, you should be presented with a simple graphical
 interface.
@@ -219,10 +219,6 @@ running.
   - More extensive testing.
 
   - Clean up JavaDoc.
-
-  - Busses are defined by start address and length. Devices are defined
-    by start address and end address. They should both use start/end
-    address.
 
   - Implement CMOS 65C02 instructions and NMOS / CMOS mode flag.
 
