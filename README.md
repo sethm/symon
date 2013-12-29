@@ -83,6 +83,37 @@ Memory contents can be viewed (and edited) one page at a time through the Memory
 
 The last 20,000 execution steps are disassembled and logged to the Trace Log Window.
 
+### 3.6 NEW - Experimental 6545 CRTC Video
+
+![Composite Video] (https://github.com/sethm/symon/raw/master/screenshots/video_window.png)
+
+This feature is highly experimental. It's possible to open a video window from the "View" menu.
+This window simulates the output of a MOS 6545 CRT Controller located at address `$9000` and
+`$9001`.
+
+The CRTC emulation is very rough around the edges at the moment. Only the following registers
+are supported:
+
+  - Address Register (at address `$9000`)
+  - R1: Horizontal Displayed Columns
+  - R6: Vertical Displayed Rows
+  - R9: Scan Lines per Row
+  - R10: Cursor Start Scan Line and Cursor Control Mode
+  - R11: Cursor End Scan Line
+  - R12: Display Start Address (High Byte)
+  - R13: Display Start Address (Low Byte)
+  - R14: Cursor Position (High Byte) [Read Only]
+  - R15: Cursor Position (Low Byte) [Read Only]
+
+In particular, please note that the Status register is not implemented yet. Still, the feature is ready for some testing and playing with.
+
+For more information on the 6545 CRTC and its programming model, please see the following resources
+
+  - [CRTC 6545/6845 Information (André Fachat)] (http://6502.org/users/andre/hwinfo/crtc/index.html)
+  - [CRTC Operation (André Fachat)] (http://www.6502.org/users/andre/hwinfo/crtc/crtc.html)
+  - [MOS 6545 Datasheet (PDF)] (http://www.6502.org/users/andre/hwinfo/crtc/crtc.html)
+
+
 ## 4.0 Usage
 
 ### 4.1 Building
