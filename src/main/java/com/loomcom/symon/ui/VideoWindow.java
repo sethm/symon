@@ -38,6 +38,21 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+/**
+ * VideoWindow represents a graphics framebuffer backed by a 6545 CRTC.
+ * Each time the window's VideoPanel is repainted, the video memory is
+ * scanned and converted to the appropriate bitmap representation.
+ * <p>
+ * The graphical representation of each character is derived from a
+ * character generator ROM image. For this simulation, the Commodore PET
+ * character generator ROM was chosen, but any character generator ROM
+ * could be used in its place.
+ * <p>
+ * It may be convenient to think of this as the View (in the MVC
+ * pattern sense) to the Crtc's Model and Controller. Whenever the CRTC
+ * updates state in a way that may require the view to update, it calls
+ * the <tt>deviceStateChange</tt> callback on this Window.
+ */
 public class VideoWindow extends JFrame implements DeviceChangeListener {
 
     private static final Logger logger = Logger.getLogger(VideoWindow.class.getName());
@@ -56,7 +71,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
     private int verticalDisplayed;
     private int scanLinesPerRow;
     private int cursorBlinkRate;
-    private boolean showCursor;
+    private boolean hideCursor;
 
     private Dimension dimensions;
     private Crtc crtc;
@@ -64,6 +79,9 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
     private ScheduledExecutorService scheduler;
     private ScheduledFuture<?> cursorBlinker;
 
+    /**
+     * A panel representing the composite video output, with fast Graphics2D painting.
+     */
     private class VideoPanel extends JPanel {
         @Override
         public void paintComponent(Graphics g) {
@@ -71,7 +89,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
                 int address = crtc.getStartAddress() + i;
                 int originX = (i % horizontalDisplayed) * CHAR_WIDTH;
                 int originY = (i / horizontalDisplayed) * scanLinesPerRow;
-                image.getRaster().setPixels(originX, originY, CHAR_WIDTH, scanLinesPerRow, getGlyph(i, videoRam[address]));
+                image.getRaster().setPixels(originX, originY, CHAR_WIDTH, scanLinesPerRow, getGlyph(address));
             }
             Graphics2D g2d = (Graphics2D)g;
             if (shouldScale) {
@@ -92,12 +110,15 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
     }
 
+    /**
+     * Runnable task that blinks the cursor.
+     */
     private class CursorBlinker implements Runnable {
         public void run() {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     if (cursorBlinkRate > 0) {
-                        showCursor = !showCursor;
+                        hideCursor = !hideCursor;
                         repaint();
                     }
                 }
@@ -110,7 +131,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         this.crtc = crtc;
-        this.charRom = convertCharRom(loadCharRom("/pet.rom"), CHAR_WIDTH);
+        this.charRom = loadCharRom("/pet.rom");
         this.videoRam = crtc.getDmaAccess();
         this.scaleX = scaleX;
         this.scaleY = scaleY;
@@ -137,47 +158,11 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
     }
 
-    private byte[] loadCharRom(String resource) throws IOException {
-        BufferedInputStream bis = null;
-        try {
-            bis = new BufferedInputStream(this.getClass().getResourceAsStream(resource));
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            while (bis.available() > 0) {
-                bos.write(bis.read());
-            }
-            bos.flush();
-            bos.close();
-            return bos.toByteArray();
-        } finally {
-            if (bis != null) {
-                bis.close();
-            }
+    public void refreshDisplay() {
+        // TODO: Verify whether this is necessary. Does `repaint()' do anything if the window is not visible?
+        if (isVisible()) {
+            repaint();
         }
-    }
-
-    public void createAndShowUi() {
-        setTitle("Composite Video");
-
-        int borderWidth = 20;
-        int borderHeight = 20;
-
-        JPanel containerPane = new JPanel();
-        containerPane.setBorder(BorderFactory.createEmptyBorder(borderHeight, borderWidth, borderHeight, borderWidth));
-        containerPane.setLayout(new BorderLayout());
-        containerPane.setBackground(Color.black);
-
-        containerPane.add(new VideoPanel(), BorderLayout.CENTER);
-
-        getContentPane().add(containerPane, BorderLayout.CENTER);
-        setResizable(false);
-        pack();
-    }
-
-    private void buildImage() {
-        int rasterWidth = CHAR_WIDTH * horizontalDisplayed;
-        int rasterHeight = scanLinesPerRow * verticalDisplayed;
-        this.image = new BufferedImage(rasterWidth, rasterHeight, BufferedImage.TYPE_BYTE_BINARY);
-        this.dimensions = new Dimension(rasterWidth * scaleX, rasterHeight * scaleY);
     }
 
     /**
@@ -185,8 +170,9 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
      */
     public void deviceStateChanged() {
 
-        // Certain state
         boolean repackNeeded = false;
+
+        // TODO: I'm not entirely happy with this pattern, and I'd like to make it a bit DRY-er.
 
         if (horizontalDisplayed != crtc.getHorizontalDisplayed()) {
             horizontalDisplayed = crtc.getHorizontalDisplayed();
@@ -209,6 +195,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
             if (cursorBlinker != null) {
                 cursorBlinker.cancel(true);
                 cursorBlinker = null;
+                hideCursor = false;
             }
 
             if (cursorBlinkRate > 0) {
@@ -226,26 +213,22 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
         }
     }
 
-    /**
-     * Convert a raw binary Character ROM image into an array of pixel data usable
-     * by the Raster underlying the display's BufferedImage.
-     *
-     * @param rawBytes
-     * @param charWidth
-     * @return
-     */
-    private int[] convertCharRom(byte[] rawBytes, int charWidth) {
-        int[] converted = new int[rawBytes.length * charWidth];
+    private void createAndShowUi() {
+        setTitle("Composite Video");
 
-        int romIndex = 0;
-        for (int i = 0; i < converted.length;) {
-            byte charRow = rawBytes[romIndex++];
+        int borderWidth = 20;
+        int borderHeight = 20;
 
-            for (int j = 7; j >= 0; j--) {
-                converted[i++] = ((charRow & (1 << j)) == 0) ? 0 : 0xff;
-            }
-        }
-        return converted;
+        JPanel containerPane = new JPanel();
+        containerPane.setBorder(BorderFactory.createEmptyBorder(borderHeight, borderWidth, borderHeight, borderWidth));
+        containerPane.setLayout(new BorderLayout());
+        containerPane.setBackground(Color.black);
+
+        containerPane.add(new VideoPanel(), BorderLayout.CENTER);
+
+        getContentPane().add(containerPane, BorderLayout.CENTER);
+        setResizable(false);
+        pack();
     }
 
     /**
@@ -253,11 +236,11 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
      * Character ROM plus cursor overlay (if any). The cursor overlay simulates an XOR
      * of the Character Rom output and the 6545 Cursor output.
      *
-     * @param position The position within the character field, from 0 to (horizontalDisplayed * verticalDisplayed)
-     * @param chr The character value within the ROM to display.
-     * @return
+     * @param address The address of the character being requested.
+     * @return An array of integers representing the pixel data.
      */
-    private int[] getGlyph(int position, int chr) {
+    private int[] getGlyph(int address) {
+        int chr = videoRam[address];
         int romOffset = (chr & 0xff) * (CHAR_HEIGHT * CHAR_WIDTH);
         int[] glyph = new int[CHAR_WIDTH * scanLinesPerRow];
 
@@ -267,7 +250,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
         }
 
         // Overlay the cursor
-        if (showCursor && crtc.isCursorEnabled() && crtc.getCursorPosition() == position) {
+        if (!hideCursor && crtc.isCursorEnabled() && crtc.getCursorPosition() == address) {
             int cursorStart = Math.min(glyph.length, crtc.getCursorStartLine() * CHAR_WIDTH);
             int cursorStop = Math.min(glyph.length, (crtc.getCursorStopLine() + 1) * CHAR_WIDTH);
 
@@ -279,11 +262,54 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
         return glyph;
     }
 
-    public void refreshDisplay() {
-        // TODO: Verify whether this is necessary. Does `repaint()' do anything if the window is not visible?
-        if (isVisible()) {
-            repaint();
-        }
+    private void buildImage() {
+        int rasterWidth = CHAR_WIDTH * horizontalDisplayed;
+        int rasterHeight = scanLinesPerRow * verticalDisplayed;
+        this.image = new BufferedImage(rasterWidth, rasterHeight, BufferedImage.TYPE_BYTE_BINARY);
+        this.dimensions = new Dimension(rasterWidth * scaleX, rasterHeight * scaleY);
     }
 
+    /**
+     * Load a Character ROM file and convert it into an array of pixel data usable
+     * by the underlying BufferedImage's Raster.
+     * <p>
+     * Since the BufferedImage is a TYPE_BYTE_BINARY, the data must be converted
+     * into a single byte per pixel, 0 for black and 255 for white.
+
+     * @param resource The ROM file resource to load.
+     * @return An array of glyphs, each ready for insertion.
+     * @throws IOException
+     */
+    private int[] loadCharRom(String resource) throws IOException {
+        BufferedInputStream bis = null;
+        try {
+            bis = new BufferedInputStream(this.getClass().getResourceAsStream(resource));
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            while (bis.available() > 0) {
+                bos.write(bis.read());
+            }
+            bos.flush();
+            bos.close();
+
+            byte[] raw = bos.toByteArray();
+
+            // Now convert the raw ROM image into a format suitable for
+            // insertion directly into the BufferedImage.
+            int[] converted = new int[raw.length * CHAR_WIDTH];
+
+            int romIndex = 0;
+            for (int i = 0; i < converted.length;) {
+                byte charRow = raw[romIndex++];
+
+                for (int j = 7; j >= 0; j--) {
+                    converted[i++] = ((charRow & (1 << j)) == 0) ? 0 : 0xff;
+                }
+            }
+            return converted;
+        } finally {
+            if (bis != null) {
+                bis.close();
+            }
+        }
+    }
 }

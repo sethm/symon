@@ -20,14 +20,8 @@ public class Crtc extends Device {
     public static final int REGISTER_WRITE           = 1;
 
     // Registers
-    public static final int HORIZONTAL_TOTAL         = 0;
     public static final int HORIZONTAL_DISPLAYED     = 1;
-    public static final int HORIZONTAL_SYNC_POSITION = 2;
-    public static final int H_V_SYNC_WIDTHS          = 3;
-    public static final int VERTICAL_TOTAL           = 4;
-    public static final int VERTICAL_TOTAL_ADJUST    = 5;
     public static final int VERTICAL_DISPLAYED       = 6;
-    public static final int VERTICAL_SYNC_POSITION   = 7;
     public static final int MODE_CONTROL             = 8;
     public static final int SCAN_LINE                = 9;
     public static final int CURSOR_START             = 10;
@@ -36,8 +30,6 @@ public class Crtc extends Device {
     public static final int DISPLAY_START_LOW        = 13;
     public static final int CURSOR_POSITION_HIGH     = 14;
     public static final int CURSOR_POSITION_LOW      = 15;
-    public static final int LPEN_HIGH                = 16;
-    public static final int LPEN_LOW                 = 17;
 
 
     /*
@@ -84,9 +76,9 @@ public class Crtc extends Device {
         this.verticalDisplayed = 25;
         this.scanLinesPerRow = 9;
         this.cursorStartLine = 0;
-        this.cursorStopLine = 8;
+        this.cursorStopLine = 7;
         this.startAddress = 0x7000;
-        this.cursorPosition = 0;
+        this.cursorPosition = startAddress;
         this.pageSize = horizontalDisplayed * verticalDisplayed;
         this.cursorEnabled = true;
         this.cursorBlinkRate = 500;
@@ -94,7 +86,6 @@ public class Crtc extends Device {
 
     @Override
     public void write(int address, int data) throws MemoryAccessException {
-        logger.info("[write] Writing CRTC address=" + address + " data=" + data);
         switch (address) {
             case REGISTER_SELECT:
                 setCurrentRegister(data);
@@ -179,7 +170,6 @@ public class Crtc extends Device {
     }
 
     private void writeRegisterValue(int data) {
-        logger.info("Writing CRTC Register #" + currentRegister + " with value " + String.format("$%02X", data));
         switch (currentRegister) {
             case HORIZONTAL_DISPLAYED:
                 horizontalDisplayed = data;
@@ -190,13 +180,54 @@ public class Crtc extends Device {
                 pageSize = horizontalDisplayed * verticalDisplayed;
                 break;
             case MODE_CONTROL:
-                // TODO: Implement multiple addressing modes.
+                // TODO: Implement multiple addressing modes and cursor skew.
                 break;
             case SCAN_LINE:
                 scanLinesPerRow = data;
                 break;
+            case CURSOR_START:
+                cursorStartLine = data & 0x1f;
+                // Bits 5 and 6 define the cursor mode.
+                int cursorMode = (data & 0x60) >> 5;
+                switch (cursorMode) {
+                    case 0:
+                        cursorEnabled = true;
+                        cursorBlinkRate = 0;
+                        break;
+                    case 1:
+                        cursorEnabled = false;
+                        cursorBlinkRate = 0;
+                        break;
+                    case 2:
+                        cursorEnabled = true;
+                        cursorBlinkRate = 500;
+                        break;
+                    case 3:
+                        cursorEnabled = true;
+                        cursorBlinkRate = 1000;
+                        break;
+                }
+                break;
+            case CURSOR_END:
+                cursorStopLine = data & 0x1f;
+                break;
+            case DISPLAY_START_HIGH:
+                startAddress = ((data & 0xff) << 8) | (startAddress & 0x00ff);
+                // TODO: bounds checking.
+                break;
+            case DISPLAY_START_LOW:
+                startAddress = ((data & 0xff) | (startAddress & 0xff00));
+                // TODO: bounds checking.
+                break;
+            case CURSOR_POSITION_HIGH:
+                cursorPosition = ((data & 0xff) << 8) | (cursorPosition & 0x00ff);
+                // TODO: bounds checking.
+                break;
+            case CURSOR_POSITION_LOW:
+                // TODO: bounds checking.
+                cursorPosition = (data & 0xff) | (cursorPosition & 0xff00);
+                break;
             default:
-                logger.info("Ignoring.");
                 break;
         }
 
