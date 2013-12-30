@@ -23,10 +23,12 @@
 
 package com.loomcom.symon;
 
-import java.util.*;
+import com.loomcom.symon.devices.Device;
+import com.loomcom.symon.exceptions.MemoryAccessException;
+import com.loomcom.symon.exceptions.MemoryRangeException;
 
-import com.loomcom.symon.devices.*;
-import com.loomcom.symon.exceptions.*;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * The Bus ties the whole thing together, man.

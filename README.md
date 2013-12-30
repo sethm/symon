@@ -3,7 +3,7 @@ SYMON - A 6502 System Simulator
 
 **NOTE: THIS SOFTWARE IS UNDER ACTIVE DEVELOPMENT. Feedback is welcome!**
 
-**Version:** 0.9.0
+**Version:** 0.9.0.1
 
 **Last Updated:** 29 December, 2013
 
@@ -22,7 +22,7 @@ in Java. Its core goals are accuracy, ease of development, clear
 documentation, and extensive test suites for validating correctness.
 
 Symon simulates a complete system with a 1 MHz NMOS 6502, 32KB of RAM,
-16KB of ROM, a 6551 ACIA, and a 6522 VIA.
+16KB of ROM, a 6551 ACIA, a 6522 VIA, and a 6545 CRTC.
 
 Symon has extensive unit tests to verify correctness, and fully passes
 Klaus Dormann's 6502 Functional Test Suite as of version 0.8.2
@@ -42,7 +42,10 @@ for more information about this functional test suite).
   - `$0000`--`$7FFF`: 32KB RAM
   - `$8000`--`$800F`: 6522 VIA
   - `$8800`--`$8803`: 6551 ACIA (Serial Console)
+  - `$9000`--`$9001`: 6545 CRTC
   - `$C000`--`$FFFF`: 16KB ROM
+
+The CRT Controller uses memory address `$7000` as the start of Video memory.
 
 ### 3.2 Serial Console and CPU Status
 
@@ -95,9 +98,6 @@ By default, the 40 x 25 character display uses video memory located at base addr
 This means that the memory from address `$7000` (28672 decimal) to `$73E8` (29672 decimal)
 is directly mapped to video.
 
-The CRTC emulation is very rough around the edges at the moment. Only the following registers
-are supported:
-
   - Address Register (at address `$9000`)
   - R1: Horizontal Displayed Columns
   - R6: Vertical Displayed Rows
@@ -106,10 +106,21 @@ are supported:
   - R11: Cursor End Scan Line
   - R12: Display Start Address (High Byte)
   - R13: Display Start Address (Low Byte)
-  - R14: Cursor Position (High Byte) [Read Only]
-  - R15: Cursor Position (Low Byte) [Read Only]
+  - R14: Cursor Position (High Byte)
+  - R15: Cursor Position (Low Byte)
 
-In particular, please note that the Status register is not implemented yet. Still, the feature is ready for some testing and playing with.
+Although the simulation is pretty good, there are a few key differences between
+the simulated 6545 and a real 6545:
+
+  - The simulated 6545 supports only the straight binary addressing mode of the real 6545,
+    and not the Row/Column addressing mode.
+  - The simulated 6545 has full 16 bit addressing, where the real 6545 has only
+    a 14-bit address bus.
+  - The simulation is done at a whole-frame level, meaning that lots of
+    6545 programming tricks that were achieved by updating the frame address
+    during vertical and horizontal sync times are not achievable. There is no way
+    (for example) to change the Display Start Address (R12 and R13) while a
+    frame is being drawn.
 
 For more information on the 6545 CRTC and its programming model, please see the following resources
 
@@ -117,6 +128,17 @@ For more information on the 6545 CRTC and its programming model, please see the 
   - [CRTC Operation (André Fachat)] (http://www.6502.org/users/andre/hwinfo/crtc/crtc.html)
   - [MOS 6545 Datasheet (PDF)] (http://www.6502.org/users/andre/hwinfo/crtc/crtc.html)
 
+
+#### 3.6.1 Example BASIC Program to test Video
+
+This program will fill the video screen with all printable characters.
+
+    10 J = 0
+    20 FOR I = 28672 TO 29672
+    30 POKE I,J
+    40 IF J < 255 THEN J = J + 1 ELSE J = 0
+    50 NEXT I
+    60 END
 
 ## 4.0 Usage
 

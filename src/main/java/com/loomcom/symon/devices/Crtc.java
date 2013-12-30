@@ -17,7 +17,7 @@ public class Crtc extends Device {
 
     // Memory locations in the CRTC address space
     public static final int REGISTER_SELECT          = 0;
-    public static final int REGISTER_WRITE           = 1;
+    public static final int REGISTER_RW              = 1;
 
     // Registers
     public static final int HORIZONTAL_DISPLAYED     = 1;
@@ -90,25 +90,26 @@ public class Crtc extends Device {
             case REGISTER_SELECT:
                 setCurrentRegister(data);
                 break;
-            case REGISTER_WRITE:
+            case REGISTER_RW:
                 writeRegisterValue(data);
                 break;
-            default:
-                throw new MemoryAccessException("No such address.");
         }
-
-        notifyListeners();
     }
 
     @Override
     public int read(int address) throws MemoryAccessException {
         switch (address) {
-            case REGISTER_SELECT:
-                return status();
-            case REGISTER_WRITE:
-                return 0;
+            case REGISTER_RW:
+                switch (currentRegister) {
+                    case CURSOR_POSITION_LOW:
+                        return cursorPosition & 0xff;
+                    case CURSOR_POSITION_HIGH:
+                        return cursorPosition >> 8;
+                    default:
+                        return 0;
+                }
             default:
-                throw new MemoryAccessException("No such address.");
+                return 0;
         }
     }
 
@@ -119,10 +120,6 @@ public class Crtc extends Device {
 
     public int[] getDmaAccess() {
         return memory.getDmaAccess();
-    }
-
-    private int status() {
-        return 0;
     }
 
     public int getHorizontalDisplayed() {
@@ -169,7 +166,10 @@ public class Crtc extends Device {
         this.currentRegister = registerNumber;
     }
 
-    private void writeRegisterValue(int data) {
+    private void writeRegisterValue(int data) throws MemoryAccessException {
+        int oldStartAddress = startAddress;
+        int oldCursorPosition = cursorPosition;
+
         switch (currentRegister) {
             case HORIZONTAL_DISPLAYED:
                 horizontalDisplayed = data;
@@ -213,23 +213,30 @@ public class Crtc extends Device {
                 break;
             case DISPLAY_START_HIGH:
                 startAddress = ((data & 0xff) << 8) | (startAddress & 0x00ff);
-                // TODO: bounds checking.
                 break;
             case DISPLAY_START_LOW:
                 startAddress = ((data & 0xff) | (startAddress & 0xff00));
-                // TODO: bounds checking.
                 break;
             case CURSOR_POSITION_HIGH:
                 cursorPosition = ((data & 0xff) << 8) | (cursorPosition & 0x00ff);
-                // TODO: bounds checking.
                 break;
             case CURSOR_POSITION_LOW:
-                // TODO: bounds checking.
                 cursorPosition = (data & 0xff) | (cursorPosition & 0xff00);
                 break;
             default:
                 break;
         }
+
+        if (startAddress + pageSize > memory.endAddress()) {
+            startAddress = oldStartAddress;
+            throw new MemoryAccessException("Cannot draw screen starting at selected address.");
+        }
+
+        if (cursorPosition > memory.endAddress()) {
+            cursorPosition = oldCursorPosition;
+            throw new MemoryAccessException("Cannot position cursor past end of memory.");
+        }
+
 
         notifyListeners();
     }
