@@ -3,7 +3,7 @@ SYMON - A 6502 System Simulator
 
 **NOTE: THIS SOFTWARE IS UNDER ACTIVE DEVELOPMENT. Feedback is welcome!**
 
-**Version:** 0.9.0.1
+**Version:** 0.9.1.0
 
 **Last Updated:** 29 December, 2013
 
@@ -154,7 +154,7 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.5 or greater, just type:
 
-    $ java -jar symon-0.9.0.jar
+    $ java -jar symon-0.9.1.0.jar
 
 When Symon is running, you should be presented with a simple graphical
 interface.
@@ -196,6 +196,8 @@ running.
 
 ## 5.0 Revision History
 
+  - **0.9.1:** 26 January, 2014 - Support for IRQ and NMI handling.
+
   - **0.9.0:** 29 December, 2013 - First pass at a 6545 CRTC simulation.
 
   - **0.8.5:** 30 March, 2013 - ASCII display for memory window.
@@ -233,8 +235,6 @@ running.
     and disassembly.
 
   - More accurate timing.
-  
-  - Smarter interrupt handling.
 
   - UI needs a ton more polish.
 
