@@ -119,20 +119,36 @@ public class BusTest extends TestCase {
         assertTrue("Address space should have been complete!", b.isComplete());
     }
 
-    public void testSetAndClearInterrupt() throws Exception {
+    public void testSetAndClearIrq() throws Exception {
         Bus b = new Bus(0x0000, 0xffff);
         Cpu c = new Cpu();
         b.addCpu(c);
 
-        assertFalse(c.getCpuState().interruptAsserted);
+        assertFalse(c.getCpuState().irqAsserted);
 
-        b.assertInterrupt();
+        b.assertIrq();
 
-        assertTrue(c.getCpuState().interruptAsserted);
+        assertTrue(c.getCpuState().irqAsserted);
 
-        b.clearInterrupt();
+        b.clearIrq();
 
-        assertFalse(c.getCpuState().interruptAsserted);
+        assertFalse(c.getCpuState().irqAsserted);
+    }
+
+    public void testSetAndClearNmi() throws Exception {
+        Bus b = new Bus(0x0000, 0xffff);
+        Cpu c = new Cpu();
+        b.addCpu(c);
+
+        assertFalse(c.getCpuState().nmiAsserted);
+
+        b.assertNmi();
+
+        assertTrue(c.getCpuState().nmiAsserted);
+
+        b.clearNmi();
+
+        assertFalse(c.getCpuState().nmiAsserted);
     }
 
 }

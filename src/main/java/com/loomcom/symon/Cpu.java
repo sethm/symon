@@ -133,7 +133,7 @@ public class Cpu implements InstructionTable {
         state.overflowFlag = false;
         state.negativeFlag = false;
 
-        state.interruptAsserted = false;
+        state.irqAsserted = false;
 
         // Clear illegal opcode trap.
         state.opTrap = false;
@@ -154,7 +154,7 @@ public class Cpu implements InstructionTable {
     }
 
     /**
-     * Performs an individual machine cycle.
+     * Performs an individual instruction cycle.
      */
     public void step() throws MemoryAccessException {
         // Store the address from which the IR was read, for debugging
@@ -1168,15 +1168,29 @@ public class Cpu implements InstructionTable {
     /**
      * Simulate transition from logic-high to logic-low on the INT line.
      */
-    public void assertInterrupt() {
-       state.interruptAsserted = true;
+    public void assertIrq() {
+       state.irqAsserted = true;
     }
 
     /**
      * Simulate transition from logic-low to logic-high of the INT line.
      */
-    public void clearInterrupt() {
-        state.interruptAsserted = false;
+    public void clearIrq() {
+        state.irqAsserted = false;
+    }
+
+    /**
+     * Simulate transition from logic-high to logic-low on the NMI line.
+     */
+    public void assertNmi() {
+        state.nmiAsserted = true;
+    }
+
+    /**
+     * Simulate transition from logic-low to logic-high of the NMI line.
+     */
+    public void clearNmi() {
+        state.nmiAsserted = false;
     }
 
     /**
@@ -1323,8 +1337,8 @@ public class Cpu implements InstructionTable {
         public int[] args = new int[2];
         public int instSize;
         public boolean opTrap;
-        /* True if the INT line was held low */
-        public boolean interruptAsserted;
+        public boolean irqAsserted;
+        public boolean nmiAsserted;
 
         /* Status Flag Register bits */
         public boolean carryFlag;
@@ -1361,7 +1375,7 @@ public class Cpu implements InstructionTable {
             this.args[1] = s.args[1];
             this.instSize = s.instSize;
             this.opTrap = s.opTrap;
-            this.interruptAsserted = s.interruptAsserted;
+            this.irqAsserted = s.irqAsserted;
             this.carryFlag = s.carryFlag;
             this.negativeFlag = s.negativeFlag;
             this.zeroFlag = s.zeroFlag;
@@ -1370,7 +1384,7 @@ public class Cpu implements InstructionTable {
             this.breakFlag = s.breakFlag;
             this.overflowFlag = s.overflowFlag;
             this.stepCounter = s.stepCounter;
-                    }
+        }
 
         /**
          * Returns a string formatted for the trace log.

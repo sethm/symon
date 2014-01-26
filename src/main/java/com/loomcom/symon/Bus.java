@@ -151,15 +151,27 @@ public class Bus {
         throw new MemoryAccessException("Bus write failed. No device at address " + String.format("$%04X", address));
     }
 
-    public void assertInterrupt() {
+    public void assertIrq() {
         if (cpu != null) {
-            cpu.assertInterrupt();
+            cpu.assertIrq();
         }
     }
 
-    public void clearInterrupt() {
+    public void clearIrq() {
         if (cpu != null) {
-            cpu.clearInterrupt();
+            cpu.clearIrq();
+        }
+    }
+
+    public void assertNmi() {
+        if (cpu != null) {
+            cpu.assertNmi();
+        }
+    }
+
+    public void clearNmi() {
+        if (cpu != null) {
+            cpu.clearNmi();
         }
     }
 
