@@ -151,6 +151,18 @@ public class Bus {
         throw new MemoryAccessException("Bus write failed. No device at address " + String.format("$%04X", address));
     }
 
+    public void assertInterrupt() {
+        if (cpu != null) {
+            cpu.assertInterrupt();
+        }
+    }
+
+    public void clearInterrupt() {
+        if (cpu != null) {
+            cpu.clearInterrupt();
+        }
+    }
+
     public SortedSet<Device> getDevices() {
         // Expose a copy of the device list, not the original
         return new TreeSet<Device>(devices);

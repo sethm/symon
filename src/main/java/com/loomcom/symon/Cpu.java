@@ -113,7 +113,9 @@ public class Cpu implements InstructionTable {
      * Reset the CPU to known initial values.
      */
     public void reset() throws MemoryAccessException {
-        // Registers
+        /* TODO: In reality, the stack pointer could be anywhere
+           on the stack after reset. This non-deterministic behavior might be
+           worth while to simulate. */
         state.sp = 0xff;
 
         // Set the PC to the address stored in the reset vector
@@ -130,6 +132,8 @@ public class Cpu implements InstructionTable {
         state.breakFlag = false;
         state.overflowFlag = false;
         state.negativeFlag = false;
+
+        state.interruptAsserted = false;
 
         // Clear illegal opcode trap.
         state.opTrap = false;
@@ -1162,6 +1166,20 @@ public class Cpu implements InstructionTable {
     }
 
     /**
+     * Simulate transition from logic-high to logic-low on the INT line.
+     */
+    public void assertInterrupt() {
+       state.interruptAsserted = true;
+    }
+
+    /**
+     * Simulate transition from logic-low to logic-high of the INT line.
+     */
+    public void clearInterrupt() {
+        state.interruptAsserted = false;
+    }
+
+    /**
      * Push an item onto the stack, and decrement the stack counter.
      * Will wrap-around if already at the bottom of the stack (This
      * is the same behavior as the real 6502)
@@ -1305,6 +1323,8 @@ public class Cpu implements InstructionTable {
         public int[] args = new int[2];
         public int instSize;
         public boolean opTrap;
+        /* True if the INT line was held low */
+        public boolean interruptAsserted;
 
         /* Status Flag Register bits */
         public boolean carryFlag;
@@ -1341,6 +1361,7 @@ public class Cpu implements InstructionTable {
             this.args[1] = s.args[1];
             this.instSize = s.instSize;
             this.opTrap = s.opTrap;
+            this.interruptAsserted = s.interruptAsserted;
             this.carryFlag = s.carryFlag;
             this.negativeFlag = s.negativeFlag;
             this.zeroFlag = s.zeroFlag;
@@ -1349,7 +1370,7 @@ public class Cpu implements InstructionTable {
             this.breakFlag = s.breakFlag;
             this.overflowFlag = s.overflowFlag;
             this.stepCounter = s.stepCounter;
-        }
+                    }
 
         /**
          * Returns a string formatted for the trace log.
