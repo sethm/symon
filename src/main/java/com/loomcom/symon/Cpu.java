@@ -165,7 +165,7 @@ public class Cpu implements InstructionTable {
         if (state.nmiAsserted) {
             handleNmi();
         } else if (state.irqAsserted && !getIrqDisableFlag()) {
-            handleIrq();
+            handleIrq(state.pc);
         }
 
         // Fetch memory location for this instruction.
@@ -259,7 +259,7 @@ public class Cpu implements InstructionTable {
             /** Single Byte Instructions; Implied and Relative **/
             case 0x00: // BRK - Force Interrupt - Implied
                 if (!getIrqDisableFlag()) {
-                    handleIrq();
+                    handleIrq(state.pc + 1);
                 }
                 break;
             case 0x08: // PHP - Push Processor Status - Implied
@@ -732,15 +732,13 @@ public class Cpu implements InstructionTable {
         delayLoop(state.ir);
     }
 
-    private void handleIrq() throws MemoryAccessException {
-        handleInterrupt(IRQ_VECTOR_L, IRQ_VECTOR_H);
-
+    private void handleIrq(int returnPc) throws MemoryAccessException {
+        handleInterrupt(returnPc, IRQ_VECTOR_L, IRQ_VECTOR_H);
         clearIrq();
     }
 
     private void handleNmi() throws MemoryAccessException {
-        handleInterrupt(NMI_VECTOR_L, NMI_VECTOR_H);
-
+        handleInterrupt(state.pc, NMI_VECTOR_L, NMI_VECTOR_H);
         clearNmi();
     }
 
@@ -749,12 +747,12 @@ public class Cpu implements InstructionTable {
      *
      * @throws MemoryAccessException
      */
-    private void handleInterrupt(int vectorLow, int vectorHigh) throws MemoryAccessException {
+    private void handleInterrupt(int returnPc, int vectorLow, int vectorHigh) throws MemoryAccessException {
         // Set the break flag before pushing.
         setBreakFlag();
         // Push program counter + 1 onto the stack
-        stackPush((state.pc + 1 >> 8) & 0xff); // PC high byte
-        stackPush(state.pc + 1 & 0xff);        // PC low byte
+        stackPush((returnPc >> 8) & 0xff); // PC high byte
+        stackPush(returnPc & 0xff);        // PC low byte
         stackPush(state.getStatusFlag());
         // Set the Interrupt Disabled flag.  RTI will clear it.
         setIrqDisableFlag();

@@ -23,10 +23,8 @@
 
 package com.loomcom.symon.devices;
 
-import com.loomcom.symon.exceptions.*;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.loomcom.symon.exceptions.MemoryAccessException;
+import com.loomcom.symon.exceptions.MemoryRangeException;
 
 
 /**
@@ -58,6 +56,8 @@ public class Acia extends Device {
     private int commandRegister;
     private int controlRegister;
 
+    private boolean receiveIrqEnabled = false;
+    private boolean transmitIrqEnabled = false;
     private boolean overrun = false;
 
     private long lastTxWrite   = 0;
@@ -105,7 +105,7 @@ public class Acia extends Device {
                 reset();
                 break;
             case 2:
-                commandRegister = data;
+                setCommandRegister(data);
                 break;
             case 3:
                 setControlRegister(data);
@@ -115,13 +115,23 @@ public class Acia extends Device {
         }
     }
 
+
+    private void setCommandRegister(int data) {
+        commandRegister = data;
+
+        // Bit 1 controls receiver IRQ behavior
+        receiveIrqEnabled = (commandRegister & 0x02) == 0;
+        // Bits 2 & 3 controls transmit IRQ behavior
+        transmitIrqEnabled = (commandRegister & 0x08) == 0 && (commandRegister & 0x04) != 0;
+    }
+
     /**
      * Set the control register and associated state.
      *
      * @param data
      */
-    public void setControlRegister(int data) {
-        this.controlRegister = data;
+    private void setControlRegister(int data) {
+        controlRegister = data;
 
         // If the value of the data is 0, this is a request to reset,
         // otherwise it's a control update.
@@ -245,18 +255,28 @@ public class Acia extends Device {
 
     public synchronized void rxWrite(int data) {
         rxFull = true;
+
+        if (receiveIrqEnabled) {
+            getBus().assertIrq();
+        }
+
         rxChar = data;
     }
 
     public synchronized int txRead() {
         txEmpty = true;
+
+        if (transmitIrqEnabled) {
+            getBus().assertIrq();
+        }
+
         return txChar;
     }
 
     public synchronized void txWrite(int data) {
         lastTxWrite = System.nanoTime();
-        txEmpty = false;
         txChar = data;
+        txEmpty = false;
     }
 
     /**
@@ -278,6 +298,8 @@ public class Acia extends Device {
         txEmpty = true;
         rxChar = 0;
         rxFull = false;
+        receiveIrqEnabled = false;
+        transmitIrqEnabled = false;
     }
 
 }

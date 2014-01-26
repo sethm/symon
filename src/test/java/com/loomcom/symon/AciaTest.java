@@ -1,13 +1,83 @@
 package com.loomcom.symon;
 
-import org.junit.*;
-
 import com.loomcom.symon.devices.Acia;
-import com.loomcom.symon.exceptions.FifoUnderrunException;
+import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 
 public class AciaTest {
+
+    @Test
+    public void shouldTriggerInterruptOnRxFullIfRxIrqEnabled() throws Exception {
+        Bus mockBus = mock(Bus.class);
+
+        Acia acia = new Acia(0x000);
+        acia.setBus(mockBus);
+
+        // Disable TX IRQ, Enable RX IRQ
+        acia.write(2, 0x00);
+
+        acia.rxWrite('a');
+
+        verify(mockBus, atLeastOnce()).assertIrq();
+    }
+
+    @Test
+    public void shouldNotTriggerInterruptOnRxFullIfRxIrqNotEnabled() throws Exception {
+        Bus mockBus = mock(Bus.class);
+
+        Acia acia = new Acia(0x000);
+        acia.setBus(mockBus);
+
+        // Disable TX IRQ, Disable RX IRQ
+        acia.write(2, 0x02);
+
+        acia.rxWrite('a');
+
+        verify(mockBus, never()).assertIrq();
+    }
+
+    @Test
+    public void shouldTriggerInterruptOnTxEmptyIfTxIrqEnabled() throws Exception {
+        Bus mockBus = mock(Bus.class);
+
+        Acia acia = new Acia(0x000);
+        acia.setBus(mockBus);
+
+        // Enable TX IRQ, Disable RX IRQ
+        acia.write(2, 0x06);
+
+        // Write data
+        acia.write(0, 'a');
+
+        verify(mockBus, never()).assertIrq();
+
+        // Transmission should cause IRQ
+        acia.txRead();
+
+        verify(mockBus, atLeastOnce()).assertIrq();
+    }
+
+    @Test
+    public void shouldNotTriggerInterruptOnTxEmptyIfTxIrqNotEnabled() throws Exception {
+        Bus mockBus = mock(Bus.class);
+
+        Acia acia = new Acia(0x000);
+        acia.setBus(mockBus);
+
+        // Disable TX IRQ, Disable RX IRQ
+        acia.write(2, 0x02);
+
+        // Write data
+        acia.write(0, 'a');
+
+        // Transmission should cause IRQ
+        acia.txRead();
+
+        verify(mockBus, never()).assertIrq();
+    }
+
     @Test
     public void newAciaShouldHaveTxEmptyStatus() throws Exception {
         Acia acia = new Acia(0x000);

@@ -418,6 +418,50 @@ public class CpuTest extends TestCase {
         assertEquals(0x02, cpu.getAccumulator());
     }
 
+    public void testIrqPushesCorrectReturnAddressOntoStack() throws Exception {
+        // Ensure the IRQs are enabled
+        cpu.clearIrqDisableFlag();
+
+        // Set the IRQ vector
+        bus.write(0xffff, 0x10);
+        bus.write(0xfffe, 0x00);
+
+        // Create an IRQ handler at 0x1000 that just RTIs.
+        cpu.setProgramCounter(0x1000);
+        bus.loadProgram(0xea, 0xea, 0x40); // NOP, NOP, RTI
+
+        cpu.setProgramCounter(0x0200);
+
+        // Create a little program at 0x0200 with three instruction sizes.
+        bus.loadProgram(0x18,               // CLC
+                        0xa9, 0x01,         // LDA #$01
+                        0x6d, 0x06, 0x02,   // ADC $0207
+                        0x00,               // BRK
+                        0x03);              // $03 (data @ $0206)
+
+        cpu.step(); // CLC
+        assertEquals(0x0201, cpu.getProgramCounter()); // First instruction executed.
+        assertEquals(0x00,   cpu.getAccumulator());
+
+        cpu.assertIrq();
+        cpu.step(); // NOP
+        assertEquals(0x1001, cpu.getProgramCounter());
+        cpu.step(); // NOP
+        assertEquals(0x1002, cpu.getProgramCounter());
+        cpu.step(); // RTI: PC -> 0x0201
+        assertEquals(0x0201, cpu.getProgramCounter());
+        cpu.step(); // LDA $#01
+        assertEquals(0x0203, cpu.getProgramCounter());
+
+        cpu.assertIrq();
+        cpu.step(); // NOP
+        assertEquals(0x1001, cpu.getProgramCounter());
+        cpu.step(); // NOP
+        assertEquals(0x1002, cpu.getProgramCounter());
+        cpu.step(); // RTI: PC -> 0x0203
+        assertEquals(0x0203, cpu.getProgramCounter());
+    }
+
     public void testNmi() throws Exception {
         // Set the NMI vector to 0x1000
         bus.write(0xfffb, 0x10);

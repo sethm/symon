@@ -6,18 +6,22 @@ Sample Programs
   When loaded at address $0300, this program will print "Hello, 6502 World!" in
   infinite loop.
 
-2. echo.prg
+2. echo_poll.prg
 
   When loaded at address $0300, this program will echo back to the console
   anything typed.
 
 
-Both hello.prg and echo.prg were assembled with the Ophis assembler:
+Both hello.prg and echo_poll.prg were assembled with the Ophis assembler:
 
    https://hkn.eecs.berkeley.edu/~mcmartin/ophis/
 
+3. echo_irq.rom
 
-3. ehbasic.rom
+  This is another echo program, and behaves identically to echo_poll.prg,
+  except it is interrupt-driven.
+
+4. ehbasic.rom
 
    This is Lee Davison's Enhanced 6502 BASIC.
 
