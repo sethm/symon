@@ -84,12 +84,12 @@ public class Simulator {
     // to refresh the status view on every simulated clock cycle. Instead, we will only refresh the status view
     // after this number of steps when running normally.
     //
-    // Since we're simulating a 1MHz 6502 here, we have a 1 us delay between steps. Setting this to 10000
-    // should give us a status update every 10 ms.
+    // Since we're simulating a 1MHz 6502 here, we have a 1 us delay between steps. Setting this to 20000
+    // should give us a status update about every 100 ms.
     //
     // TODO: Work around the event dispatch thread with custom painting code instead of relying on Swing.
     //
-    private static final int MAX_STEPS_BETWEEN_UPDATES = 10000;
+    private static final int MAX_STEPS_BETWEEN_UPDATES = 20000;
 
     private final static Logger logger = Logger.getLogger(Simulator.class.getName());
 
@@ -322,6 +322,7 @@ public class Simulator {
                 public void run() {
                     // Now update the state
                     statusPane.updateState(cpu);
+                    memoryWindow.updateState();
                 }
             });
         } catch (MemoryAccessException ex) {
@@ -343,6 +344,7 @@ public class Simulator {
                         traceLog.refresh();
                     }
                     statusPane.updateState(cpu);
+                    memoryWindow.updateState();
                 }
             });
         } catch (SymonException ex) {
@@ -390,6 +392,7 @@ public class Simulator {
                 public void run() {
                     // Now update the state
                     statusPane.updateState(cpu);
+                    memoryWindow.updateState();
                 }
             });
             stepsSinceLastUpdate = 0;
@@ -421,6 +424,7 @@ public class Simulator {
             public void run() {
                 // Now update the state
                 statusPane.updateState(cpu);
+                memoryWindow.updateState();
             }
         });
     }
@@ -489,6 +493,7 @@ public class Simulator {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     statusPane.updateState(cpu);
+                    memoryWindow.updateState();
                     runStopButton.setText("Run");
                     stepButton.setEnabled(true);
                     stepCountBox.setEnabled(true);

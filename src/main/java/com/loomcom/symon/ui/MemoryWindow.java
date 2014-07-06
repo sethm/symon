@@ -190,14 +190,14 @@ public class MemoryWindow extends JFrame implements ActionListener {
             if (currentPage > 0x00) {
                 setPageNumber(currentPage - 1);
                 updateControls();
-                memoryTable.updateUI();
+                updateState();
             }
         } else if (e.getSource() == nextPageButton) {
             int currentPage = getPageNumber();
             if (currentPage < 0xff) {
                 setPageNumber(currentPage + 1);
                 updateControls();
-                memoryTable.updateUI();
+                updateState();
             }
         } else if (e.getSource() == pageNumberTextField) {
             String pageNumberInput = pageNumberTextField.getText();
@@ -205,7 +205,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
                 // Try to parse a hex value out of the pageNumber.
                 int newPageNumber = Integer.parseInt(pageNumberInput, 16);
                 setPageNumber(newPageNumber & 0xff);
-                memoryTable.updateUI();
+                updateState();
             } catch (NumberFormatException ex) {
                 // An invalid number was entered. Log the error, but otherwise
                 // take no action.
@@ -214,6 +214,13 @@ public class MemoryWindow extends JFrame implements ActionListener {
             }
             updateControls();
         }
+    }
+
+    /**
+     * Refresh the view of memory
+     */
+    public void updateState() {
+        memoryTable.updateUI();
     }
 
     /**
