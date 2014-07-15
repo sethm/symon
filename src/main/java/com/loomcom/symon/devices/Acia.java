@@ -23,179 +23,47 @@
 
 package com.loomcom.symon.devices;
 
-import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 
 
 /**
- * This is a simulation of the MOS 6551 ACIA, with limited
- * functionality.  Interrupts are not supported.
- * <p/>
- * Unlike a 16550 UART, the 6551 ACIA has only one-byte transmit and
- * receive buffers. It is the programmer's responsibility to check the
- * status (full or empty) for transmit and receive buffers before
- * writing / reading.
+ * Abstract base class for ACIAS such as the 6551 and 6580
  */
-public class Acia extends Device {
 
-    public static final int ACIA_SIZE = 4;
+public abstract class Acia extends Device {
 
-    static final int DATA_REG = 0;
-    static final int STAT_REG = 1;
-    static final int CMND_REG = 2;
-    static final int CTRL_REG = 3;
-
+    private String name;
+    
     /**
      * Register addresses
      */
-    private int baseAddress;
+    int baseAddress;
 
-    /**
-     * Registers. These are ignored in the current implementation.
-     */
-    private int commandRegister;
-    private int controlRegister;
-
-    private boolean receiveIrqEnabled = false;
-    private boolean transmitIrqEnabled = false;
-    private boolean overrun = false;
-
-    private long lastTxWrite   = 0;
-    private long lastRxRead    = 0;
-    private int  baudRate      = 0;
-    private long baudRateDelay = 0;
-
-    /**
+    boolean receiveIrqEnabled = false;
+    boolean transmitIrqEnabled = false;
+    boolean overrun = false;
+    
+	long lastTxWrite   = 0;
+    long lastRxRead    = 0;
+    int  baudRate      = 0;
+    long baudRateDelay = 0;
+	
+	/**
      * Read/Write buffers
      */
-    private int rxChar = 0;
-    private int txChar = 0;
+    int rxChar = 0;
+    int txChar = 0;
 
-    private boolean rxFull  = false;
-    private boolean txEmpty = true;
-
-    public Acia(int address) throws MemoryRangeException {
-        super(address, address + ACIA_SIZE - 1, "ACIA");
+    boolean rxFull  = false;
+    boolean txEmpty = true;
+	
+	
+    public Acia(int address, int size, String name) throws MemoryRangeException {
+        super(address, address + size - 1, name);
+        this.name = name;
         this.baseAddress = address;
     }
 
-    @Override
-    public int read(int address) throws MemoryAccessException {
-        switch (address) {
-            case DATA_REG:
-                return rxRead();
-            case STAT_REG:
-                return statusReg();
-            case CMND_REG:
-                return commandRegister;
-            case CTRL_REG:
-                return controlRegister;
-            default:
-                throw new MemoryAccessException("No register.");
-        }
-    }
-
-    @Override
-    public void write(int address, int data) throws MemoryAccessException {
-        switch (address) {
-            case 0:
-                txWrite(data);
-                break;
-            case 1:
-                reset();
-                break;
-            case 2:
-                setCommandRegister(data);
-                break;
-            case 3:
-                setControlRegister(data);
-                break;
-            default:
-                throw new MemoryAccessException("No register.");
-        }
-    }
-
-
-    private void setCommandRegister(int data) {
-        commandRegister = data;
-
-        // Bit 1 controls receiver IRQ behavior
-        receiveIrqEnabled = (commandRegister & 0x02) == 0;
-        // Bits 2 & 3 controls transmit IRQ behavior
-        transmitIrqEnabled = (commandRegister & 0x08) == 0 && (commandRegister & 0x04) != 0;
-    }
-
-    /**
-     * Set the control register and associated state.
-     *
-     * @param data
-     */
-    private void setControlRegister(int data) {
-        controlRegister = data;
-
-        // If the value of the data is 0, this is a request to reset,
-        // otherwise it's a control update.
-
-        if (data == 0) {
-            reset();
-        } else {
-            // Mask the lower three bits to get the baud rate.
-            int baudSelector = data & 0x0f;
-            switch (baudSelector) {
-                case 0:
-                    baudRate = 0;
-                    break;
-                case 1:
-                    baudRate = 50;
-                    break;
-                case 2:
-                    baudRate = 75;
-                    break;
-                case 3:
-                    baudRate = 110; // Real rate is actually 109.92
-                    break;
-                case 4:
-                    baudRate = 135; // Real rate is actually 134.58
-                    break;
-                case 5:
-                    baudRate = 150;
-                    break;
-                case 6:
-                    baudRate = 300;
-                    break;
-                case 7:
-                    baudRate = 600;
-                    break;
-                case 8:
-                    baudRate = 1200;
-                    break;
-                case 9:
-                    baudRate = 1800;
-                    break;
-                case 10:
-                    baudRate = 2400;
-                    break;
-                case 11:
-                    baudRate = 3600;
-                    break;
-                case 12:
-                    baudRate = 4800;
-                    break;
-                case 13:
-                    baudRate = 7200;
-                    break;
-                case 14:
-                    baudRate = 9600;
-                    break;
-                case 15:
-                    baudRate = 19200;
-                    break;
-            }
-
-            // Recalculate the baud rate delay.
-            baudRateDelay = calculateBaudRateDelay();
-        }
-    }
 
     /*
      * Calculate the delay in nanoseconds between successive read/write operations, based on the
@@ -225,26 +93,17 @@ public class Acia extends Device {
      */
     public void setBaudRate(int rate) {
         this.baudRate = rate;
+		this.baudRateDelay = calculateBaudRateDelay();
     }
 
     /**
      * @return The contents of the status register.
      */
-    public int statusReg() {
-        // TODO: Overrun, Parity Error, Framing Error, DTR, DSR, and Interrupt flags.
-        int stat = 0;
-        if (rxFull && System.nanoTime() >= (lastRxRead + baudRateDelay)) {
-            stat |= 0x08;
-        }
-        if (txEmpty && System.nanoTime() >= (lastTxWrite + baudRateDelay)) {
-            stat |= 0x10;
-        }
-        return stat;
-    }
+    public abstract int statusReg();
 
     @Override
     public String toString() {
-        return "ACIA@" + String.format("%04X", baseAddress);
+        return name + "@" + String.format("%04X", baseAddress);
     }
 
     public synchronized int rxRead() {
@@ -291,15 +150,6 @@ public class Acia extends Device {
      */
     public boolean hasRxChar() {
         return rxFull;
-    }
-
-    private synchronized void reset() {
-        txChar = 0;
-        txEmpty = true;
-        rxChar = 0;
-        rxFull = false;
-        receiveIrqEnabled = false;
-        transmitIrqEnabled = false;
     }
 
 }

@@ -24,6 +24,7 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Acia;
+import com.loomcom.symon.devices.Acia6551;
 import com.loomcom.symon.devices.Crtc;
 import com.loomcom.symon.devices.Memory;
 import com.loomcom.symon.devices.Via;
@@ -157,7 +158,7 @@ public class Simulator {
         this.cpu = new Cpu();
         this.ram = new Memory(MEMORY_BASE, MEMORY_BASE + MEMORY_SIZE - 1, false);
         this.via = new Via(VIA_BASE);
-        this.acia = new Acia(ACIA_BASE);
+        this.acia = new Acia6551(ACIA_BASE);
         this.crtc = new Crtc(CRTC_BASE, ram);
 
         bus.addCpu(cpu);

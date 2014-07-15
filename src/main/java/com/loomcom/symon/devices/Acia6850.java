@@ -37,7 +37,7 @@ import com.loomcom.symon.exceptions.MemoryRangeException;
  * status (full or empty) for transmit and receive buffers before
  * writing / reading.
  */
-public class Acia6850 extends Device {
+public class Acia6850 extends Acia {
 
     public static final int ACIA_SIZE = 2;
 
@@ -48,38 +48,15 @@ public class Acia6850 extends Device {
     static final int RX_REG = 1;	// read-only
     static final int TX_REG = 1;	// write-only
 
-
-    /**
-     * Register addresses
-     */
-    private int baseAddress;
-
+    
     /**
      * Registers. These are ignored in the current implementation.
      */
     private int commandRegister;
 
-    private boolean receiveIrqEnabled = false;
-    private boolean transmitIrqEnabled = false;
-    private boolean overrun = false;
-
-    private long lastTxWrite   = 0;
-    private long lastRxRead    = 0;
-    private int  baudRate      = 0;
-    private long baudRateDelay = 0;
-
-    /**
-     * Read/Write buffers
-     */
-    private int rxChar = 0;
-    private int txChar = 0;
-
-    private boolean rxFull  = false;
-    private boolean txEmpty = true;
 
     public Acia6850(int address) throws MemoryRangeException {
-        super(address, address + ACIA_SIZE - 1, "ACIA");
-        this.baseAddress = address;
+        super(address, ACIA_SIZE, "ACIA6850");
 		setBaudRate(2400);
     }
 
@@ -126,40 +103,11 @@ public class Acia6850 extends Device {
     }
 
 
-    /*
-     * Calculate the delay in nanoseconds between successive read/write operations, based on the
-     * configured baud rate.
-     */
-    private long calculateBaudRateDelay() {
-        if (baudRate > 0) {
-            // TODO: This is a pretty rough approximation based on 8 bits per character,
-            // and 1/baudRate per bit. It could certainly be improved
-            return (long)((1.0 / baudRate) * 1000000000 * 8);
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * @return The simulated baud rate in bps.
-     */
-    public int getBaudRate() {
-        return baudRate;
-    }
-
-    /**
-     * Set the baud rate of the simulated ACIA.
-     *
-     * @param rate The baud rate in bps. 0 means no simulated baud rate delay.
-     */
-    public void setBaudRate(int rate) {
-        this.baudRate = rate;
-		this.baudRateDelay = calculateBaudRateDelay();
-    }
 
     /**
      * @return The contents of the status register.
      */
+    @Override
     public int statusReg() {
         // TODO: Parity Error, Framing Error, DTR, DSR, and Interrupt flags.
         int stat = 0;
@@ -176,62 +124,6 @@ public class Acia6850 extends Device {
         return stat;
     }
 
-    @Override
-    public String toString() {
-        return "ACIA6850@" + String.format("%04X", baseAddress);
-    }
-
-    public synchronized int rxRead() {
-        lastRxRead = System.nanoTime();
-        rxFull = false;
-		overrun = false;
-        return rxChar;
-    }
-
-    public synchronized void rxWrite(int data) {
-		// when receiving while full: overrun
-		if(rxFull) {
-			overrun = true;
-		}
-		
-        rxFull = true;
-
-        if (receiveIrqEnabled) {
-            getBus().assertIrq();
-        }
-
-        rxChar = data;
-    }
-
-    public synchronized int txRead() {
-        txEmpty = true;
-
-        if (transmitIrqEnabled) {
-            getBus().assertIrq();
-        }
-
-        return txChar;
-    }
-
-    public synchronized void txWrite(int data) {
-        lastTxWrite = System.nanoTime();
-        txChar = data;
-        txEmpty = false;
-    }
-
-    /**
-     * @return true if there is character data in the TX register.
-     */
-    public boolean hasTxChar() {
-        return !txEmpty;
-    }
-
-    /**
-     * @return true if there is character data in the RX register.
-     */
-    public boolean hasRxChar() {
-        return rxFull;
-    }
 
     private synchronized void reset() {
 		overrun = false;
