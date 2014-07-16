@@ -86,6 +86,20 @@ public class Acia6850 extends Acia {
                 throw new MemoryAccessException("No register.");
         }
     }
+    
+    @Override
+    public synchronized int rxRead() {
+        overrun = false;
+        return super.rxRead();
+    }
+    
+    @Override
+    public synchronized void rxWrite(int data) {
+        if(rxFull) {
+            overrun = true;
+        }
+        super.rxWrite(data);
+    }
 
 
     private void setCommandRegister(int data) {
