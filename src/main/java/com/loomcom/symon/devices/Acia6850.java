@@ -97,9 +97,9 @@ public class Acia6850 extends Acia {
 		}
 
         // Bit 7 controls receiver IRQ behavior
-        receiveIrqEnabled = (commandRegister & 0x80) == 0;
+        receiveIrqEnabled = (commandRegister & 0x80) != 0;
         // Bits 5 & 6 controls transmit IRQ behavior
-        transmitIrqEnabled = (commandRegister & 0x20) == 0 && (commandRegister & 0x40) != 0;
+        transmitIrqEnabled = (commandRegister & 0x20) != 0 && (commandRegister & 0x40) == 0;
     }
 
 
@@ -127,6 +127,8 @@ public class Acia6850 extends Acia {
 
     private synchronized void reset() {
 		overrun = false;
+        rxFull = false;
+        txEmpty = true;
     }
 
 }
