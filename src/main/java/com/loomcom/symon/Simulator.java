@@ -23,15 +23,13 @@
 
 package com.loomcom.symon;
 
-import com.loomcom.symon.devices.Acia;
-import com.loomcom.symon.devices.Acia6551;
-import com.loomcom.symon.devices.Crtc;
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.devices.Via;
 import com.loomcom.symon.exceptions.FifoUnderrunException;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import com.loomcom.symon.exceptions.SymonException;
+import com.loomcom.symon.machines.Machine;
+import com.loomcom.symon.machines.SymonMachine;
 import com.loomcom.symon.ui.*;
 import com.loomcom.symon.ui.Console;
 
@@ -53,29 +51,6 @@ import java.util.logging.Logger;
  */
 public class Simulator {
 
-    // Constants used by the simulated system. These define the memory map.
-    private static final int BUS_BOTTOM = 0x0000;
-    private static final int BUS_TOP    = 0xffff;
-
-    // 32K of RAM from $0000 - $7FFF
-    private static final int MEMORY_BASE = 0x0000;
-    private static final int MEMORY_SIZE = 0x8000;
-
-    // VIA at $8000-$800F
-
-    private static final int VIA_BASE = 0x8000;
-
-    // ACIA at $8800-$8803
-    private static final int ACIA_BASE = 0x8800;
-
-    // CRTC at $9000-$9001
-    private static final int CRTC_BASE = 0x9000;
-    private static final int VIDEO_RAM_BASE = 0x7000;
-
-    // 16KB ROM at $C000-$FFFF
-    private static final int ROM_BASE = 0xC000;
-    private static final int ROM_SIZE = 0x4000;
-
     // UI constants
     private static final int  DEFAULT_FONT_SIZE    = 12;
     private static final Font DEFAULT_FONT         = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
@@ -94,14 +69,8 @@ public class Simulator {
 
     private final static Logger logger = Logger.getLogger(Simulator.class.getName());
 
-    // The simulated peripherals
-    private final Bus    bus;
-    private final Cpu    cpu;
-    private final Acia   acia;
-    private final Via    via;
-    private final Crtc   crtc;
-    private final Memory ram;
-    private       Memory rom;
+    // The simulated machine
+    private Machine machine;
 
     // Number of CPU steps between CRT repaints.
     // TODO: Dynamically refresh the value at runtime based on performance figures to reach ~ 30fps.
@@ -153,33 +122,8 @@ public class Simulator {
      */
     private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
-    public Simulator() throws MemoryRangeException, IOException {
-        this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
-        this.cpu = new Cpu();
-        this.ram = new Memory(MEMORY_BASE, MEMORY_BASE + MEMORY_SIZE - 1, false);
-        this.via = new Via(VIA_BASE);
-        this.acia = new Acia6551(ACIA_BASE);
-        this.crtc = new Crtc(CRTC_BASE, ram);
-
-        bus.addCpu(cpu);
-
-        bus.addDevice(ram);
-        bus.addDevice(via);
-        bus.addDevice(acia);
-        bus.addDevice(crtc);
-
-        // TODO: Make this configurable, of course.
-        File romImage = new File("rom.bin");
-        if (romImage.canRead()) {
-            logger.info("Loading ROM image from file " + romImage);
-            this.rom = Memory.makeROM(ROM_BASE, ROM_BASE + ROM_SIZE - 1, romImage);
-        } else {
-            logger.info("Default ROM file " + romImage +
-                        " not found, loading empty R/W memory image.");
-            this.rom = Memory.makeRAM(ROM_BASE, ROM_BASE + ROM_SIZE - 1);
-        }
-
-        bus.addDevice(rom);
+    public Simulator() throws Exception {
+        this.machine = new SymonMachine();
     }
 
     /**
@@ -267,10 +211,10 @@ public class Simulator {
         traceLog = new TraceLog();
 
         // Prepare the memory window
-        memoryWindow = new MemoryWindow(bus);
+        memoryWindow = new MemoryWindow(machine.getBus());
 
         // Composite Video and 6545 CRTC
-        videoWindow = new VideoWindow(crtc, 2, 2);
+        videoWindow = new VideoWindow(machine.getCrtc(), 2, 2);
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -313,7 +257,7 @@ public class Simulator {
         try {
             logger.log(Level.INFO, "Reset requested. Resetting CPU.");
             // Reset and clear memory
-            cpu.reset();
+            machine.getCpu().reset();
             // Clear the console.
             console.reset();
             // Reset the trace log.
@@ -322,7 +266,7 @@ public class Simulator {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     // Now update the state
-                    statusPane.updateState(cpu);
+                    statusPane.updateState(machine.getCpu());
                     memoryWindow.updateState();
                 }
             });
@@ -344,7 +288,7 @@ public class Simulator {
                     if (traceLog.isVisible()) {
                         traceLog.refresh();
                     }
-                    statusPane.updateState(cpu);
+                    statusPane.updateState(machine.getCpu());
                     memoryWindow.updateState();
                 }
             });
@@ -358,15 +302,15 @@ public class Simulator {
      * Perform a single step of the simulated system.
      */
     private void step() throws MemoryAccessException {
-        cpu.step();
+        machine.getCpu().step();
 
-        traceLog.append(cpu.getCpuState());
+        traceLog.append(machine.getCpu().getCpuState());
 
         // Read from the ACIA and immediately update the console if there's
         // output ready.
-        if (acia.hasTxChar()) {
+        if (machine.getAcia().hasTxChar()) {
             // This is thread-safe
-            console.print(Character.toString((char) acia.txRead()));
+            console.print(Character.toString((char) machine.getAcia().txRead()));
             console.repaint();
         }
 
@@ -374,7 +318,7 @@ public class Simulator {
         // TODO: Interrupt handling.
         try {
             if (console.hasInput()) {
-                acia.rxWrite((int) console.readInputChar());
+                machine.getAcia().rxWrite((int) console.readInputChar());
             }
         } catch (FifoUnderrunException ex) {
             logger.severe("Console type-ahead buffer underrun!");
@@ -392,7 +336,7 @@ public class Simulator {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     // Now update the state
-                    statusPane.updateState(cpu);
+                    statusPane.updateState(machine.getCpu());
                     memoryWindow.updateState();
                 }
             });
@@ -407,7 +351,7 @@ public class Simulator {
     private void loadProgram(byte[] program, int startAddress) throws MemoryAccessException {
         int addr = startAddress, i;
         for (i = 0; i < program.length; i++) {
-            bus.write(addr++, program[i] & 0xff);
+            machine.getBus().write(addr++, program[i] & 0xff);
         }
 
         logger.log(Level.INFO, "Loaded " + i + " bytes at address 0x" +
@@ -415,16 +359,16 @@ public class Simulator {
 
         // After loading, be sure to reset and
         // Reset (but don't clear memory, naturally)
-        cpu.reset();
+        machine.getCpu().reset();
 
         // Reset the stack program counter
-        cpu.setProgramCounter(preferences.getProgramStartAddress());
+        machine.getCpu().setProgramCounter(preferences.getProgramStartAddress());
 
         // Immediately update the UI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 // Now update the state
-                statusPane.updateState(cpu);
+                statusPane.updateState(machine.getCpu());
                 memoryWindow.updateState();
             }
         });
@@ -493,7 +437,7 @@ public class Simulator {
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    statusPane.updateState(cpu);
+                    statusPane.updateState(machine.getCpu());
                     memoryWindow.updateState();
                     runStopButton.setText("Run");
                     stepButton.setEnabled(true);
@@ -516,7 +460,7 @@ public class Simulator {
          * @return True if the run loop should proceed to the next step.
          */
         private boolean shouldContinue() {
-            return isRunning && !(preferences.getHaltOnBreak() && cpu.getInstruction() == 0x00);
+            return isRunning && !(preferences.getHaltOnBreak() && machine.getCpu().getInstruction() == 0x00);
         }
     }
 
@@ -536,7 +480,7 @@ public class Simulator {
                     if (f.canRead()) {
                         long fileSize = f.length();
 
-                        if (fileSize > MEMORY_SIZE) {
+                        if (fileSize > machine.getMemorySize()) {
                             throw new IOException("Program will not fit in available memory.");
                         } else {
                             byte[] program = new byte[(int) fileSize];
@@ -583,22 +527,19 @@ public class Simulator {
                     if (romFile.canRead()) {
                         long fileSize = romFile.length();
 
-                        if (fileSize != ROM_SIZE) {
-                            throw new IOException("ROM file must be exactly " + String.valueOf(ROM_SIZE) + " bytes.");
+                        if (fileSize != machine.getRomSize()) {
+                            throw new IOException("ROM file must be exactly " + String.valueOf(machine.getRomSize()) + " bytes.");
                         } else {
-                            if (rom != null) {
-                                // Unload the existing ROM image.
-                                bus.removeDevice(rom);
-                            }
+                            
                             // Load the new ROM image
-                            rom = Memory.makeROM(ROM_BASE, ROM_BASE + ROM_SIZE - 1, romFile);
-                            bus.addDevice(rom);
+                            Memory rom = Memory.makeROM(machine.getRomBase(), machine.getRomBase() + machine.getRomSize() - 1, romFile);
+                            machine.setRom(rom);
 
                             // Now, reset
-                            cpu.reset();
+                            machine.getCpu().reset();
 
                             logger.log(Level.INFO, "ROM File `" + romFile.getName() + "' loaded at " +
-                                                   String.format("0x%04X", ROM_BASE));
+                                                   String.format("0x%04X", machine.getRomBase()));
                         }
                     }
                 }
