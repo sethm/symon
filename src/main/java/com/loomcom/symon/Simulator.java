@@ -29,6 +29,7 @@ import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import com.loomcom.symon.exceptions.SymonException;
 import com.loomcom.symon.machines.Machine;
+import com.loomcom.symon.machines.MulticompMachine;
 import com.loomcom.symon.machines.SymonMachine;
 import com.loomcom.symon.ui.*;
 import com.loomcom.symon.ui.Console;
@@ -123,7 +124,7 @@ public class Simulator {
     private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
     public Simulator() throws Exception {
-        this.machine = new SymonMachine();
+        this.machine = new MulticompMachine();
     }
 
     /**
@@ -214,7 +215,9 @@ public class Simulator {
         memoryWindow = new MemoryWindow(machine.getBus());
 
         // Composite Video and 6545 CRTC
-        videoWindow = new VideoWindow(machine.getCrtc(), 2, 2);
+        if(machine.getCrtc() != null) {
+            videoWindow = new VideoWindow(machine.getCrtc(), 2, 2);
+        }
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -324,8 +327,7 @@ public class Simulator {
             logger.severe("Console type-ahead buffer underrun!");
         }
 
-        if (stepsSinceLastCrtcRefresh++ > stepsBetweenCrtcRefreshes) {
-            videoWindow.refreshDisplay();
+        if (videoWindow != null && stepsSinceLastCrtcRefresh++ > stepsBetweenCrtcRefreshes) {
             stepsSinceLastCrtcRefresh = 0;
         }
 
@@ -739,14 +741,16 @@ public class Simulator {
             });
             viewMenu.add(showMemoryTable);
 
-            final JCheckBoxMenuItem showVideoWindow = new JCheckBoxMenuItem(new ToggleVideoWindowAction());
-            videoWindow.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    showVideoWindow.setSelected(false);
-                }
-            });
-            viewMenu.add(showVideoWindow);
+            if(videoWindow != null) {
+                final JCheckBoxMenuItem showVideoWindow = new JCheckBoxMenuItem(new ToggleVideoWindowAction());
+                videoWindow.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+                        showVideoWindow.setSelected(false);
+                    }
+                });
+                viewMenu.add(showVideoWindow);
+            }
 
             add(viewMenu);
         }
