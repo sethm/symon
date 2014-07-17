@@ -47,6 +47,13 @@ public class Bus {
 
     // Ordered list of IO devices.
     private SortedSet<Device> devices;
+    
+    // Ordered list of IO devices that have overlapping memory locations
+    private SortedSet<Device> overlapDevices;
+    
+    // an array for quick lookup of adresses, brute-force style
+    private Device[] deviceAddressArray;
+    
 
     public Bus(int size) {
         this(0, size - 1);
@@ -54,6 +61,7 @@ public class Bus {
 
     public Bus(int startAddress, int endAddress) {
         this.devices = new TreeSet<Device>();
+        this.overlapDevices = new TreeSet<Device>();
         this.startAddress = startAddress;
         this.endAddress = endAddress;
     }
@@ -65,7 +73,56 @@ public class Bus {
     public int endAddress() {
         return endAddress;
     }
+    
+    private void buildDeviceAddressArray() {
+        // TODO: Find out why +2 and not +1 is needed here
+        int size = (this.endAddress - this.startAddress) + 2;
+        deviceAddressArray = new Device[size];
+        for(Device device : devices) {
+            MemoryRange range = device.getMemoryRange();
+            for(int address = range.startAddress; address <= range.endAddress; ++address) {
+                deviceAddressArray[address] = device;
+            }
+        }
+        for(Device device : overlapDevices) {
+            MemoryRange range = device.getMemoryRange();
+            for(int address = range.startAddress; address <= range.endAddress; ++address) {
+                deviceAddressArray[address] = device;
+            }
+        }
+    }
 
+    /**
+     * Add a device to the bus. Throws a MemoryRangeException if the device overlaps with any others, unless the overlap parameter is true.
+     *
+     * @param device
+     * @param overlap
+     * @throws MemoryRangeException
+     */
+    public void addDevice(Device device, boolean overlap) throws MemoryRangeException {
+        // Make sure there's no memory overlap.
+        MemoryRange memRange = device.getMemoryRange();
+        if(!overlap) {
+            for (Device d : devices) {
+                if (d.getMemoryRange().overlaps(memRange)) {
+                    throw new MemoryRangeException("The device being added at " +
+                                                   String.format("$%04X", memRange.startAddress()) +
+                                                   " overlaps with an existing " +
+                                                   "device, '" + d + "'");
+                }
+            }
+        }
+
+        // Add the device
+        device.setBus(this);
+        if(overlap) {
+            overlapDevices.add(device);
+        } else {
+            devices.add(device);
+        }
+        buildDeviceAddressArray();
+    }
+    
     /**
      * Add a device to the bus. Throws a MemoryRangeException if the device overlaps with any others.
      *
@@ -73,21 +130,9 @@ public class Bus {
      * @throws MemoryRangeException
      */
     public void addDevice(Device device) throws MemoryRangeException {
-        // Make sure there's no memory overlap.
-        MemoryRange memRange = device.getMemoryRange();
-        for (Device d : devices) {
-            if (d.getMemoryRange().overlaps(memRange)) {
-                throw new MemoryRangeException("The device being added at " +
-                                               String.format("$%04X", memRange.startAddress()) +
-                                               " overlaps with an existing " +
-                                               "device, '" + d + "'");
-            }
-        }
-
-        // Add the device
-        device.setBus(this);
-        devices.add(device);
+        addDevice(device, false);
     }
+    
 
     /**
      * Remove a device from the bus.
@@ -97,6 +142,11 @@ public class Bus {
     public void removeDevice(Device device) {
         if (devices.contains(device)) {
             devices.remove(device);
+            buildDeviceAddressArray();
+        }
+        if (overlapDevices.contains(device)) {
+            overlapDevices.remove(device);
+            buildDeviceAddressArray();
         }
     }
 
@@ -127,27 +177,25 @@ public class Bus {
     }
 
     public int read(int address) throws MemoryAccessException {
-        for (Device d : devices) {
+        Device d = deviceAddressArray[address];
+        if(d != null) {
             MemoryRange range = d.getMemoryRange();
-            if (range.includes(address)) {
-                // Compute offset into this device's address space.
-                int devAddr = address - range.startAddress();
-                return d.read(devAddr);
-            }
+            int devAddr = address - range.startAddress();
+            return d.read(devAddr);
         }
+        
         throw new MemoryAccessException("Bus read failed. No device at address " + String.format("$%04X", address));
     }
 
     public void write(int address, int value) throws MemoryAccessException {
-        for (Device d : devices) {
+        Device d = deviceAddressArray[address];
+        if(d != null) {
             MemoryRange range = d.getMemoryRange();
-            if (range.includes(address)) {
-                // Compute offset into this device's address space.
-                int devAddr = address - range.startAddress();
-                d.write(devAddr, value);
-                return;
-            }
+            int devAddr = address - range.startAddress();
+            d.write(devAddr, value);
+            return;
         }
+        
         throw new MemoryAccessException("Bus write failed. No device at address " + String.format("$%04X", address));
     }
 
