@@ -112,6 +112,25 @@ public class AciaTest {
 
         assertEquals(0x08, acia.read(0x0001));
     }
+    
+    @Test
+    public void aciaShouldOverrunAndReadShouldReset()
+            throws Exception {
+        
+        Acia acia = new Acia6551(0x0000);
+        
+        // overrun ACIA
+        acia.rxWrite('a');
+        acia.rxWrite('b');
+        
+        assertEquals(0x04, acia.read(0x0001) & 0x04);
+        
+        // read should reset
+        acia.rxRead();
+        assertEquals(0x00, acia.read(0x0001) & 0x04);
+        
+    }
+
 
     @Test
     public void readingBuffersShouldResetStatus()

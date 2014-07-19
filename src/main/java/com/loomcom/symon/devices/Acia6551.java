@@ -181,13 +181,16 @@ public class Acia6551 extends Acia {
      */
     @Override
     public int statusReg() {
-        // TODO: Overrun, Parity Error, Framing Error, DTR, DSR, and Interrupt flags.
+        // TODO: Parity Error, Framing Error, DTR, DSR, and Interrupt flags.
         int stat = 0;
         if (rxFull && System.nanoTime() >= (lastRxRead + baudRateDelay)) {
             stat |= 0x08;
         }
         if (txEmpty && System.nanoTime() >= (lastTxWrite + baudRateDelay)) {
             stat |= 0x10;
+        }
+        if (overrun) {
+            stat |= 0x04;
         }
         return stat;
     }
