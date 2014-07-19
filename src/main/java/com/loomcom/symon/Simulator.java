@@ -113,7 +113,7 @@ public class Simulator {
     private JButton runStopButton;
     private JButton stepButton;
     private JButton resetButton;
-    private JComboBox stepCountBox;
+    private JComboBox<String> stepCountBox;
 
     private JFileChooser      fileChooser;
     private PreferencesDialog preferences;
@@ -158,7 +158,7 @@ public class Simulator {
         stepButton = new JButton("Step");
         resetButton = new JButton("Reset");
 
-        stepCountBox = new JComboBox(STEPS);
+        stepCountBox = new JComboBox<String>(STEPS);
         stepCountBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
