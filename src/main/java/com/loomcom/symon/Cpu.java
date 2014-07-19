@@ -25,6 +25,8 @@ package com.loomcom.symon;
 
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.util.HexUtil;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class provides a simulation of the MOS 6502 CPU's state machine.
@@ -75,6 +77,10 @@ public class Cpu implements InstructionTable {
     /* Internal scratch space */
     private int lo = 0, hi = 0;  // Used in address calculation
     private int tmp; // Temporary storage
+    
+    /* Accounting for non-busy CPU waiting */
+    private long opBeginTime;
+    private long surplusTime;
 
     /**
      * Construct a new CPU.
@@ -157,6 +163,7 @@ public class Cpu implements InstructionTable {
      * Performs an individual instruction cycle.
      */
     public void step() throws MemoryAccessException {
+        opBeginTime = System.nanoTime();
         // Store the address from which the IR was read, for debugging
         state.lastPc = state.pc;
 
@@ -1324,11 +1331,20 @@ public class Cpu implements InstructionTable {
         if (clockSteps == 0) {
             clockSteps = 1;
         }
-        long startTime = System.nanoTime();
-        long stopTime = startTime + (CLOCK_IN_NS * clockSteps);
-        // Busy loop
-        while (System.nanoTime() < stopTime) {
-            ;
+        long opFinishTime = System.nanoTime();
+        long timeSpent = opFinishTime - opBeginTime;
+        if(timeSpent < clockSteps) {
+            surplusTime += clockSteps - timeSpent;
+            // look if a reasonable amount of time has accumulated
+            if(surplusTime > 1000 * 1000 * 10) {
+                try {
+                    // sleep away the surplus time
+                    Thread.sleep(surplusTime / (1000 * 1000));
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Cpu.class.getName()).log(Level.SEVERE, "Trouble putting the CPU to sleep", ex);
+                }
+                surplusTime = 0;
+            }
         }
     }
 
