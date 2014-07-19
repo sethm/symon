@@ -108,11 +108,16 @@ public abstract class Acia extends Device {
 
     public synchronized int rxRead() {
         lastRxRead = System.nanoTime();
+        overrun = false;
         rxFull = false;
         return rxChar;
     }
 
     public synchronized void rxWrite(int data) {
+        if(rxFull) {
+            overrun = true;
+        }
+        
         rxFull = true;
 
         if (receiveIrqEnabled) {

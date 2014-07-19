@@ -42,8 +42,8 @@ public class Acia6850 extends Acia {
     public static final int ACIA_SIZE = 2;
 
 
-	static final int STAT_REG = 0;	// read-only
-	static final int CTRL_REG = 0;	// write-only
+    static final int STAT_REG = 0;	// read-only
+    static final int CTRL_REG = 0;	// write-only
 	
     static final int RX_REG = 1;	// read-only
     static final int TX_REG = 1;	// write-only
@@ -57,7 +57,7 @@ public class Acia6850 extends Acia {
 
     public Acia6850(int address) throws MemoryRangeException {
         super(address, ACIA_SIZE, "ACIA6850");
-		setBaudRate(2400);
+        setBaudRate(2400);
     }
 
     @Override
@@ -87,28 +87,13 @@ public class Acia6850 extends Acia {
         }
     }
     
-    @Override
-    public synchronized int rxRead() {
-        overrun = false;
-        return super.rxRead();
-    }
-    
-    @Override
-    public synchronized void rxWrite(int data) {
-        if(rxFull) {
-            overrun = true;
-        }
-        super.rxWrite(data);
-    }
-
-
     private void setCommandRegister(int data) {
         commandRegister = data;
 		
-		// Bits 0 & 1 control the master reset
-		if((commandRegister & 0x01) != 0 && (commandRegister & 0x02) != 0) {
-			reset();
-		}
+        // Bits 0 & 1 control the master reset
+        if((commandRegister & 0x01) != 0 && (commandRegister & 0x02) != 0) {
+            reset();
+        }
 
         // Bit 7 controls receiver IRQ behavior
         receiveIrqEnabled = (commandRegister & 0x80) != 0;
@@ -131,16 +116,16 @@ public class Acia6850 extends Acia {
         if (txEmpty && System.nanoTime() >= (lastTxWrite + baudRateDelay)) {
             stat |= 0x02;
         }
-		if (overrun) {
-			stat |= 0x20;
-		}
+        if (overrun) {
+            stat |= 0x20;
+        }
 		
         return stat;
     }
 
 
     private synchronized void reset() {
-		overrun = false;
+        overrun = false;
         rxFull = false;
         txEmpty = true;
     }
