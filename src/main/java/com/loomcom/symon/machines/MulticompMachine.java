@@ -44,9 +44,9 @@ public class MulticompMachine implements Machine {
     private static final int BUS_BOTTOM = 0x0000;
     private static final int BUS_TOP    = 0xffff;
 
-    // 32K of RAM from $0000 - $7FFF
+    // 56K of RAM from $0000 - $DFFF
     private static final int MEMORY_BASE = 0x0000;
-    private static final int MEMORY_SIZE = 0x8000;
+    private static final int MEMORY_SIZE = 0xE000;
 
     // ACIA at $FFD0-$FFD1
     private static final int ACIA_BASE = 0xFFD0;
