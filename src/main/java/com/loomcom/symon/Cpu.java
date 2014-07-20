@@ -78,9 +78,8 @@ public class Cpu implements InstructionTable {
     private int lo = 0, hi = 0;  // Used in address calculation
     private int tmp; // Temporary storage
     
-    /* Accounting for non-busy CPU waiting */
+    /* start time of op execution, needed for speed simulation */
     private long opBeginTime;
-    private long surplusTime;
 
     /**
      * Construct a new CPU.
@@ -1331,20 +1330,10 @@ public class Cpu implements InstructionTable {
         if (clockSteps == 0) {
             clockSteps = 1;
         }
-        long opFinishTime = System.nanoTime();
-        long timeSpent = opFinishTime - opBeginTime;
-        if(timeSpent < clockSteps) {
-            surplusTime += clockSteps - timeSpent;
-            // look if a reasonable amount of time has accumulated
-            if(surplusTime > 1000 * 1000 * 10) {
-                try {
-                    // sleep away the surplus time
-                    Thread.sleep(surplusTime / (1000 * 1000));
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Cpu.class.getName()).log(Level.SEVERE, "Trouble putting the CPU to sleep", ex);
-                }
-                surplusTime = 0;
-            }
+        long opScheduledEnd = opBeginTime + clockSteps;
+        long now = System.nanoTime();
+        while(now < opScheduledEnd) {
+            now = System.nanoTime();
         }
     }
 
