@@ -39,6 +39,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -123,8 +125,8 @@ public class Simulator {
      */
     private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
-    public Simulator() throws Exception {
-        this.machine = new MulticompMachine();
+    public Simulator(Class machineClass) throws Exception {
+        this.machine = (Machine) machineClass.getConstructors()[0].newInstance();
     }
 
     /**
@@ -383,12 +385,25 @@ public class Simulator {
      * @param args
      */
     public static void main(String args[]) {
+        
+        Class machineClass = SymonMachine.class;
+        for(int i = 0; i < args.length; ++i) {
+            String arg = args[i].toLowerCase(Locale.ENGLISH);
+            if(arg.equals("-machine") && (i+1) < args.length) {
+                String machine = args[i+1].trim().toLowerCase(Locale.ENGLISH);
+                if(machine.equals("multicomp")) {
+                    machineClass = MulticompMachine.class;
+                }
+            }
+        }
+        
+        final Class mClass = machineClass;
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     // Create the main UI window
-                    Simulator simulator = new Simulator();
+                    Simulator simulator = new Simulator(mClass);
                     simulator.createAndShowUi();
                     // Reset the simulator.
                     simulator.handleReset();
