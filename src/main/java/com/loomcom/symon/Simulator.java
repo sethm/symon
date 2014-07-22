@@ -386,16 +386,36 @@ public class Simulator {
      */
     public static void main(String args[]) {
         
-        Class machineClass = SymonMachine.class;
+        Class machineClass = null;
         for(int i = 0; i < args.length; ++i) {
             String arg = args[i].toLowerCase(Locale.ENGLISH);
             if(arg.equals("-machine") && (i+1) < args.length) {
                 String machine = args[i+1].trim().toLowerCase(Locale.ENGLISH);
-                if(machine.equals("multicomp")) {
+                if(machine.equals("symon")) {
+                    machineClass = SymonMachine.class;
+                } else if(machine.equals("multicomp")) {
                     machineClass = MulticompMachine.class;
                 }
             }
         }
+        
+        if(machineClass == null) {
+            Object[] possibilities = {"Symon", "Multicomp"};
+            String s = (String)JOptionPane.showInputDialog(
+                            null,
+                            "Please choose the machine type to be emulated:",
+                            "Machine selection",
+                            JOptionPane.PLAIN_MESSAGE,
+                            null,
+                            possibilities,
+                            "Symon");
+            if(s.equals("Symon")) {
+                machineClass = SymonMachine.class;
+            } else {
+                machineClass = MulticompMachine.class;
+            }
+        }
+        
         
         final Class mClass = machineClass;
         SwingUtilities.invokeLater(new Runnable() {
