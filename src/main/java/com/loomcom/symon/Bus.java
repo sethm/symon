@@ -76,8 +76,7 @@ public class Bus {
     }
     
     private void buildDeviceAddressArray() {
-        // TODO: Find out why +2 and not +1 is needed here
-        int size = (this.endAddress - this.startAddress) + 2;
+        int size = (this.endAddress - this.startAddress) + 1;
         deviceAddressArray = new Device[size];
         
         List<Integer> priorities = new ArrayList<Integer>(deviceMap.keySet());
@@ -88,7 +87,7 @@ public class Bus {
             for(Device device : deviceSet) {
                 MemoryRange range = device.getMemoryRange();
                 for(int address = range.startAddress; address <= range.endAddress; ++address) {
-                    deviceAddressArray[address] = device;
+                    deviceAddressArray[address - this.startAddress] = device;
                 }
             }
         }
@@ -101,7 +100,16 @@ public class Bus {
      * @param device
      * @param priority
      */
-    public void addDevice(Device device, int priority) {
+    public void addDevice(Device device, int priority) throws MemoryRangeException {
+        
+        MemoryRange range = device.getMemoryRange();
+        if(range.startAddress() < this.startAddress || range.startAddress() > this.endAddress) {
+            throw new MemoryRangeException("start address of device " + device.getName() + " does not fall within the address range of the bus");
+        }
+        if(range.endAddress() < this.startAddress || range.endAddress() > this.endAddress) {
+            throw new MemoryRangeException("end address of device " + device.getName() + " does not fall within the address range of the bus");
+        }
+  
         
         SortedSet<Device> deviceSet = deviceMap.get(priority);
         if(deviceSet == null) {
@@ -152,7 +160,7 @@ public class Bus {
         }
         
         for(int address = startAddress; address <= endAddress; ++address) {
-            if(deviceAddressArray[address] == null) {
+            if(deviceAddressArray[address - startAddress] == null) {
                 return false;
             }
         }
@@ -161,7 +169,7 @@ public class Bus {
     }
 
     public int read(int address) throws MemoryAccessException {
-        Device d = deviceAddressArray[address];
+        Device d = deviceAddressArray[address - this.startAddress];
         if(d != null) {
             MemoryRange range = d.getMemoryRange();
             int devAddr = address - range.startAddress();
@@ -172,7 +180,7 @@ public class Bus {
     }
 
     public void write(int address, int value) throws MemoryAccessException {
-        Device d = deviceAddressArray[address];
+        Device d = deviceAddressArray[address - this.startAddress];
         if(d != null) {
             MemoryRange range = d.getMemoryRange();
             int devAddr = address - range.startAddress();

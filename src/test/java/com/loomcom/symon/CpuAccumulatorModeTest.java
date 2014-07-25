@@ -14,7 +14,7 @@ public class CpuAccumulatorModeTest extends TestCase {
     public void setUp() throws MemoryRangeException, MemoryAccessException {
         this.cpu = new Cpu();
         this.bus = new Bus(0x0000, 0xffff);
-        this.mem = new Memory(0x0000, 0x10000);
+        this.mem = new Memory(0x0000, 0xffff);
         bus.addCpu(cpu);
         bus.addDevice(mem);
 
