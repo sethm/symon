@@ -78,17 +78,12 @@ public class Bus {
     private void buildDeviceAddressArray() {
         int size = (this.endAddress - this.startAddress) + 1;
         deviceAddressArray = new Device[size];
-        
-        List<Integer> priorities = new ArrayList<Integer>(deviceMap.keySet());
-        Collections.sort(priorities);
-        
-        for(int priority : priorities) {
-            SortedSet<Device> deviceSet = deviceMap.get(priority);
-            for(Device device : deviceSet) {
-                MemoryRange range = device.getMemoryRange();
-                for(int address = range.startAddress; address <= range.endAddress; ++address) {
-                    deviceAddressArray[address - this.startAddress] = device;
-                }
+   
+        // getDevices() provides an OrderedSet with devices ordered by priorities
+        for(Device device : getDevices()) {
+            MemoryRange range = device.getMemoryRange();
+            for(int address = range.startAddress; address <= range.endAddress; ++address) {
+                deviceAddressArray[address - this.startAddress] = device;
             }
         }
         
@@ -217,7 +212,7 @@ public class Bus {
     }
 
     public SortedSet<Device> getDevices() {
-        // Expose a copy of the device list, not the original
+        // create an ordered set of devices, ordered by device priorities
         SortedSet<Device> devices = new TreeSet<Device>();
         
         List<Integer> priorities = new ArrayList<Integer>(deviceMap.keySet());
