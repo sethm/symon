@@ -99,6 +99,7 @@ public class Bus {
      *
      * @param device
      * @param priority
+     * @throws MemoryRangeException
      */
     public void addDevice(Device device, int priority) throws MemoryRangeException {
         
