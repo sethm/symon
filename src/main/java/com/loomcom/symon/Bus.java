@@ -26,6 +26,11 @@ package com.loomcom.symon;
 import com.loomcom.symon.devices.Device;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -45,11 +50,8 @@ public class Bus {
     // The CPU
     private Cpu cpu;
 
-    // Ordered list of IO devices.
-    private SortedSet<Device> devices;
-    
-    // Ordered list of IO devices that have overlapping memory locations
-    private SortedSet<Device> overlapDevices;
+    // Ordered sets of IO devices, associated with their priority
+    private Map<Integer, SortedSet<Device>> deviceMap;
     
     // an array for quick lookup of adresses, brute-force style
     private Device[] deviceAddressArray;
@@ -60,8 +62,7 @@ public class Bus {
     }
 
     public Bus(int startAddress, int endAddress) {
-        this.devices = new TreeSet<Device>();
-        this.overlapDevices = new TreeSet<Device>();
+        this.deviceMap = new HashMap<Integer, SortedSet<Device>>();
         this.startAddress = startAddress;
         this.endAddress = endAddress;
     }
@@ -78,48 +79,37 @@ public class Bus {
         // TODO: Find out why +2 and not +1 is needed here
         int size = (this.endAddress - this.startAddress) + 2;
         deviceAddressArray = new Device[size];
-        for(Device device : devices) {
-            MemoryRange range = device.getMemoryRange();
-            for(int address = range.startAddress; address <= range.endAddress; ++address) {
-                deviceAddressArray[address] = device;
-            }
-        }
-        for(Device device : overlapDevices) {
-            MemoryRange range = device.getMemoryRange();
-            for(int address = range.startAddress; address <= range.endAddress; ++address) {
-                deviceAddressArray[address] = device;
-            }
-        }
-    }
-
-    /**
-     * Add a device to the bus. Throws a MemoryRangeException if the device overlaps with any others, unless the overlap parameter is true.
-     *
-     * @param device
-     * @param overlap
-     * @throws MemoryRangeException
-     */
-    public void addDevice(Device device, boolean overlap) throws MemoryRangeException {
-        // Make sure there's no memory overlap.
-        MemoryRange memRange = device.getMemoryRange();
-        if(!overlap) {
-            for (Device d : devices) {
-                if (d.getMemoryRange().overlaps(memRange)) {
-                    throw new MemoryRangeException("The device being added at " +
-                                                   String.format("$%04X", memRange.startAddress()) +
-                                                   " overlaps with an existing " +
-                                                   "device, '" + d + "'");
+        
+        List<Integer> priorities = new ArrayList<Integer>(deviceMap.keySet());
+        Collections.sort(priorities);
+        
+        for(int priority : priorities) {
+            SortedSet<Device> deviceSet = deviceMap.get(priority);
+            for(Device device : deviceSet) {
+                MemoryRange range = device.getMemoryRange();
+                for(int address = range.startAddress; address <= range.endAddress; ++address) {
+                    deviceAddressArray[address] = device;
                 }
             }
         }
+        
+    }
 
-        // Add the device
-        device.setBus(this);
-        if(overlap) {
-            overlapDevices.add(device);
-        } else {
-            devices.add(device);
+    /**
+     * Add a device to the bus.
+     *
+     * @param device
+     * @param priority
+     */
+    public void addDevice(Device device, int priority) {
+        
+        SortedSet<Device> deviceSet = deviceMap.get(priority);
+        if(deviceSet == null) {
+            deviceSet = new TreeSet<Device>();
+            deviceMap.put(priority, deviceSet);
         }
+        
+        deviceSet.add(device);
         buildDeviceAddressArray();
     }
     
@@ -130,7 +120,7 @@ public class Bus {
      * @throws MemoryRangeException
      */
     public void addDevice(Device device) throws MemoryRangeException {
-        addDevice(device, false);
+        addDevice(device, 0);
     }
     
 
@@ -140,14 +130,10 @@ public class Bus {
      * @param device
      */
     public void removeDevice(Device device) {
-        if (devices.contains(device)) {
-            devices.remove(device);
-            buildDeviceAddressArray();
+        for(SortedSet<Device> deviceSet : deviceMap.values()) {
+            deviceSet.remove(device);
         }
-        if (overlapDevices.contains(device)) {
-            overlapDevices.remove(device);
-            buildDeviceAddressArray();
-        }
+        buildDeviceAddressArray();
     }
 
     public void addCpu(Cpu cpu) {
@@ -161,19 +147,17 @@ public class Bus {
      * device.
      */
     public boolean isComplete() {
-        // Empty maps cannot be complete.
-        if (devices.isEmpty()) {
-            return false;
+        if(deviceAddressArray == null) {
+            buildDeviceAddressArray();
         }
-
-        // Loop over devices and add their size
-        int filledMemory = 0;
-        for (Device d : devices) {
-            filledMemory += d.getSize();
+        
+        for(int address = startAddress; address <= endAddress; ++address) {
+            if(deviceAddressArray[address] == null) {
+                return false;
+            }
         }
-
-        // Returns if the total size of the devices fill the bus' memory space
-        return filledMemory == endAddress - startAddress + 1;
+        
+        return true;
     }
 
     public int read(int address) throws MemoryAccessException {
@@ -225,7 +209,19 @@ public class Bus {
 
     public SortedSet<Device> getDevices() {
         // Expose a copy of the device list, not the original
-        return new TreeSet<Device>(devices);
+        SortedSet<Device> devices = new TreeSet<Device>();
+        
+        List<Integer> priorities = new ArrayList<Integer>(deviceMap.keySet());
+        Collections.sort(priorities);
+        
+        for(int priority : priorities) {
+            SortedSet<Device> deviceSet = deviceMap.get(priority);
+            for(Device device : deviceSet) {
+                devices.add(device);
+            }
+        }
+        
+        return devices;
     }
 
     public Cpu getCpu() {

@@ -59,22 +59,6 @@ public class BusTest extends TestCase {
         assertEquals(2, b.getDevices().size());
     }
 
-    public void testOverlappingDevicesShouldFail() throws MemoryRangeException {
-        Device memory = new Memory(0x0000, 0x0100, true);
-        Device rom = new Memory(0x00ff, 0x0200, false);
-
-        Bus b = new Bus(0x0000, 0xffff);
-
-        b.addDevice(memory);
-
-        try {
-            b.addDevice(rom);
-            fail("Should have thrown a MemoryRangeException.");
-        } catch (MemoryRangeException ex) {
-            // expected
-        }
-    }
-
     public void testIsCompleteWithFirstDeviceNotStartingAtStartAddress() throws MemoryRangeException {
         Device memory = new Memory(0x00ff, 0xff00, true);
 

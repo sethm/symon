@@ -73,7 +73,7 @@ public class MulticompMachine implements Machine {
 
         bus.addCpu(cpu);
         bus.addDevice(ram);
-        bus.addDevice(acia, true);
+        bus.addDevice(acia, 1);
         
         // TODO: Make this configurable, of course.
         File romImage = new File("rom.bin");
