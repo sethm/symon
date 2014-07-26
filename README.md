@@ -9,7 +9,7 @@ SYMON - A 6502 System Simulator
 
 Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;
 
-Portions Copyright (c) 2014 Maik Marten &lt;maikmarten@googlemail.com&gt;
+Portions Copyright (c) 2014 Maik Merten &lt;maikmerten@googlemail.com&gt;
 
 See the file COPYING for license.
 
@@ -39,7 +39,7 @@ for more information about this functional test suite).
 
 ## 3.0 Features
 
-Symon can simiulate multiple 6502 based architectures. At present, two
+Symon can simulate multiple 6502 based architectures. At present, two
 machines are implemented: Symon (the default), and MULTICOMP.
 
 ### 3.1 Memory Maps
@@ -218,7 +218,7 @@ running.
 ## 5.0 Revision History
 
   - **0.9.9:** 26 July, 2014 - MULTICOMP and multi-machine support
-    contributed by Maik Marten &lt;maikmarten@googlemail.com&gt;
+    contributed by Maik Merten &lt;maikmerten@googlemail.com&gt;
 
   - **0.9.1:** 26 January, 2014 - Support for IRQ and NMI handling.
 
