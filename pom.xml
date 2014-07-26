@@ -88,7 +88,7 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
-                            <mainClass>com.loomcom.symon.Simulator</mainClass>
+                            <mainClass>com.loomcom.symon.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -29,8 +29,6 @@ import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import com.loomcom.symon.exceptions.SymonException;
 import com.loomcom.symon.machines.Machine;
-import com.loomcom.symon.machines.MulticompMachine;
-import com.loomcom.symon.machines.SymonMachine;
 import com.loomcom.symon.ui.*;
 import com.loomcom.symon.ui.Console;
 
@@ -39,8 +37,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -232,6 +228,7 @@ public class Simulator {
         mainWindow.setVisible(true);
 
         console.requestFocus();
+        handleReset();
     }
 
     private void handleStart() {
@@ -378,61 +375,6 @@ public class Simulator {
         });
     }
 
-    /**
-     * Main entry point to the simulator. Creates a simulator and shows the main
-     * window.
-     *
-     * @param args
-     */
-    public static void main(String args[]) {
-        
-        Class machineClass = null;
-        for(int i = 0; i < args.length; ++i) {
-            String arg = args[i].toLowerCase(Locale.ENGLISH);
-            if(arg.equals("-machine") && (i+1) < args.length) {
-                String machine = args[i+1].trim().toLowerCase(Locale.ENGLISH);
-                if(machine.equals("symon")) {
-                    machineClass = SymonMachine.class;
-                } else if(machine.equals("multicomp")) {
-                    machineClass = MulticompMachine.class;
-                }
-            }
-        }
-        
-        if(machineClass == null) {
-            Object[] possibilities = {"Symon", "Multicomp"};
-            String s = (String)JOptionPane.showInputDialog(
-                            null,
-                            "Please choose the machine type to be emulated:",
-                            "Machine selection",
-                            JOptionPane.PLAIN_MESSAGE,
-                            null,
-                            possibilities,
-                            "Symon");
-            if(s.equals("Symon")) {
-                machineClass = SymonMachine.class;
-            } else {
-                machineClass = MulticompMachine.class;
-            }
-        }
-        
-        
-        final Class mClass = machineClass;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                    // Create the main UI window
-                    Simulator simulator = new Simulator(mClass);
-                    simulator.createAndShowUi();
-                    // Reset the simulator.
-                    simulator.handleReset();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
 
     /**
      * The main run thread.
