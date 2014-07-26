@@ -25,6 +25,8 @@ package com.loomcom.symon;
 
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.util.HexUtil;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class provides a simulation of the MOS 6502 CPU's state machine.
@@ -75,6 +77,9 @@ public class Cpu implements InstructionTable {
     /* Internal scratch space */
     private int lo = 0, hi = 0;  // Used in address calculation
     private int tmp; // Temporary storage
+    
+    /* start time of op execution, needed for speed simulation */
+    private long opBeginTime;
 
     /**
      * Construct a new CPU.
@@ -157,6 +162,7 @@ public class Cpu implements InstructionTable {
      * Performs an individual instruction cycle.
      */
     public void step() throws MemoryAccessException {
+        opBeginTime = System.nanoTime();
         // Store the address from which the IR was read, for debugging
         state.lastPc = state.pc;
 
@@ -1324,11 +1330,10 @@ public class Cpu implements InstructionTable {
         if (clockSteps == 0) {
             clockSteps = 1;
         }
-        long startTime = System.nanoTime();
-        long stopTime = startTime + (CLOCK_IN_NS * clockSteps);
-        // Busy loop
-        while (System.nanoTime() < stopTime) {
-            ;
+        long opScheduledEnd = opBeginTime + clockSteps;
+        long now = System.nanoTime();
+        while(now < opScheduledEnd) {
+            now = System.nanoTime();
         }
     }
 
