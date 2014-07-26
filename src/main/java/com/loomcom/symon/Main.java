@@ -40,9 +40,9 @@ public class Main {
      *
      * @param args
      */
-    public static void main(String args[]) {
+    public static void main(String args[]) throws Exception {
         
-        Class machineClass = null;
+        Class machineClass = SymonMachine.class;
         for(int i = 0; i < args.length; ++i) {
             String arg = args[i].toLowerCase(Locale.ENGLISH);
             if(arg.equals("-machine") && (i+1) < args.length) {
@@ -55,38 +55,46 @@ public class Main {
             }
         }
         
-        if(machineClass == null) {
-            Object[] possibilities = {"Symon", "Multicomp"};
-            String s = (String)JOptionPane.showInputDialog(
-                            null,
-                            "Please choose the machine type to be emulated:",
-                            "Machine selection",
-                            JOptionPane.PLAIN_MESSAGE,
-                            null,
-                            possibilities,
-                            "Symon");
-            if(s.equals("Symon")) {
-                machineClass = SymonMachine.class;
-            } else {
-                machineClass = MulticompMachine.class;
-            }
-        }
-        
-        
-        final Class mClass = machineClass;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                    // Create the main UI window
-                    Simulator simulator = new Simulator(mClass);
-                    simulator.createAndShowUi();
-                } catch (Exception e) {
-                    e.printStackTrace();
+        while(true) {        
+            if(machineClass == null) {
+                Object[] possibilities = {"Symon", "Multicomp"};
+                String s = (String)JOptionPane.showInputDialog(
+                                null,
+                                "Please choose the machine type to be emulated:",
+                                "Machine selection",
+                                JOptionPane.PLAIN_MESSAGE,
+                                null,
+                                possibilities,
+                                "Symon");
+                if(s.equals("Symon")) {
+                    machineClass = SymonMachine.class;
+                } else {
+                    machineClass = MulticompMachine.class;
                 }
             }
-        });
         
+            final Simulator simulator = new Simulator(machineClass);
+        
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    try {
+                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                        // Create the main UI window
+                        simulator.createAndShowUi();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        
+        
+            Simulator.MAIN_CMD cmd = simulator.waitForCommand();
+            if(cmd.equals(Simulator.MAIN_CMD.SELECTMACHINE)) {
+                machineClass = null;
+            } else {
+                break;
+            }
+        }
        
     }
     

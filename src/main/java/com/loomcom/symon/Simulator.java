@@ -116,6 +116,13 @@ public class Simulator {
     private JFileChooser      fileChooser;
     private PreferencesDialog preferences;
 
+    private final Object commandMonitorObject = new Object();
+    private MAIN_CMD command = MAIN_CMD.NONE;
+    public static enum MAIN_CMD  {
+        NONE,
+        SELECTMACHINE
+    }
+    
     /**
      * The list of step counts that will appear in the "Step" drop-down.
      */
@@ -230,6 +237,18 @@ public class Simulator {
         console.requestFocus();
         handleReset();
     }
+    
+    public MAIN_CMD waitForCommand() {
+        synchronized(commandMonitorObject) {
+            try {
+                commandMonitorObject.wait();
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return command;
+    }
+    
 
     private void handleStart() {
         // Shift focus to the console.
@@ -543,6 +562,34 @@ public class Simulator {
             preferences.getDialog().setVisible(true);
         }
     }
+    
+    class SelectMachineAction extends AbstractAction {
+        Simulator simulator;
+        
+        public SelectMachineAction() {
+            super("Switch emulated machine...", null);
+            putValue(SHORT_DESCRIPTION, "Select the type of the machine to be emulated");
+            putValue(MNEMONIC_KEY, KeyEvent.VK_M);
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            if(runLoop != null) {
+                runLoop.requestStop();
+            }
+
+            memoryWindow.dispose();
+            traceLog.dispose();
+            if(videoWindow != null) {
+                videoWindow.dispose();
+            }
+            mainWindow.dispose();
+
+            command = MAIN_CMD.SELECTMACHINE;
+            synchronized(commandMonitorObject) {
+                commandMonitorObject.notifyAll();
+            }
+        }
+    }
 
     class QuitAction extends AbstractAction {
         public QuitAction() {
@@ -669,11 +716,13 @@ public class Simulator {
             loadProgramItem = new JMenuItem(new LoadProgramAction());
             loadRomItem = new JMenuItem(new LoadRomAction());
             JMenuItem prefsItem = new JMenuItem(new ShowPrefsAction());
+            JMenuItem selectMachineItem = new JMenuItem(new SelectMachineAction());
             JMenuItem quitItem = new JMenuItem(new QuitAction());
 
             fileMenu.add(loadProgramItem);
             fileMenu.add(loadRomItem);
             fileMenu.add(prefsItem);
+            fileMenu.add(selectMachineItem);
             fileMenu.add(quitItem);
 
             add(fileMenu);
