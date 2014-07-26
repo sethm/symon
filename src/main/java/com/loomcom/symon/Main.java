@@ -66,10 +66,12 @@ public class Main {
                                 null,
                                 possibilities,
                                 "Symon");
-                if(s.equals("Symon")) {
-                    machineClass = SymonMachine.class;
-                } else {
+                
+                
+                if(s != null && s.equals("Multicomp")) {
                     machineClass = MulticompMachine.class;
+                } else {
+                    machineClass = SymonMachine.class;
                 }
             }
         
