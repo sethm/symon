@@ -209,7 +209,7 @@ public class Simulator {
 
         resetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
-                handleReset();
+                handleReset(false);
             }
         });
 
@@ -235,7 +235,7 @@ public class Simulator {
         mainWindow.setVisible(true);
 
         console.requestFocus();
-        handleReset();
+        handleReset(false);
     }
     
     public MAIN_CMD waitForCommand() {
@@ -268,7 +268,7 @@ public class Simulator {
     /*
      * Perform a reset.
      */
-    private void handleReset() {
+    private void handleReset(boolean isColdReset) {
         if (runLoop != null && runLoop.isRunning()) {
             runLoop.requestStop();
             runLoop.interrupt();
@@ -283,6 +283,8 @@ public class Simulator {
             console.reset();
             // Reset the trace log.
             traceLog.reset();
+            // If we're doing a cold reset, clear the memory.
+            // TODO: Clear memory
             // Update status.
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
