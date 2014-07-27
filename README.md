@@ -3,9 +3,9 @@ SYMON - A 6502 System Simulator
 
 **NOTE: THIS SOFTWARE IS UNDER ACTIVE DEVELOPMENT. Feedback is welcome!**
 
-**Version:** 0.9.9.0
+**Version:** 0.9.9.1
 
-**Last Updated:** 26 July, 2014
+**Last Updated:** 27 July, 2014
 
 Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;
 
@@ -216,6 +216,9 @@ After loading a program or ROM image, clicking "Run" will start the simulator
 running.
 
 ## 5.0 Revision History
+
+  - **0.9.9.1:** 27 July, 2014 - Pressing 'Control' while clicking
+    'Reset' now performs a memory clear.
 
   - **0.9.9:** 26 July, 2014 - MULTICOMP and multi-machine support
     contributed by Maik Marten &lt;maikmarten@googlemail.com&gt;

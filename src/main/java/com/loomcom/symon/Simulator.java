@@ -209,7 +209,8 @@ public class Simulator {
 
         resetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
-                handleReset(false);
+                // If this was a CTRL-click, do a hard reset.
+                handleReset((actionEvent.getModifiers() & ActionEvent.CTRL_MASK) != 0);
             }
         });
 
@@ -277,14 +278,19 @@ public class Simulator {
 
         try {
             logger.log(Level.INFO, "Reset requested. Resetting CPU.");
-            // Reset and clear memory
+            // Reset CPU
             machine.getCpu().reset();
             // Clear the console.
             console.reset();
             // Reset the trace log.
             traceLog.reset();
             // If we're doing a cold reset, clear the memory.
-            // TODO: Clear memory
+            if (isColdReset) {
+                Memory mem = machine.getRam();
+                if (mem != null) {
+                    mem.fill(0);
+                }
+            }
             // Update status.
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
