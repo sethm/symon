@@ -113,6 +113,7 @@ public class Bus {
             deviceMap.put(priority, deviceSet);
         }
         
+        device.setBus(this);
         deviceSet.add(device);
         buildDeviceAddressArray();
     }
