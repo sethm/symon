@@ -27,9 +27,9 @@ package com.loomcom.symon.devices;
 
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,34 +48,28 @@ public class SdController extends Device {
     }
     
     public static final int CONTROLLER_SIZE = 8;
+    private final int SECTOR_SIZE = 512;
     private final static Logger logger = Logger.getLogger(SdController.class.getName());
-    private byte[] sdcontent;
-    
+
+    private File sdImageFile;
     private int lba0,lba1,lba2;
     private int command;
     private int position;
     private Status status = Status.IDLE;
+    
+    private final byte[] readBuffer = new byte[SECTOR_SIZE];
+    private final byte[] writeBuffer = new byte[SECTOR_SIZE];
+    private int readPosition = 0;
+    private int writePosition = 0;
    
     
     public SdController(int address) throws MemoryRangeException {
         super(address, address + CONTROLLER_SIZE - 1, "SDCONTROLLER");
-        
-        // assume an empty 64K SD card by default
-        sdcontent = new byte[64 * 1024];
-        
-        // try to load an actual SD card image
-        try {
-            FileInputStream fis = new FileInputStream(new File("sd.img"));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buf = new byte[2048];
-            int read = fis.read(buf);
-            while(read > 0) {
-                baos.write(buf, 0, read);
-                read = fis.read(buf);
-            }
-            sdcontent = baos.toByteArray();
-        } catch (IOException ex) {
-            logger.log(Level.INFO, "Could not load image for SD card from file 'sd.img'");
+       
+        sdImageFile = new File("sd.img");
+        if(!sdImageFile.exists()) {
+            sdImageFile = null;
+            logger.log(Level.INFO, "Could not find SD card image 'sd.img'");
         }
     }
     
@@ -120,24 +114,70 @@ public class SdController extends Device {
         this.position = lba0 + (lba1 << 8) + (lba2 << 16);
         // each sector is 512 bytes, so multiply accordingly
         this.position <<= 9;
-     }
+    }
+    
+    private void prepareRead() {
+        this.status = Status.READ;
+        this.readPosition = 0;
+        computePosition();
+        
+        if(sdImageFile != null) {
+            try {
+                FileInputStream fis = new FileInputStream(sdImageFile);
+                fis.skip(this.position);
+                int read = fis.read(readBuffer);
+                if(read < SECTOR_SIZE) {
+                    logger.log(Level.WARNING, "not enough data to fill read buffer from SD image file");
+                }
+                fis.close();
+            } catch (IOException ex) {
+                logger.log(Level.WARNING, "could not fill read buffer from SD image file", ex);
+            }
+        }        
+    }
+    
+    private void prepareWrite() {
+        this.status = Status.WRITE;
+        this.writePosition = 0;
+        computePosition();
+    }
+
     
     private int readData() {
         if(status != Status.READ) {
             return 0;
         }
         
-        this.position %= this.sdcontent.length;
-        int data = this.sdcontent[this.position++];
-        if(this.position % 512 == 0) {
+        int data = readBuffer[readPosition++];
+        
+        if(readPosition >= SECTOR_SIZE) {
             this.status = Status.IDLE;
         }
+        
         return data;
     }
     
     private void writeData(int data) {
-        this.position %= this.sdcontent.length;
-        this.sdcontent[this.position++] = (byte) data;
+        if(status != Status.WRITE) {
+            return;
+        }
+        
+        writeBuffer[writePosition++] = (byte) data;
+        
+        if(writePosition >= SECTOR_SIZE) {
+            if(sdImageFile != null) {
+                try {
+                    FileOutputStream fos = new FileOutputStream(sdImageFile);
+                    fos.write(writeBuffer, this.position, writeBuffer.length);
+                    fos.close();
+                } catch (IOException ex) {
+                    logger.log(Level.WARNING, "could not write data back to SD image file!", ex);
+                }
+            }
+            
+            this.status = Status.IDLE;
+        }
+        
     }
     
     private int readStatus() {
@@ -155,15 +195,14 @@ public class SdController extends Device {
         this.command = data;
         switch(this.command) {
             case 0 :
-                this.status = Status.READ;
+                prepareRead();
                 break;
             case 1 :
-                this.status = Status.WRITE;
+                prepareWrite();
                 break;
             default:
                 this.status = Status.IDLE;
         }
-        computePosition();
     }
 
     @Override
