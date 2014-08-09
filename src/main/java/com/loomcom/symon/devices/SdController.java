@@ -54,7 +54,7 @@ public class SdController extends Device {
     private int lba0,lba1,lba2;
     private int command;
     private int position;
-    private Status status;
+    private Status status = Status.IDLE;
    
     
     public SdController(int address) throws MemoryRangeException {
@@ -161,6 +161,7 @@ public class SdController extends Device {
             default:
                 this.status = Status.IDLE;
         }
+        computePosition();
     }
 
     @Override
