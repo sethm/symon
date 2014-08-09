@@ -111,12 +111,6 @@ public class SdController extends Device {
                 return readData();
             case 1:
                 return readStatus();
-            case 2:
-                return lba0;
-            case 3:
-                return lba1;
-            case 4:
-                return lba2;
             default:
                 return 0;
         }
@@ -129,8 +123,16 @@ public class SdController extends Device {
      }
     
     private int readData() {
+        if(status != Status.READ) {
+            return 0;
+        }
+        
         this.position %= this.sdcontent.length;
-        return this.sdcontent[this.position++];
+        int data = this.sdcontent[this.position++];
+        if(this.position % 512 == 0) {
+            this.status = Status.IDLE;
+        }
+        return data;
     }
     
     private void writeData(int data) {
