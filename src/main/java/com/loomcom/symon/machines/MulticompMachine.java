@@ -30,6 +30,7 @@ import com.loomcom.symon.devices.Acia;
 import com.loomcom.symon.devices.Acia6850;
 import com.loomcom.symon.devices.Crtc;
 import com.loomcom.symon.devices.Memory;
+import com.loomcom.symon.devices.SdController;
 import com.loomcom.symon.devices.Via;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import java.io.File;
@@ -51,6 +52,8 @@ public class MulticompMachine implements Machine {
     // ACIA at $FFD0-$FFD1
     private static final int ACIA_BASE = 0xFFD0;
 
+    // SD controller at $FFD8-$FFDF
+    private static final int SD_BASE = 0xFFD8;
 
     // 8KB ROM at $E000-$FFFF
     private static final int ROM_BASE = 0xE000;
@@ -62,6 +65,7 @@ public class MulticompMachine implements Machine {
     private final Cpu    cpu;
     private final Acia   acia;
     private final Memory ram;
+    private final SdController sdController;
     private       Memory rom;
 
 
@@ -70,10 +74,13 @@ public class MulticompMachine implements Machine {
         this.cpu = new Cpu();
         this.ram = new Memory(MEMORY_BASE, MEMORY_BASE + MEMORY_SIZE - 1, false);
         this.acia = new Acia6850(ACIA_BASE);
+        this.acia.setBaudRate(0);
+        this.sdController = new SdController(SD_BASE);
 
         bus.addCpu(cpu);
         bus.addDevice(ram);
         bus.addDevice(acia, 1);
+        bus.addDevice(sdController, 1);
         
         // TODO: Make this configurable, of course.
         File romImage = new File("rom.bin");
