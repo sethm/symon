@@ -3,13 +3,17 @@ SYMON - A 6502 System Simulator
 
 **NOTE: THIS SOFTWARE IS UNDER ACTIVE DEVELOPMENT. Feedback is welcome!**
 
-**Version:** 0.9.9.1
+**Version:** 1.0.0-SNAPSHOT
 
-**Last Updated:** 27 July, 2014
+**Last Updated:** 10 August, 2014
 
-Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;
+**Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;**
 
 Portions Copyright (c) 2014 Maik Merten &lt;maikmerten@googlemail.com&gt;
+
+Enhanced 6502 BASIC (c) Lee Davison
+
+6502 Functional Tests (c) Klaus Dormann
 
 See the file COPYING for license.
 
@@ -216,6 +220,11 @@ After loading a program or ROM image, clicking "Run" will start the simulator
 running.
 
 ## 5.0 Revision History
+
+  - **1.0.0-SNAPSHOT:** 10 August, 2014 - Added "Simple" machine
+    implementation, pure RAM with no IO. Added Klaus Dormann's
+    6502 Functional Tests for further machine verification (these
+    tests must be run in the "Simple" machine).
 
   - **0.9.9.1:** 27 July, 2014 - Pressing 'Control' while clicking
     'Reset' now performs a memory clear.

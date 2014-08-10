@@ -58,8 +58,8 @@ public class Main {
             }
         }
         
-        while(true) {        
-            if(machineClass == null) {
+        while (true) {
+            if (machineClass == null) {
                 Object[] possibilities = {"Symon", "Multicomp", "Simple"};
                 String s = (String)JOptionPane.showInputDialog(
                                 null,
@@ -71,14 +71,12 @@ public class Main {
                                 "Symon");
                 
 
-                if (s != null) {
-                    if (s.equals("Multicomp")) {
-                        machineClass = MulticompMachine.class;
-                    } else if (s.equals("Simple")) {
-                        machineClass = SimpleMachine.class;
-                    } else {
-                        machineClass = SymonMachine.class;
-                    }
+                if (s != null && s.equals("Multicomp")) {
+                    machineClass = MulticompMachine.class;
+                } else if (s != null && s.equals("Simple")) {
+                    machineClass = SimpleMachine.class;
+                } else {
+                    machineClass = SymonMachine.class;
                 }
             }
         
@@ -98,13 +96,11 @@ public class Main {
         
         
             Simulator.MAIN_CMD cmd = simulator.waitForCommand();
-            if(cmd.equals(Simulator.MAIN_CMD.SELECTMACHINE)) {
+            if (cmd.equals(Simulator.MAIN_CMD.SELECTMACHINE)) {
                 machineClass = null;
             } else {
                 break;
             }
         }
-       
     }
-    
 }

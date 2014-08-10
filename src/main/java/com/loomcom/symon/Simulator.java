@@ -487,7 +487,11 @@ public class Simulator {
                         long fileSize = f.length();
 
                         if (fileSize > machine.getMemorySize()) {
-                            throw new IOException("Program will not fit in available memory.");
+                            throw new IOException("Program of size $" +
+                                    Integer.toString((int)fileSize, 16) +
+                                    " will not fit in available memory of size $" +
+                                    Integer.toString(machine.getMemorySize(), 16) +
+                                    ".");
                         } else {
                             byte[] program = new byte[(int) fileSize];
                             int i = 0;
@@ -572,8 +576,6 @@ public class Simulator {
     }
     
     class SelectMachineAction extends AbstractAction {
-        Simulator simulator;
-        
         public SelectMachineAction() {
             super("Switch emulated machine...", null);
             putValue(SHORT_DESCRIPTION, "Select the type of the machine to be emulated");
