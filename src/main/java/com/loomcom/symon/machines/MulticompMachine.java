@@ -147,5 +147,10 @@ public class MulticompMachine implements Machine {
     public int getMemorySize() {
         return MEMORY_SIZE;
     }
-    
+
+    @Override
+    public String getName() {
+        return "Multicomp";
+    }
+
 }

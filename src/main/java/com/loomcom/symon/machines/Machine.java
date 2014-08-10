@@ -56,5 +56,6 @@ public interface Machine {
     public int getRomSize();
     
     public int getMemorySize();
-    
+
+    String getName();
 }

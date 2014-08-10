@@ -137,7 +137,7 @@ public class Simulator {
      */
     public void createAndShowUi() throws IOException {
         mainWindow = new JFrame();
-        mainWindow.setTitle("Symon 6502 Simulator");
+        mainWindow.setTitle("6502 Simulator - " + machine.getName());
         mainWindow.setResizable(false);
         mainWindow.getContentPane().setLayout(new BorderLayout());
 
@@ -337,7 +337,7 @@ public class Simulator {
 
         // Read from the ACIA and immediately update the console if there's
         // output ready.
-        if (machine.getAcia().hasTxChar()) {
+        if (machine.getAcia() != null && machine.getAcia().hasTxChar()) {
             // This is thread-safe
             console.print(Character.toString((char) machine.getAcia().txRead()));
             console.repaint();
@@ -346,7 +346,7 @@ public class Simulator {
         // If a key has been pressed, fill the ACIA.
         // TODO: Interrupt handling.
         try {
-            if (console.hasInput()) {
+            if (machine.getAcia() != null && console.hasInput()) {
                 machine.getAcia().rxWrite((int) console.readInputChar());
             }
         } catch (FifoUnderrunException ex) {
@@ -703,7 +703,9 @@ public class Simulator {
          */
         public void simulatorDidStart() {
             loadProgramItem.setEnabled(false);
-            loadRomItem.setEnabled(false);
+            if (loadRomItem != null) {
+                loadRomItem.setEnabled(false);
+            }
         }
 
         /**
@@ -711,7 +713,9 @@ public class Simulator {
          */
         public void simulatorDidStop() {
             loadProgramItem.setEnabled(true);
-            loadRomItem.setEnabled(true);
+            if (loadRomItem != null) {
+                loadRomItem.setEnabled(true);
+            }
         }
 
         private void initMenu() {
@@ -722,15 +726,22 @@ public class Simulator {
             JMenu fileMenu = new JMenu("File");
 
             loadProgramItem = new JMenuItem(new LoadProgramAction());
-            loadRomItem = new JMenuItem(new LoadRomAction());
-            JMenuItem prefsItem = new JMenuItem(new ShowPrefsAction());
-            JMenuItem selectMachineItem = new JMenuItem(new SelectMachineAction());
-            JMenuItem quitItem = new JMenuItem(new QuitAction());
-
             fileMenu.add(loadProgramItem);
-            fileMenu.add(loadRomItem);
+
+            // Simple Machine does not implement a ROM, so it makes no sense to
+            // offer a ROM load option.
+            if (machine.getRom() != null) {
+                loadRomItem = new JMenuItem(new LoadRomAction());
+                fileMenu.add(loadRomItem);
+            }
+
+            JMenuItem prefsItem = new JMenuItem(new ShowPrefsAction());
             fileMenu.add(prefsItem);
+
+            JMenuItem selectMachineItem = new JMenuItem(new SelectMachineAction());
             fileMenu.add(selectMachineItem);
+
+            JMenuItem quitItem = new JMenuItem(new QuitAction());
             fileMenu.add(quitItem);
 
             add(fileMenu);
