@@ -24,11 +24,14 @@
 package com.loomcom.symon.ui;
 
 import com.loomcom.symon.Cpu;
+import com.loomcom.symon.machines.Machine;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * UI component that displays the current state of the simulated CPU.
@@ -73,14 +76,17 @@ public class StatusPanel extends JPanel {
     private JLabel xLabel;
     private JLabel yLabel;
 
+    private Machine machine;
+
     private static final int EMPTY_BORDER = 10;
     private static final Border LABEL_BORDER = BorderFactory.createEmptyBorder(0, 5, 0, 0);
     private static final Font LABEL_FONT = new Font(Font.SANS_SERIF, Font.BOLD, 12);
     private static final Dimension LARGE_TEXT_FIELD_SIZE = new Dimension(134, 22);
     private static final Dimension SMALL_TEXT_FIELD_SIZE = new Dimension(65, 22);
 
-    public StatusPanel() {
+    public StatusPanel(Machine machine) {
         super();
+        this.machine = machine;
         createUi();
     }
 
@@ -220,14 +226,13 @@ public class StatusPanel extends JPanel {
 
     /**
      * Update the display based on the current state of the CPU.
-     *
-     * @param cpu The simulated 6502 CPU.
      */
-    public void updateState(Cpu cpu) {
+    public void updateState() {
+        Cpu cpu = machine.getCpu();
         Cpu.CpuState cpuState = cpu.getCpuState();
 
         // Update the Processor Status Flag display
-        int status = cpu.getCpuState().getStatusFlag();
+        int status = cpuState.getStatusFlag();
 
         carryFlagLabel.setIcon(iconForFlag(status, 0));
         zeroFlagLabel.setIcon(iconForFlag(status, 1));

@@ -143,7 +143,7 @@ public class Simulator {
 
         // UI components used for I/O.
         this.console = new com.loomcom.symon.ui.Console(80, 25, DEFAULT_FONT);
-        this.statusPane = new StatusPanel();
+        this.statusPane = new StatusPanel(machine);
 
         console.setBorderWidth(CONSOLE_BORDER_WIDTH);
 
@@ -295,7 +295,7 @@ public class Simulator {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     // Now update the state
-                    statusPane.updateState(machine.getCpu());
+                    statusPane.updateState();
                     memoryWindow.updateState();
                 }
             });
@@ -317,7 +317,7 @@ public class Simulator {
                     if (traceLog.isVisible()) {
                         traceLog.refresh();
                     }
-                    statusPane.updateState(machine.getCpu());
+                    statusPane.updateState();
                     memoryWindow.updateState();
                 }
             });
@@ -364,7 +364,7 @@ public class Simulator {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     // Now update the state
-                    statusPane.updateState(machine.getCpu());
+                    statusPane.updateState();
                     memoryWindow.updateState();
                 }
             });
@@ -396,7 +396,7 @@ public class Simulator {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 // Now update the state
-                statusPane.updateState(machine.getCpu());
+                statusPane.updateState();
                 memoryWindow.updateState();
             }
         });
@@ -443,7 +443,7 @@ public class Simulator {
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    statusPane.updateState(machine.getCpu());
+                    statusPane.updateState();
                     memoryWindow.updateState();
                     runStopButton.setText("Run");
                     stepButton.setEnabled(true);
