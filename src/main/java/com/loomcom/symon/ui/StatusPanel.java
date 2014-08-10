@@ -32,6 +32,8 @@ import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -106,20 +108,20 @@ public class StatusPanel extends JPanel {
         JPanel statusFlagsPanel = new JPanel();
         statusFlagsPanel.setAlignmentX(LEFT_ALIGNMENT);
 
-        carryOn = new ImageIcon(this.getClass().getResource("images/C_on.png"));
-        carryOff = new ImageIcon(this.getClass().getResource("images/C_off.png"));
-        zeroOn = new ImageIcon(this.getClass().getResource("images/Z_on.png"));
-        zeroOff = new ImageIcon(this.getClass().getResource("images/Z_off.png"));
-        irqOn = new ImageIcon(this.getClass().getResource("images/I_on.png"));
-        irqOff = new ImageIcon(this.getClass().getResource("images/I_off.png"));
-        decimalOn = new ImageIcon(this.getClass().getResource("images/D_on.png"));
-        decimalOff = new ImageIcon(this.getClass().getResource("images/D_off.png"));
-        breakOn = new ImageIcon(this.getClass().getResource("images/B_on.png"));
-        breakOff = new ImageIcon(this.getClass().getResource("images/B_off.png"));
-        overflowOn = new ImageIcon(this.getClass().getResource("images/O_on.png"));
-        overflowOff = new ImageIcon(this.getClass().getResource("images/O_off.png"));
-        negativeOn = new ImageIcon(this.getClass().getResource("images/N_on.png"));
-        negativeOff = new ImageIcon(this.getClass().getResource("images/N_off.png"));
+        carryOn = new ImageIcon(this.getClass().getResource("/C_on.png"));
+        carryOff = new ImageIcon(this.getClass().getResource("/C_off.png"));
+        zeroOn = new ImageIcon(this.getClass().getResource("/Z_on.png"));
+        zeroOff = new ImageIcon(this.getClass().getResource("/Z_off.png"));
+        irqOn = new ImageIcon(this.getClass().getResource("/I_on.png"));
+        irqOff = new ImageIcon(this.getClass().getResource("/I_off.png"));
+        decimalOn = new ImageIcon(this.getClass().getResource("/D_on.png"));
+        decimalOff = new ImageIcon(this.getClass().getResource("/D_off.png"));
+        breakOn = new ImageIcon(this.getClass().getResource("/B_on.png"));
+        breakOff = new ImageIcon(this.getClass().getResource("/B_off.png"));
+        overflowOn = new ImageIcon(this.getClass().getResource("/O_on.png"));
+        overflowOff = new ImageIcon(this.getClass().getResource("/O_off.png"));
+        negativeOn = new ImageIcon(this.getClass().getResource("/N_on.png"));
+        negativeOff = new ImageIcon(this.getClass().getResource("/N_off.png"));
 
         // Initialize all to off
         carryFlagLabel = new JLabel(carryOff, JLabel.CENTER);
