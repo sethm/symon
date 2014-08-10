@@ -32,6 +32,7 @@ import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.regex.Pattern;
 
 /**
  * UI component that displays the current state of the simulated CPU.
@@ -164,11 +165,29 @@ public class StatusPanel extends JPanel {
         spLabel.setToolTipText("Stack Pointer");
 
         opcodeField = makeTextField(LARGE_TEXT_FIELD_SIZE);
-        pcField = makeTextField(LARGE_TEXT_FIELD_SIZE);
+        pcField = makeTextField(LARGE_TEXT_FIELD_SIZE, true);
         spField = makeTextField(SMALL_TEXT_FIELD_SIZE);
         aField = makeTextField(SMALL_TEXT_FIELD_SIZE);
         xField = makeTextField(SMALL_TEXT_FIELD_SIZE);
         yField = makeTextField(SMALL_TEXT_FIELD_SIZE);
+
+        // Make fields editable
+        pcField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == pcField) {
+                    try {
+                        String newPcString = pcField.getText().replaceAll("[^0-9a-fA-F]", "");
+                        int newPc = Integer.parseInt(newPcString, 16);
+                        machine.getCpu().setProgramCounter(newPc);
+                    } catch (Exception ex) {
+                        // Swallow exception, we don't care.
+                    }
+
+                    updateState();
+                }
+            }
+        });
 
         constraints.anchor = GridBagConstraints.LINE_START;
         constraints.gridwidth = 2;
@@ -319,9 +338,13 @@ public class StatusPanel extends JPanel {
     }
 
     private JTextField makeTextField(Dimension size) {
+        return makeTextField(size, false);
+    }
+
+    private JTextField makeTextField(Dimension size, boolean editable) {
         JTextField textField = new JTextField("");
         textField.setAlignmentX(LEFT_ALIGNMENT);
-        textField.setEditable(false);
+        textField.setEditable(editable);
         textField.setMinimumSize(size);
         textField.setMaximumSize(size);
         textField.setPreferredSize(size);
