@@ -150,7 +150,7 @@ END_CODE
 ; sign on string
 
 LAB_mess
-	.byte	$0D,$0A,"Symon (c) 2008-2013, Seth Morabito"
+	.byte	$0D,$0A,"Symon (c) 2008-2014, Seth Morabito"
 	.byte   $0D,$0A,"Enhanced 6502 BASIC 2.22 (c) Lee Davison"
 	.byte   $0D,$0A,"[C]old/[W]arm ?",$00
 

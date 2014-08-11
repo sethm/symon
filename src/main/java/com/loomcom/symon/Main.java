@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013 Seth J. Morabito <sethm@loomcom.com>
+ * Copyright (c) 2008-2014 Seth J. Morabito <web@loomcom.com>
  *                         Maik Merten <maikmerten@googlemail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
