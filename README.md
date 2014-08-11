@@ -43,8 +43,9 @@ for more information about this functional test suite).
 
 ## 3.0 Features
 
-Symon can simulate multiple 6502 based architectures. At present, two
-machines are implemented: Symon (the default), and MULTICOMP.
+Symon can simulate multiple 6502 based architectures. At present, three
+machines are implemented: Symon (the default), MULTICOMP, and a "Simple"
+machine useful for debugging.
 
 ### 3.1 Memory Maps
 
@@ -64,6 +65,10 @@ memory.
   - `$0000`--`$DFFF`: 56KB RAM
   - `$E000`--`$FFFF`: 8KB ROM
   - `$FFD0`--`$FFD1`: Motorola 6850 ACIA
+
+### 3.1.3 Simple Memory Map
+
+  - `$0000`--`$FFFF`: 64KB RAM
 
 ### 3.2 Serial Console and CPU Status
 
