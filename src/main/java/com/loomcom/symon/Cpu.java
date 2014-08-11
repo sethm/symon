@@ -872,7 +872,7 @@ public class Cpu implements InstructionTable {
      */
     private int lsr(int m) {
         setCarryFlag((m & 0x01) != 0);
-        return (m >>> 1) & 0xff;
+        return (m & 0xff) >>> 1;
     }
 
     /**
