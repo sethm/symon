@@ -26,6 +26,7 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.machines.MulticompMachine;
+import com.loomcom.symon.machines.SimpleMachine;
 import com.loomcom.symon.machines.SymonMachine;
 import java.util.Locale;
 import javax.swing.JOptionPane;
@@ -51,13 +52,15 @@ public class Main {
                     machineClass = SymonMachine.class;
                 } else if(machine.equals("multicomp")) {
                     machineClass = MulticompMachine.class;
+                } else if (machine.equals("simple")) {
+                    machineClass = SimpleMachine.class;
                 }
             }
         }
         
-        while(true) {        
-            if(machineClass == null) {
-                Object[] possibilities = {"Symon", "Multicomp"};
+        while (true) {
+            if (machineClass == null) {
+                Object[] possibilities = {"Symon", "Multicomp", "Simple"};
                 String s = (String)JOptionPane.showInputDialog(
                                 null,
                                 "Please choose the machine type to be emulated:",
@@ -67,9 +70,11 @@ public class Main {
                                 possibilities,
                                 "Symon");
                 
-                
-                if(s != null && s.equals("Multicomp")) {
+
+                if (s != null && s.equals("Multicomp")) {
                     machineClass = MulticompMachine.class;
+                } else if (s != null && s.equals("Simple")) {
+                    machineClass = SimpleMachine.class;
                 } else {
                     machineClass = SymonMachine.class;
                 }
@@ -91,13 +96,11 @@ public class Main {
         
         
             Simulator.MAIN_CMD cmd = simulator.waitForCommand();
-            if(cmd.equals(Simulator.MAIN_CMD.SELECTMACHINE)) {
+            if (cmd.equals(Simulator.MAIN_CMD.SELECTMACHINE)) {
                 machineClass = null;
             } else {
                 break;
             }
         }
-       
     }
-    
 }

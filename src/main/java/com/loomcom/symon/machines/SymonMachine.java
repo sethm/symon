@@ -160,8 +160,11 @@ public class SymonMachine implements Machine {
     public int getMemorySize() {
         return MEMORY_SIZE;
     }
-    
-    
 
-    
+    @Override
+    public String getName() {
+        return "Symon";
+    }
+
+
 }

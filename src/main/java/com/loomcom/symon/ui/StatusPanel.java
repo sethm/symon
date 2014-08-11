@@ -24,11 +24,17 @@
 package com.loomcom.symon.ui;
 
 import com.loomcom.symon.Cpu;
+import com.loomcom.symon.machines.Machine;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * UI component that displays the current state of the simulated CPU.
@@ -73,14 +79,17 @@ public class StatusPanel extends JPanel {
     private JLabel xLabel;
     private JLabel yLabel;
 
+    private Machine machine;
+
     private static final int EMPTY_BORDER = 10;
     private static final Border LABEL_BORDER = BorderFactory.createEmptyBorder(0, 5, 0, 0);
     private static final Font LABEL_FONT = new Font(Font.SANS_SERIF, Font.BOLD, 12);
     private static final Dimension LARGE_TEXT_FIELD_SIZE = new Dimension(134, 22);
     private static final Dimension SMALL_TEXT_FIELD_SIZE = new Dimension(65, 22);
 
-    public StatusPanel() {
+    public StatusPanel(Machine machine) {
         super();
+        this.machine = machine;
         createUi();
     }
 
@@ -99,20 +108,20 @@ public class StatusPanel extends JPanel {
         JPanel statusFlagsPanel = new JPanel();
         statusFlagsPanel.setAlignmentX(LEFT_ALIGNMENT);
 
-        carryOn = new ImageIcon(this.getClass().getResource("images/C_on.png"));
-        carryOff = new ImageIcon(this.getClass().getResource("images/C_off.png"));
-        zeroOn = new ImageIcon(this.getClass().getResource("images/Z_on.png"));
-        zeroOff = new ImageIcon(this.getClass().getResource("images/Z_off.png"));
-        irqOn = new ImageIcon(this.getClass().getResource("images/I_on.png"));
-        irqOff = new ImageIcon(this.getClass().getResource("images/I_off.png"));
-        decimalOn = new ImageIcon(this.getClass().getResource("images/D_on.png"));
-        decimalOff = new ImageIcon(this.getClass().getResource("images/D_off.png"));
-        breakOn = new ImageIcon(this.getClass().getResource("images/B_on.png"));
-        breakOff = new ImageIcon(this.getClass().getResource("images/B_off.png"));
-        overflowOn = new ImageIcon(this.getClass().getResource("images/O_on.png"));
-        overflowOff = new ImageIcon(this.getClass().getResource("images/O_off.png"));
-        negativeOn = new ImageIcon(this.getClass().getResource("images/N_on.png"));
-        negativeOff = new ImageIcon(this.getClass().getResource("images/N_off.png"));
+        carryOn = new ImageIcon(this.getClass().getResource("/C_on.png"));
+        carryOff = new ImageIcon(this.getClass().getResource("/C_off.png"));
+        zeroOn = new ImageIcon(this.getClass().getResource("/Z_on.png"));
+        zeroOff = new ImageIcon(this.getClass().getResource("/Z_off.png"));
+        irqOn = new ImageIcon(this.getClass().getResource("/I_on.png"));
+        irqOff = new ImageIcon(this.getClass().getResource("/I_off.png"));
+        decimalOn = new ImageIcon(this.getClass().getResource("/D_on.png"));
+        decimalOff = new ImageIcon(this.getClass().getResource("/D_off.png"));
+        breakOn = new ImageIcon(this.getClass().getResource("/B_on.png"));
+        breakOff = new ImageIcon(this.getClass().getResource("/B_off.png"));
+        overflowOn = new ImageIcon(this.getClass().getResource("/O_on.png"));
+        overflowOff = new ImageIcon(this.getClass().getResource("/O_off.png"));
+        negativeOn = new ImageIcon(this.getClass().getResource("/N_on.png"));
+        negativeOff = new ImageIcon(this.getClass().getResource("/N_off.png"));
 
         // Initialize all to off
         carryFlagLabel = new JLabel(carryOff, JLabel.CENTER);
@@ -157,12 +166,83 @@ public class StatusPanel extends JPanel {
         pcLabel.setToolTipText("Program Counter");
         spLabel.setToolTipText("Stack Pointer");
 
-        opcodeField = makeTextField(LARGE_TEXT_FIELD_SIZE);
-        pcField = makeTextField(LARGE_TEXT_FIELD_SIZE);
-        spField = makeTextField(SMALL_TEXT_FIELD_SIZE);
-        aField = makeTextField(SMALL_TEXT_FIELD_SIZE);
-        xField = makeTextField(SMALL_TEXT_FIELD_SIZE);
-        yField = makeTextField(SMALL_TEXT_FIELD_SIZE);
+        opcodeField = makeTextField(LARGE_TEXT_FIELD_SIZE, false);
+        pcField = makeTextField(LARGE_TEXT_FIELD_SIZE, true);
+        spField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
+        aField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
+        xField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
+        yField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
+
+        // Make fields editable
+        pcField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = getHexVal(pcField) & 0xffff;
+                    machine.getCpu().setProgramCounter(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
+
+                updateState();
+            }
+        });
+
+        spField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = getHexVal(spField) & 0xff;
+                    machine.getCpu().setStackPointer(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
+
+                updateState();
+            }
+        });
+
+        aField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = getHexVal(aField) & 0xff;
+                    machine.getCpu().setAccumulator(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
+
+                updateState();
+            }
+        });
+
+        xField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = getHexVal(xField) & 0xff;
+                    machine.getCpu().setXRegister(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
+
+                updateState();
+            }
+        });
+
+        yField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = getHexVal(yField) & 0xff;
+                    machine.getCpu().setYRegister(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
+
+                updateState();
+            }
+        });
 
         constraints.anchor = GridBagConstraints.LINE_START;
         constraints.gridwidth = 2;
@@ -220,14 +300,13 @@ public class StatusPanel extends JPanel {
 
     /**
      * Update the display based on the current state of the CPU.
-     *
-     * @param cpu The simulated 6502 CPU.
      */
-    public void updateState(Cpu cpu) {
+    public void updateState() {
+        Cpu cpu = machine.getCpu();
         Cpu.CpuState cpuState = cpu.getCpuState();
 
         // Update the Processor Status Flag display
-        int status = cpu.getCpuState().getStatusFlag();
+        int status = cpuState.getStatusFlag();
 
         carryFlagLabel.setIcon(iconForFlag(status, 0));
         zeroFlagLabel.setIcon(iconForFlag(status, 1));
@@ -313,10 +392,10 @@ public class StatusPanel extends JPanel {
         return label;
     }
 
-    private JTextField makeTextField(Dimension size) {
+    private JTextField makeTextField(Dimension size, boolean editable) {
         JTextField textField = new JTextField("");
         textField.setAlignmentX(LEFT_ALIGNMENT);
-        textField.setEditable(false);
+        textField.setEditable(editable);
         textField.setMinimumSize(size);
         textField.setMaximumSize(size);
         textField.setPreferredSize(size);
@@ -324,4 +403,8 @@ public class StatusPanel extends JPanel {
         return textField;
     }
 
+    private int getHexVal(JTextField source) throws NumberFormatException {
+        String val = source.getText().replaceAll("[^0-9a-fA-F]", "");
+        return Integer.parseInt(val, 16);
+    }
 }
