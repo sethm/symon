@@ -166,28 +166,81 @@ public class StatusPanel extends JPanel {
         pcLabel.setToolTipText("Program Counter");
         spLabel.setToolTipText("Stack Pointer");
 
-        opcodeField = makeTextField(LARGE_TEXT_FIELD_SIZE);
+        opcodeField = makeTextField(LARGE_TEXT_FIELD_SIZE, false);
         pcField = makeTextField(LARGE_TEXT_FIELD_SIZE, true);
-        spField = makeTextField(SMALL_TEXT_FIELD_SIZE);
-        aField = makeTextField(SMALL_TEXT_FIELD_SIZE);
-        xField = makeTextField(SMALL_TEXT_FIELD_SIZE);
-        yField = makeTextField(SMALL_TEXT_FIELD_SIZE);
+        spField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
+        aField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
+        xField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
+        yField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
 
         // Make fields editable
         pcField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == pcField) {
-                    try {
-                        String newPcString = pcField.getText().replaceAll("[^0-9a-fA-F]", "");
-                        int newPc = Integer.parseInt(newPcString, 16);
-                        machine.getCpu().setProgramCounter(newPc);
-                    } catch (Exception ex) {
-                        // Swallow exception, we don't care.
-                    }
-
-                    updateState();
+                try {
+                    int newVal = getHexVal(pcField) & 0xffff;
+                    machine.getCpu().setProgramCounter(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
                 }
+
+                updateState();
+            }
+        });
+
+        spField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = getHexVal(spField) & 0xff;
+                    machine.getCpu().setStackPointer(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
+
+                updateState();
+            }
+        });
+
+        aField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = getHexVal(aField) & 0xff;
+                    machine.getCpu().setAccumulator(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
+
+                updateState();
+            }
+        });
+
+        xField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = getHexVal(xField) & 0xff;
+                    machine.getCpu().setXRegister(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
+
+                updateState();
+            }
+        });
+
+        yField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = getHexVal(yField) & 0xff;
+                    machine.getCpu().setYRegister(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
+
+                updateState();
             }
         });
 
@@ -339,10 +392,6 @@ public class StatusPanel extends JPanel {
         return label;
     }
 
-    private JTextField makeTextField(Dimension size) {
-        return makeTextField(size, false);
-    }
-
     private JTextField makeTextField(Dimension size, boolean editable) {
         JTextField textField = new JTextField("");
         textField.setAlignmentX(LEFT_ALIGNMENT);
@@ -354,4 +403,8 @@ public class StatusPanel extends JPanel {
         return textField;
     }
 
+    private int getHexVal(JTextField source) throws NumberFormatException {
+        String val = source.getText().replaceAll("[^0-9a-fA-F]", "");
+        return Integer.parseInt(val, 16);
+    }
 }
