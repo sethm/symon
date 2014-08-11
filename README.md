@@ -1,19 +1,9 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**NOTE: THIS SOFTWARE IS UNDER ACTIVE DEVELOPMENT. Feedback is welcome!**
+**Version:** 1.0.0
 
-**Version:** 1.0.0-SNAPSHOT
-
-**Last Updated:** 10 August, 2014
-
-**Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;**
-
-Portions Copyright (c) 2014 Maik Merten &lt;maikmerten@googlemail.com&gt;
-
-Enhanced 6502 BASIC (c) Lee Davison
-
-6502 Functional Tests (c) Klaus Dormann
+**Last Updated:** 11 August, 2014
 
 See the file COPYING for license.
 
@@ -34,6 +24,9 @@ Symon has extensive unit tests to verify correctness, and fully passes
 Klaus Dormann's 6502 Functional Test Suite as of version 0.8.2
 (See [this thread on the 6502.org Forums] (http://forum.6502.org/viewtopic.php?f=2&t=2241)
 for more information about this functional test suite).
+
+Symon is under constant, active development. Feedback and patches
+are always welcome.
 
 ## 2.0 Requirements
 
@@ -288,12 +281,19 @@ running.
 
   - Symbolic debugging.
 
-## 7.0 Acknowledgements
+## 7.0 Copyright and Acknowledgements
+
+**Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;**
+
+Portions Copyright (c) 2014 Maik Merten &lt;maikmerten@googlemail.com&gt;
+
+Additional components used in this project are copyright their respective owners.
+
+  - Enhanced 6502 BASIC Copyright (c) Lee Davison
+  - 6502 Functional Tests Copyright (c) Klaus Dormann
+  - JTerminal Copyright (c) Graham Edgecombe
 
 This project would not have been possible without the following resources:
-
-  - [Graham Edgecombe's JTerminal project] (https://github.com/grahamedgecombe/jterminal),
-    which forms the core of Symon's console.
 
   - [Andrew Jacobs' 6502 Pages] (http://www.obelisk.demon.co.uk/6502/), for
     wonderfully detailed information about the 6502
