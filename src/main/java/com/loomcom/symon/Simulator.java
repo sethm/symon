@@ -354,7 +354,6 @@ public class Simulator {
         }
 
         // If a key has been pressed, fill the ACIA.
-        // TODO: Interrupt handling.
         try {
             if (machine.getAcia() != null && console.hasInput()) {
                 machine.getAcia().rxWrite((int) console.readInputChar());
@@ -463,7 +462,6 @@ public class Simulator {
                     }
                     menuBar.simulatorDidStop();
                     traceLog.simulatorDidStop();
-                    // TODO: Update memory window, if frame is visible.
                 }
             });
 
@@ -488,7 +486,6 @@ public class Simulator {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            // TODO: Error dialogs on failure.
             try {
                 int retVal = fileChooser.showOpenDialog(mainWindow);
                 if (retVal == JFileChooser.APPROVE_OPTION) {
@@ -497,11 +494,10 @@ public class Simulator {
                         long fileSize = f.length();
 
                         if (fileSize > machine.getMemorySize()) {
-                            throw new IOException("Program of size $" +
-                                    Integer.toString((int)fileSize, 16) +
-                                    " will not fit in available memory of size $" +
+                            throw new IOException("File will not fit in " +
+                                    "available memory ($" +
                                     Integer.toString(machine.getMemorySize(), 16) +
-                                    ".");
+                                    " bytes)");
                         } else {
                             byte[] program = new byte[(int) fileSize];
                             int i = 0;
@@ -520,13 +516,21 @@ public class Simulator {
 
                             // Now load the program at the starting address.
                             loadProgram(program, preferences.getProgramStartAddress());
+                            // TODO: "Don't Show Again" checkbox
+                            JOptionPane.showMessageDialog(mainWindow,
+                                    "Loaded Successfully At " +
+                                            String.format("$%04X", preferences.getProgramStartAddress()),
+                                    "OK",
+                                    JOptionPane.PLAIN_MESSAGE);
                         }
                     }
                 }
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, "Unable to read program file: " + ex.getMessage());
+                JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             } catch (MemoryAccessException ex) {
                 logger.log(Level.SEVERE, "Memory access error loading program: " + ex.getMessage());
+                JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -539,7 +543,6 @@ public class Simulator {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            // TODO: Error dialogs on failure.
             try {
                 int retVal = fileChooser.showOpenDialog(mainWindow);
                 if (retVal == JFileChooser.APPROVE_OPTION) {
@@ -560,15 +563,24 @@ public class Simulator {
 
                             logger.log(Level.INFO, "ROM File `" + romFile.getName() + "' loaded at " +
                                                    String.format("0x%04X", machine.getRomBase()));
+                            // TODO: "Don't Show Again" checkbox
+                            JOptionPane.showMessageDialog(mainWindow,
+                                    "Loaded Successfully At " +
+                                            String.format("$%04X", machine.getRomBase()),
+                                    "OK",
+                                    JOptionPane.PLAIN_MESSAGE);
                         }
                     }
                 }
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, "Unable to read ROM file: " + ex.getMessage());
+                JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             } catch (MemoryRangeException ex) {
                 logger.log(Level.SEVERE, "Memory range error while loading ROM file: " + ex.getMessage());
+                JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             } catch (MemoryAccessException ex) {
                 logger.log(Level.SEVERE, "Memory access error while loading ROM file: " + ex.getMessage());
+                JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
