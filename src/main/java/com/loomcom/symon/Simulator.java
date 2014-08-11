@@ -110,7 +110,8 @@ public class Simulator {
 
     private JButton runStopButton;
     private JButton stepButton;
-    private JButton resetButton;
+    private JButton softResetButton;
+    private JButton hardResetButton;
     private JComboBox<String> stepCountBox;
 
     private JFileChooser      fileChooser;
@@ -161,7 +162,8 @@ public class Simulator {
 
         runStopButton = new JButton("Run");
         stepButton = new JButton("Step");
-        resetButton = new JButton("Reset");
+        softResetButton = new JButton("Soft Reset");
+        hardResetButton = new JButton("Hard Reset");
 
         stepCountBox = new JComboBox<String>(STEPS);
         stepCountBox.addActionListener(new ActionListener() {
@@ -179,7 +181,8 @@ public class Simulator {
         buttonContainer.add(runStopButton);
         buttonContainer.add(stepButton);
         buttonContainer.add(stepCountBox);
-        buttonContainer.add(resetButton);
+        buttonContainer.add(softResetButton);
+        buttonContainer.add(hardResetButton);
 
         // Left side - console
         consoleContainer.add(console, BorderLayout.CENTER);
@@ -207,10 +210,17 @@ public class Simulator {
             }
         });
 
-        resetButton.addActionListener(new ActionListener() {
+        softResetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
                 // If this was a CTRL-click, do a hard reset.
-                handleReset((actionEvent.getModifiers() & ActionEvent.CTRL_MASK) != 0);
+                handleReset(false);
+            }
+        });
+
+        hardResetButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                // If this was a CTRL-click, do a hard reset.
+                handleReset(true);
             }
         });
 
