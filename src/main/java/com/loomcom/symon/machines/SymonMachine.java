@@ -26,11 +26,7 @@ package com.loomcom.symon.machines;
 
 import com.loomcom.symon.Bus;
 import com.loomcom.symon.Cpu;
-import com.loomcom.symon.devices.Acia;
-import com.loomcom.symon.devices.Acia6551;
-import com.loomcom.symon.devices.Crtc;
-import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.devices.Pia;
+import com.loomcom.symon.devices.*;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import java.io.File;
 import java.util.logging.Logger;
@@ -78,7 +74,7 @@ public class SymonMachine implements Machine {
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
         this.ram = new Memory(MEMORY_BASE, MEMORY_BASE + MEMORY_SIZE - 1, false);
-        this.pia = new Pia(PIA_BASE);
+        this.pia = new Via6522(PIA_BASE);
         this.acia = new Acia6551(ACIA_BASE);
         this.crtc = new Crtc(CRTC_BASE, ram);
 
