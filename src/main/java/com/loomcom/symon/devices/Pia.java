@@ -26,8 +26,8 @@ package com.loomcom.symon.devices;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 
-public class Via extends Device {
-    public static final int VIA_SIZE = 16;
+public class Pia extends Device {
+    public static final int PIA_SIZE = 16;
 
     private static final int ORB = 0;
     private static final int ORA = 1;
@@ -46,13 +46,13 @@ public class Via extends Device {
     private static final int IER = 14;
     private static final int ORA_H = 15;
 
-    public Via(int address) throws MemoryRangeException {
-      super(address, address + VIA_SIZE - 1, "VIA");
+    public Pia(int address) throws MemoryRangeException {
+      super(address, address + PIA_SIZE - 1, "PIA");
     }
 
     @Override
     public void write(int address, int data) throws MemoryAccessException {
-
+        ; // No-Op
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.loomcom.symon.Cpu;
 import com.loomcom.symon.devices.Acia;
 import com.loomcom.symon.devices.Crtc;
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.devices.Via;
+import com.loomcom.symon.devices.Pia;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 
 /**
@@ -52,7 +52,7 @@ public class SimpleMachine implements Machine {
     }
 
     @Override
-    public Via getVia() {
+    public Pia getPia() {
         return null;
     }
 

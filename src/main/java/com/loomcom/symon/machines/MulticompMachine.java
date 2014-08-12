@@ -30,7 +30,7 @@ import com.loomcom.symon.devices.Acia;
 import com.loomcom.symon.devices.Acia6850;
 import com.loomcom.symon.devices.Crtc;
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.devices.Via;
+import com.loomcom.symon.devices.Pia;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import java.io.File;
 import java.util.logging.Logger;
@@ -111,7 +111,7 @@ public class MulticompMachine implements Machine {
     }
 
     @Override
-    public Via getVia() {
+    public Pia getPia() {
         return null;
     }
 
