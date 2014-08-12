@@ -79,22 +79,18 @@ public class SdController extends Device {
         switch(address) {
             case 0 :
                 writeData(data);
-                break;
+                return;
             case 1 :
                 writeCommand(data);
-                break;
+                return;
             case 2 :
                 this.lba0 = data;
-                computePosition();
-                break;
+                return;
             case 3 : 
                 this.lba1 = data;
-                computePosition();
-                break;
+                return;
             case 4 :
                 this.lba2 = data;
-                computePosition();
-                break;
         }
     }
 
@@ -168,7 +164,8 @@ public class SdController extends Device {
             if(sdImageFile != null) {
                 try {
                     FileOutputStream fos = new FileOutputStream(sdImageFile);
-                    fos.write(writeBuffer, this.position, writeBuffer.length);
+                    fos.getChannel().position(this.position);
+                    fos.write(writeBuffer, 0, writeBuffer.length);
                     fos.close();
                 } catch (IOException ex) {
                     logger.log(Level.WARNING, "could not write data back to SD image file!", ex);
@@ -196,10 +193,10 @@ public class SdController extends Device {
         switch(this.command) {
             case 0 :
                 prepareRead();
-                break;
+                return;
             case 1 :
                 prepareWrite();
-                break;
+                return;
             default:
                 this.status = Status.IDLE;
         }
