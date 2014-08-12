@@ -35,8 +35,8 @@ import java.awt.*;
  */
 public class TraceLog extends JFrame {
 
-    private FifoRingBuffer<Cpu.CpuState> traceLog;
-    private JTextArea                    traceLogTextArea;
+    private final FifoRingBuffer<Cpu.CpuState> traceLog;
+    private final JTextArea                    traceLogTextArea;
 
     private static final Dimension MIN_SIZE       = new Dimension(320, 200);
     private static final Dimension PREFERRED_SIZE = new Dimension(640, 480);
@@ -67,11 +67,15 @@ public class TraceLog extends JFrame {
      * call.
      */
     public void refresh() {
-        synchronized (this) {
-            StringBuilder logString = new StringBuilder();
+        StringBuilder logString = new StringBuilder();        
+        
+        synchronized(traceLog) {
             for (Cpu.CpuState state : traceLog) {
                 logString.append(state.toTraceEvent());
             }
+        }
+
+        synchronized(traceLogTextArea) {
             traceLogTextArea.setText(logString.toString());
         }
     }
@@ -80,8 +84,10 @@ public class TraceLog extends JFrame {
      * Reset the log area.
      */
     public void reset() {
-        synchronized (this) {
+        synchronized(traceLog) {
             traceLog.reset();
+        }
+        synchronized(traceLogTextArea) {
             traceLogTextArea.setText("");
             traceLogTextArea.setEnabled(true);
         }
@@ -93,7 +99,7 @@ public class TraceLog extends JFrame {
      * @param state The CPU State to append.
      */
     public void append(Cpu.CpuState state) {
-        synchronized(this) {
+        synchronized(traceLog) {
             traceLog.push(new Cpu.CpuState(state));
         }
     }
