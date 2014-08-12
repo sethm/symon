@@ -279,6 +279,10 @@ running.
   - Allow displaying ACIA status and dumping ACIA buffers, for
     debugging.
 
+  - CRTC emulation is very naive. The whole frame is drawn in one
+    CPU step. This should be improved by drawing scan lines during
+    machine steps to approximate real NTSC/PAL refresh rates.
+
   - Symbolic debugging.
 
 ## 7.0 Copyright and Acknowledgements
