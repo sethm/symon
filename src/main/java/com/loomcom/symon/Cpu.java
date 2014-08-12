@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012 Seth J. Morabito <sethm@loomcom.com>
+ * Copyright (c) 2008-2012 Seth J. Morabito <web@loomcom.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -54,10 +54,6 @@ public class Cpu implements InstructionTable {
     // IRQ vector
     public static final int IRQ_VECTOR_L = 0xfffe;
     public static final int IRQ_VECTOR_H = 0xffff;
-
-    // The delay in microseconds between steps.
-    // TODO: Make configurable
-    private static final int CLOCK_IN_NS = 1000;
 
     /* Simulated behavior */
     private static CpuBehavior behavior;
@@ -872,7 +868,7 @@ public class Cpu implements InstructionTable {
      */
     private int lsr(int m) {
         setCarryFlag((m & 0x01) != 0);
-        return (m >>> 1) & 0xff;
+        return (m & 0xff) >>> 1;
     }
 
     /**

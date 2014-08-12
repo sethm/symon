@@ -583,4 +583,23 @@ public class CpuTest extends TestCase {
         cpu.setYRegister(0x95);
         assertEquals(0x15, cpu.zpyAddress(0x80));
     }
+
+    // Test for GitHub symon issue #9, "LSR can yield wrong result"
+    public void testRightShiftMasksBitsCorrectly() throws Exception {
+        // Illegal value, the accumulator should only care about the low 8 bytes.
+        // I'm a little uncomfortable with this test because really, setAccumulator should
+        // defensively mask the value, but does not. Is this relying on a bug to test another bug?
+        cpu.setAccumulator(0xff8);
+        // Sanity check, in case I ever change my mind on setAccumulator's behavior
+        assertEquals(0xff8, cpu.getAccumulator());
+
+        bus.loadProgram(0x4a,     // LSR
+                        0x4a);    // LSR
+
+        cpu.step();
+        assertEquals(0x7C, cpu.getAccumulator());
+
+        cpu.step();
+        assertEquals(0x3E, cpu.getAccumulator());
+    }
 }
