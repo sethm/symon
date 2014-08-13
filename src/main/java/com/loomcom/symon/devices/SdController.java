@@ -29,8 +29,8 @@ import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -163,10 +163,10 @@ public class SdController extends Device {
         if(writePosition >= SECTOR_SIZE) {
             if(sdImageFile != null) {
                 try {
-                    FileOutputStream fos = new FileOutputStream(sdImageFile);
-                    fos.getChannel().position(this.position);
-                    fos.write(writeBuffer, 0, writeBuffer.length);
-                    fos.close();
+                    RandomAccessFile raf = new RandomAccessFile(sdImageFile, "rw");
+                    raf.skipBytes(this.position);
+                    raf.write(writeBuffer, 0, writeBuffer.length);
+                    raf.close();
                 } catch (IOException ex) {
                     logger.log(Level.WARNING, "could not write data back to SD image file!", ex);
                 }
@@ -182,6 +182,7 @@ public class SdController extends Device {
             case IDLE:
                 return 128;
             case READ:
+            case WRITE:
                 return 224;
             default:
                 return 0;
