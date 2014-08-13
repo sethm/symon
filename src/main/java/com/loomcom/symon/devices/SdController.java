@@ -182,8 +182,9 @@ public class SdController extends Device {
             case IDLE:
                 return 128;
             case READ:
-            case WRITE:
                 return 224;
+            case WRITE:
+                return 160;
             default:
                 return 0;
         }
