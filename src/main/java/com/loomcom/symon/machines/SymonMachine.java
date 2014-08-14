@@ -53,7 +53,6 @@ public class SymonMachine implements Machine {
 
     // CRTC at $9000-$9001
     private static final int CRTC_BASE = 0x9000;
-    private static final int VIDEO_RAM_BASE = 0x7000;
 
     // 16KB ROM at $C000-$FFFF
     private static final int ROM_BASE = 0xC000;

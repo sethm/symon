@@ -138,7 +138,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         this.crtc = crtc;
-        this.charRom = loadCharRom("/pet.rom");
+        this.charRom = loadCharRom("/cga8.rom");
         this.scaleX = scaleX;
         this.scaleY = scaleY;
         this.shouldScale = (scaleX > 1 || scaleY > 1);
