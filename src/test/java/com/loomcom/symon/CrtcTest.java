@@ -19,19 +19,17 @@ import static org.mockito.Mockito.*;
 public class CrtcTest {
 
     Crtc crtc;
+    Memory memory;
 
     @Mock
     DeviceChangeListener changeListener;
-    @Mock
-    Memory memory;
 
     @Before
     public void createDevices() throws Exception {
+        memory = new Memory(0, 0x7fff);
+
         crtc = new Crtc(0x9000, memory);
         crtc.registerListener(changeListener);
-
-        when(memory.startAddress()).thenReturn(0);
-        when(memory.endAddress()).thenReturn(0x7fff);
     }
 
     @Test
@@ -340,4 +338,58 @@ public class CrtcTest {
         crtc.write(1, 0x80); // Can't position cursor
     }
 
+    @Test
+    public void shouldSetRowColumnAddressing() throws Exception {
+        assertEquals(false, crtc.getRowColumnAddressing());
+        crtc.write(0, 8);        // Select mode control register
+        crtc.write(1, 0x04);
+        assertEquals(true, crtc.getRowColumnAddressing());
+    }
+
+    @Test
+    public void shouldSetDisplayEnableSkew() throws Exception {
+        assertEquals(false, crtc.getDisplayEnableSkew());
+        crtc.write(0, 8);        // Select mode control register
+        crtc.write(1, 0x10);
+        assertEquals(true, crtc.getDisplayEnableSkew());
+    }
+
+    @Test
+    public void shouldSetCursorSkew() throws Exception {
+        assertEquals(false, crtc.getCursorSkew());
+        crtc.write(0, 8);        // Select mode control register
+        crtc.write(1, 0x20);
+        assertEquals(true, crtc.getCursorSkew());
+    }
+
+    @Test
+    public void shouldDoStraightBinaryAddressing() throws Exception {
+        crtc.write(0, 8);
+        crtc.write(1, 0); // Select straight binary addressing
+
+        // Fill the memory with a repeating pattern
+        int videoMemoryBase = 0x7000;
+        int j = 0;
+
+        for (int i = 0; i < 2048; i++) {
+            memory.write(videoMemoryBase + i, j);
+            if (j == 255) {
+                j = 0;
+            } else {
+                j++;
+            }
+        }
+
+        // Now verify that straight-binary addressing of the CRTC works
+        j = 0;
+
+        for (int i = 0; i < 2048; i++) {
+            assertEquals(j, crtc.getCharAtAddress(videoMemoryBase + i));
+            if (j == 255) {
+                j = 0;
+            } else {
+                j++;
+            }
+        }
+    }
 }

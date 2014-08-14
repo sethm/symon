@@ -65,6 +65,11 @@ public class Crtc extends Device {
 
     private int currentRegister = 0;
 
+    // Status bits
+    private boolean rowColumnAddressing = false;
+    private boolean displayEnableSkew = false;
+    private boolean cursorSkew = false;
+
     private Memory memory;
 
     public Crtc(int deviceAddress, Memory memory) throws MemoryRangeException, IOException {
@@ -118,8 +123,9 @@ public class Crtc extends Device {
         return null;
     }
 
-    public int[] getDmaAccess() {
-        return memory.getDmaAccess();
+    public int getCharAtAddress(int address) throws MemoryAccessException {
+        // TODO: Row/Column addressing
+        return memory.read(address);
     }
 
     public int getHorizontalDisplayed() {
@@ -162,6 +168,18 @@ public class Crtc extends Device {
         return pageSize;
     }
 
+    public boolean getRowColumnAddressing() {
+        return rowColumnAddressing;
+    }
+
+    public boolean getDisplayEnableSkew() {
+        return displayEnableSkew;
+    }
+
+    public boolean getCursorSkew() {
+        return cursorSkew;
+    }
+
     private void setCurrentRegister(int registerNumber) {
         this.currentRegister = registerNumber;
     }
@@ -180,7 +198,9 @@ public class Crtc extends Device {
                 pageSize = horizontalDisplayed * verticalDisplayed;
                 break;
             case MODE_CONTROL:
-                // TODO: Implement multiple addressing modes and cursor skew.
+                rowColumnAddressing = (data & 0x04) != 0;
+                displayEnableSkew = (data & 0x10) != 0;
+                cursorSkew = (data & 0x20) != 0;
                 break;
             case SCAN_LINE:
                 scanLinesPerRow = data;
