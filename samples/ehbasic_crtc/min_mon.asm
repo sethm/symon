@@ -26,6 +26,7 @@ ACIAcontrol	= IO_AREA+3
 	C_COL	= $E2		; Cursor column
 	C_ROW	= $E3		; Cursor row
 	COUTC	= $E4		; Temp storage for char out.
+	TMPY	= $E5
 
 
 ; now the code. all this does is set up the vectors and interrupt code
@@ -43,10 +44,13 @@ RES_vec
 	TXS				; set the stack
 
 	;; Initialize the CRTC
-	LDA	#$00		; Set cursor start to $7000
-	STA	CADDR_L
 	LDA	#$70
 	STA	CADDR_H
+	LDA	#$00		; Set cursor start to $7000
+	STA	CADDR_L
+	STA	C_ROW
+	STA	C_COL
+	JSR	SET_CURSOR
 	;; TODO: Initialize params on CRTC
 
 ; Initialize the ACIA
@@ -127,19 +131,98 @@ CRTCout:
 	BEQ	DO_BS
 	;; Line Feed
 	CMP	#$0a
-	BEQ	DO_BS
+	BEQ	DO_LF
 	;; Carriage Return
 	CMP	#$0d
 	BEQ	DO_CR
-	;; Any other character	
+	;; Any other character
+	JSR	COUT1
+	JSR	INC_CADDR
+	INC	C_COL
+	JSR	SET_CURSOR
 	RTS
 
 DO_BS:	RTS
-DO_LF:	RTS
-DO_CR:	RTS
 
+DO_LF:	RTS			; Just swallow LF. CR emulates it.
+
+DO_CR:	SEC
+	LDA	CADDR_L		; 1. Carriage return to start of row.
+	SBC	C_COL
+	STA	CADDR_L
+	LDA	CADDR_H
+	SBC	#$00		; Will decrement H if carry was left
+				; set.
+	STA	CADDR_H
+
+	;; 1. Are we on the last row? Scroll.
+	LDA	C_ROW
+	CMP	#$18
+	BNE	@inc
+	JSR	DO_SCROLL
+	JMP	@lf
+@inc:	INC	C_ROW
+
+@lf:	CLC
+	LDA	CADDR_L
+	ADC	#$28		; Now add $28
+	STA	CADDR_L
+	LDA	CADDR_H
+	ADC	#$00		; Will increment if carry was set
+	STA	CADDR_H
+	LDA	#$00		; Reset cursor row to 0
+	STA	C_COL
+	JSR	SET_CURSOR
+	;; Move the cursor
+	RTS
+	
+
+SET_CURSOR:
+	LDA	#14
+	STA	$9000
+	LDA	CADDR_H
+	STA	$9001
+	LDA	#15
+	STA	$9000
+	LDA	CADDR_L
+	STA	$9001
+	RTS
+	
 	;; Handle a scroll request
 DO_SCROLL:
+	;; Copy $7028 through $70FF to $7000 through $70D7
+	STY	TMPY		; Save Y
+	LDY	#$00
+@l1:	LDA	$7028,Y
+	STA	$7000,Y
+	INY
+	BNE	@l1
+
+@l2:	LDA	$7128,Y
+	STA	$7100,Y
+	INY
+	BNE	@l2
+
+@l3:	LDA	$7228,Y
+	STA	$7200,Y
+	INY
+	BNE	@l3
+
+@l4:	LDA	$7328,Y
+	STA	$7300,Y
+	INY
+	BNE	@l4
+
+
+	;; Now subtract 28 from C_ADDR
+	SEC
+	LDA	CADDR_L
+	SBC	#$28
+	STA	CADDR_L
+	LDA	CADDR_H
+	SBC	#$00
+	STA	CADDR_H
+	LDY	TMPY		; Restore Y
 	RTS
 	
 	;; Decrement the cursor address
@@ -157,7 +240,14 @@ DEC_CADDR:
 @l1	DEC	CADDR_L
 	RTS
 
-
+COUT1:	
+	STY	TMPY
+	LDY	#$00
+	LDA	COUTC
+	STA	(CADDR_L),Y
+	LDY	TMPY
+	RTS
+	
 ;
 ; byte in from ACIA. This subroutine will also force
 ; all lowercase letters to be uppercase.
