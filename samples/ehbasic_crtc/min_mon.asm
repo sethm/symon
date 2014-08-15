@@ -21,9 +21,11 @@ ACIAstatus	= IO_AREA+1
 ACIAcommand	= IO_AREA+2
 ACIAcontrol	= IO_AREA+3
 
-	CPOS_L	= $E0		; Cursor address (low)
-	CPOS_H	= $E1		; Cursor address (high)
-	COUTC	= $E2		; Temp storage for char out.
+	CADDR_L	= $E0		; Cursor address (low)
+	CADDR_H	= $E1		; Cursor address (high)
+	C_COL	= $E2		; Cursor column
+	C_ROW	= $E3		; Cursor row
+	COUTC	= $E4		; Temp storage for char out.
 
 
 ; now the code. all this does is set up the vectors and interrupt code
@@ -42,11 +44,11 @@ RES_vec
 
 	;; Initialize the CRTC
 	LDA	#$00		; Set cursor start to $7000
-	STA	CPOS_L
+	STA	CADDR_L
 	LDA	#$70
-	STA	CPOS_H
+	STA	CADDR_H
+	;; TODO: Initialize params on CRTC
 
-	
 ; Initialize the ACIA
 ACIA_init
 	LDA	#$00
@@ -92,7 +94,7 @@ LAB_dowarm
 	JMP	LAB_WARM		; do EhBASIC warm start
 
 
-ACIAout:	
+ACIAout:
 
 	PHA
 @loop:	LDA	ACIAstatus
@@ -112,86 +114,50 @@ CRTCout:
 	STA	COUTC		; Store the character going out
 	JSR	ACIAout		; Also echo to terminal for debugging.
 
-	;; Is this a CR or LF?
-	CMP	#$0D
-	BEQ	@dolf
-	CMP	#$0A
-	BEQ	@docr
-	;; Is this a backspace?
+	;; In parallel, we're maintaining two states:
+	;;    - The address of the cursor, and
+	;;    - The Column/Row of the cursor.
+	;;
+	;; The latter state is used to handle scrolling and
+	;; for knowing how far to back up the cursor
+	;; for a carriage-return.
+
+	;; Backspace
 	CMP	#$08
-	BEQ	@dobs
-
-	;; Otherwise, this is a normal character
-	;; Do normal character stuff.
-	TYA			; Save Y
-	PHA
-	LDA	COUTC		; Restore character going out
-	LDY	#$00
-	STA	(CPOS_L),Y
-	INC	CPOS_L
-	PLA			; Restore Y
-	TAY
-	JMP	@done
-	
-
-@dolf:
-	;; Handle a LF
-	;;   Increment CRSR_R.
-	;;   If CRSR_R > ROW_M, scroll..
-	
-
-@docr:
-	;; Handle a CR
-	;;   Set CRSR_C = 0.
-
-@dobs:	
-	;; 2. Is this a backspace?
-	;;   IF CRSR_C == 0 && CRSR_R == 0
-	;;     Do nothing, already home
-	;;   If CRSR_C > 0
-	;;     Set CRSR_C = CRSR_C - 1
-	;;   Else
-	;;     Set CRSR_C = COL_M
-	;;     Set CRSR_R = CRSR_R - 1
-	;;
-
-@done:
-	;; Now new cursor Column and Row have been calculated,
-	;; and we know if we need to scroll.
-	;;
-	;; (CPOS_H) = $70 + (row / 
-	
+	BEQ	DO_BS
+	;; Line Feed
+	CMP	#$0a
+	BEQ	DO_BS
+	;; Carriage Return
+	CMP	#$0d
+	BEQ	DO_CR
+	;; Any other character	
 	RTS
 
-	;; Convert CRSR_C, CRSR_R into Cursor Address.
-	;; Result stored in CPOS_L,CPOS_H
-	;; 
-;; C_POS:	
-;; 	;; Multiply CRSR_R * $28, store result in CPOS_L,CPOS_H
-;; 	LDA	CRSR_R		; Copy CRSR_R to CPOS_L
-;; 	STA	CPOS_L
-;; 	LDA	#$00
-;; 	LDX	#$08
-;; 	LSR	CPOS_L
-;; @cpos1:	BCC	@cpos2
-;; 	CLC
-;; 	ADC	#$28
-;; @cpos2:	ROR
-;; 	ROR	CPOS_L
-;; 	DEX
-;; 	BNE	@cpos1
-;; 	STA	CPOS_H
-;; 	;; At this point, CPOS_L,CPOS_H holds the product
-;; 	;; of CRSR_R and $28. We need to add CRSR_C with
-;; 	;; an unsigned 16-bit add.
-;; 	CLC
-;; 	LDA	CRSR_C
-;; 	ADC	CPOS_L
-;; 	STA	CPOS_L
-;; 	BCC	@noinc		; If carry wasn't set, no need
-;; 	INC	CPOS_H		;    to increment CPOS_H
-;; @noinc:	
+DO_BS:	RTS
+DO_LF:	RTS
+DO_CR:	RTS
+
+	;; Handle a scroll request
+DO_SCROLL:
+	RTS
 	
+	;; Decrement the cursor address
+INC_CADDR:
+	INC	CADDR_L
+	BNE	@l1		; Did we increment to 0?
+	INC	CADDR_H		; Yes, also increment high
+@l1	RTS  
+
+	;; Increment the cursor address
+DEC_CADDR:
+	CMP	CADDR_L		; Is low alrady 0?
+	BNE	@l1
+	DEC	CADDR_H		; Yes, decrement high
+@l1	DEC	CADDR_L
+	RTS
+
+
 ;
 ; byte in from ACIA. This subroutine will also force
 ; all lowercase letters to be uppercase.
@@ -265,4 +231,3 @@ LAB_mess
 	.word	NMI_vec		; NMI vector
 	.word	RES_vec		; RESET vector
 	.word	IRQ_vec		; IRQ vector
-
