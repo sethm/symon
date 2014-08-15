@@ -21,7 +21,9 @@ ACIAstatus	= IO_AREA+1
 ACIAcommand	= IO_AREA+2
 ACIAcontrol	= IO_AREA+3
 
-	CRSR_L	= $20B
+	CPOS_L	= $E0		; Cursor address (low)
+	CPOS_H	= $E1		; Cursor address (high)
+	COUTC	= $E2		; Temp storage for char out.
 
 
 ; now the code. all this does is set up the vectors and interrupt code
@@ -38,6 +40,13 @@ RES_vec
 	LDX	#$FF			; empty stack
 	TXS				; set the stack
 
+	;; Initialize the CRTC
+	LDA	#$00		; Set cursor start to $7000
+	STA	CPOS_L
+	LDA	#$70
+	STA	CPOS_H
+
+	
 ; Initialize the ACIA
 ACIA_init
 	LDA	#$00
@@ -99,26 +108,44 @@ ACIAout:
 ;;; 2. Scroll if necessary.
 ;;; 3. Store new cursor position in CRTC.
 
-	CRSR_L	= $DE		; Cursor address (low)
-	CRSR_H	= $DF		; Cursor address (high)
-	COL_M	= 40		; Max Column
-	ROW_M	= 25		; Max Row
-	CRSR_C	= $E0		; Cursor Column #
-	CRSR_R	= $E1		; Cursor Row #
-
 CRTCout:
+	STA	COUTC		; Store the character going out
 	JSR	ACIAout		; Also echo to terminal for debugging.
 
-	;; 1. Is this an enter (cr/lf)?
-	;;   Set CRSR_C = 0.
+	;; Is this a CR or LF?
+	CMP	#$0D
+	BEQ	@dolf
+	CMP	#$0A
+	BEQ	@docr
+	;; Is this a backspace?
+	CMP	#$08
+	BEQ	@dobs
+
+	;; Otherwise, this is a normal character
+	;; Do normal character stuff.
+	TYA			; Save Y
+	PHA
+	LDA	COUTC		; Restore character going out
+	LDY	#$00
+	STA	(CPOS_L),Y
+	INC	CPOS_L
+	PLA			; Restore Y
+	TAY
+	JMP	@done
+	
+
+@dolf:
+	;; Handle a LF
 	;;   Increment CRSR_R.
 	;;   If CRSR_R > ROW_M, scroll..
-	CMP	#$0A
-	BEQ	@doenter
-	CMP	#$0D
-	BEQ	@doenter
 	
-	;; 1. Is this a backspace?
+
+@docr:
+	;; Handle a CR
+	;;   Set CRSR_C = 0.
+
+@dobs:	
+	;; 2. Is this a backspace?
 	;;   IF CRSR_C == 0 && CRSR_R == 0
 	;;     Do nothing, already home
 	;;   If CRSR_C > 0
@@ -126,19 +153,45 @@ CRTCout:
 	;;   Else
 	;;     Set CRSR_C = COL_M
 	;;     Set CRSR_R = CRSR_R - 1
-	;; 
-	CMP	#$08
-	BEQ	@dobs
+	;;
 
-	;; Otherwise, this is a normal character
-	;; Do normal character stuff.
-	JMP	@done
-
-@doenter:
-@dobs:	
 @done:
+	;; Now new cursor Column and Row have been calculated,
+	;; and we know if we need to scroll.
+	;;
+	;; (CPOS_H) = $70 + (row / 
+	
 	RTS
 
+	;; Convert CRSR_C, CRSR_R into Cursor Address.
+	;; Result stored in CPOS_L,CPOS_H
+	;; 
+;; C_POS:	
+;; 	;; Multiply CRSR_R * $28, store result in CPOS_L,CPOS_H
+;; 	LDA	CRSR_R		; Copy CRSR_R to CPOS_L
+;; 	STA	CPOS_L
+;; 	LDA	#$00
+;; 	LDX	#$08
+;; 	LSR	CPOS_L
+;; @cpos1:	BCC	@cpos2
+;; 	CLC
+;; 	ADC	#$28
+;; @cpos2:	ROR
+;; 	ROR	CPOS_L
+;; 	DEX
+;; 	BNE	@cpos1
+;; 	STA	CPOS_H
+;; 	;; At this point, CPOS_L,CPOS_H holds the product
+;; 	;; of CRSR_R and $28. We need to add CRSR_C with
+;; 	;; an unsigned 16-bit add.
+;; 	CLC
+;; 	LDA	CRSR_C
+;; 	ADC	CPOS_L
+;; 	STA	CPOS_L
+;; 	BCC	@noinc		; If carry wasn't set, no need
+;; 	INC	CPOS_H		;    to increment CPOS_H
+;; @noinc:	
+	
 ;
 ; byte in from ACIA. This subroutine will also force
 ; all lowercase letters to be uppercase.
