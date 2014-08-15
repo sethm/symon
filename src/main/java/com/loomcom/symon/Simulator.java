@@ -364,6 +364,9 @@ public class Simulator {
 
         if (videoWindow != null && stepsSinceLastCrtcRefresh++ > stepsBetweenCrtcRefreshes) {
             stepsSinceLastCrtcRefresh = 0;
+            if (videoWindow.isVisible()) {
+                videoWindow.repaint();
+            }
         }
 
         // This is a very expensive update, and we're doing it without

@@ -26,11 +26,7 @@ package com.loomcom.symon.machines;
 
 import com.loomcom.symon.Bus;
 import com.loomcom.symon.Cpu;
-import com.loomcom.symon.devices.Acia;
-import com.loomcom.symon.devices.Acia6551;
-import com.loomcom.symon.devices.Crtc;
-import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.devices.Via;
+import com.loomcom.symon.devices.*;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 import java.io.File;
 import java.util.logging.Logger;
@@ -48,16 +44,15 @@ public class SymonMachine implements Machine {
     private static final int MEMORY_BASE = 0x0000;
     private static final int MEMORY_SIZE = 0x8000;
 
-    // VIA at $8000-$800F
+    // PIA at $8000-$800F
 
-    private static final int VIA_BASE = 0x8000;
+    private static final int PIA_BASE = 0x8000;
 
     // ACIA at $8800-$8803
     private static final int ACIA_BASE = 0x8800;
 
     // CRTC at $9000-$9001
     private static final int CRTC_BASE = 0x9000;
-    private static final int VIDEO_RAM_BASE = 0x7000;
 
     // 16KB ROM at $C000-$FFFF
     private static final int ROM_BASE = 0xC000;
@@ -68,7 +63,7 @@ public class SymonMachine implements Machine {
     private final Bus    bus;
     private final Cpu    cpu;
     private final Acia   acia;
-    private final Via    via;
+    private final Pia    pia;
     private final Crtc   crtc;
     private final Memory ram;
     private       Memory rom;
@@ -78,13 +73,13 @@ public class SymonMachine implements Machine {
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
         this.ram = new Memory(MEMORY_BASE, MEMORY_BASE + MEMORY_SIZE - 1, false);
-        this.via = new Via(VIA_BASE);
+        this.pia = new Via6522(PIA_BASE);
         this.acia = new Acia6551(ACIA_BASE);
         this.crtc = new Crtc(CRTC_BASE, ram);
 
         bus.addCpu(cpu);
         bus.addDevice(ram);
-        bus.addDevice(via);
+        bus.addDevice(pia);
         bus.addDevice(acia);
         bus.addDevice(crtc);
         
@@ -124,8 +119,8 @@ public class SymonMachine implements Machine {
     }
 
     @Override
-    public Via getVia() {
-        return via;
+    public Pia getPia() {
+        return pia;
     }
 
     @Override

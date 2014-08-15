@@ -29,7 +29,7 @@ import com.loomcom.symon.Cpu;
 import com.loomcom.symon.devices.Acia;
 import com.loomcom.symon.devices.Crtc;
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.devices.Via;
+import com.loomcom.symon.devices.Pia;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 
 
@@ -43,7 +43,7 @@ public interface Machine {
     
     public Acia getAcia();
     
-    public Via getVia();
+    public Pia getPia();
     
     public Crtc getCrtc();
     

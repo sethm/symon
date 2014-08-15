@@ -25,6 +25,7 @@ package com.loomcom.symon.ui;
 
 import com.loomcom.symon.devices.Crtc;
 import com.loomcom.symon.devices.DeviceChangeListener;
+import com.loomcom.symon.exceptions.MemoryAccessException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,7 +37,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static java.lang.System.*;
 
 /**
  * VideoWindow represents a graphics framebuffer backed by a 6545 CRTC.
@@ -65,7 +69,6 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
     private BufferedImage image;
     private int[] charRom;
-    private int[] videoRam;
 
     private int horizontalDisplayed;
     private int verticalDisplayed;
@@ -85,17 +88,21 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
     private class VideoPanel extends JPanel {
         @Override
         public void paintComponent(Graphics g) {
-            for (int i = 0; i < crtc.getPageSize(); i++) {
-                int address = crtc.getStartAddress() + i;
-                int originX = (i % horizontalDisplayed) * CHAR_WIDTH;
-                int originY = (i / horizontalDisplayed) * scanLinesPerRow;
-                image.getRaster().setPixels(originX, originY, CHAR_WIDTH, scanLinesPerRow, getGlyph(address));
+            try {
+                for (int i = 0; i < crtc.getPageSize(); i++) {
+                    int address = crtc.getStartAddress() + i;
+                    int originX = (i % horizontalDisplayed) * CHAR_WIDTH;
+                    int originY = (i / horizontalDisplayed) * scanLinesPerRow;
+                    image.getRaster().setPixels(originX, originY, CHAR_WIDTH, scanLinesPerRow, getGlyph(address));
+                }
+                Graphics2D g2d = (Graphics2D) g;
+                if (shouldScale) {
+                    g2d.scale(scaleX, scaleY);
+                }
+                g2d.drawImage(image, 0, 0, null);
+            } catch (MemoryAccessException ex) {
+                logger.log(Level.SEVERE, "Memory Access Exception, can't paint video window! " + ex.getMessage());
             }
-            Graphics2D g2d = (Graphics2D)g;
-            if (shouldScale) {
-                g2d.scale(scaleX, scaleY);
-            }
-            g2d.drawImage(image, 0, 0, null);
         }
 
         @Override
@@ -131,8 +138,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         this.crtc = crtc;
-        this.charRom = loadCharRom("/pet.rom");
-        this.videoRam = crtc.getDmaAccess();
+        this.charRom = loadCharRom("/cga8.rom");
         this.scaleX = scaleX;
         this.scaleY = scaleY;
         this.shouldScale = (scaleX > 1 || scaleY > 1);
@@ -156,13 +162,6 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
         createAndShowUi();
 
-    }
-
-    public void refreshDisplay() {
-        // TODO: Verify whether this is necessary. Does `repaint()' do anything if the window is not visible?
-        if (isVisible()) {
-            repaint();
-        }
     }
 
     /**
@@ -239,15 +238,13 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
      * @param address The address of the character being requested.
      * @return An array of integers representing the pixel data.
      */
-    private int[] getGlyph(int address) {
-        int chr = videoRam[address];
+    private int[] getGlyph(int address) throws MemoryAccessException {
+        int chr = crtc.getCharAtAddress(address);
         int romOffset = (chr & 0xff) * (CHAR_HEIGHT * CHAR_WIDTH);
         int[] glyph = new int[CHAR_WIDTH * scanLinesPerRow];
 
         // Populate the character
-        for (int i = 0; i < (CHAR_WIDTH * Math.min(CHAR_HEIGHT, scanLinesPerRow)); i++) {
-            glyph[i] = charRom[romOffset + i];
-        }
+        arraycopy(charRom, romOffset, glyph, 0, CHAR_WIDTH * Math.min(CHAR_HEIGHT, scanLinesPerRow));
 
         // Overlay the cursor
         if (!hideCursor && crtc.isCursorEnabled() && crtc.getCursorPosition() == address) {
