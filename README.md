@@ -58,6 +58,7 @@ memory.
   - `$0000`--`$DFFF`: 56KB RAM
   - `$E000`--`$FFFF`: 8KB ROM
   - `$FFD0`--`$FFD1`: Motorola 6850 ACIA
+  - `$FFD8`--`$FFDF`: Controller for SD cards
 
 ### 3.1.3 Simple Memory Map
 
