@@ -44,13 +44,7 @@ RES_vec
 	TXS				; set the stack
 
 	;; Initialize the CRTC
-	LDA	#$70
-	STA	CADDR_H
-	LDA	#$00		; Set cursor start to $7000
-	STA	CADDR_L
-	STA	C_ROW
-	STA	C_COL
-	JSR	SET_CURSOR
+	JSR	CLRVID
 	;; TODO: Initialize params on CRTC
 
 ; Initialize the ACIA
@@ -115,7 +109,6 @@ ACIAout:
 ;;; 3. Store new cursor position in CRTC.
 
 CRTCout:
-	STA	COUTC		; Store the character going out
 	JSR	ACIAout		; Also echo to terminal for debugging.
 
 	;; In parallel, we're maintaining two states:
@@ -135,14 +128,29 @@ CRTCout:
 	;; Carriage Return
 	CMP	#$0d
 	BEQ	DO_CR
-	;; Any other character
+	;; Any other character...
+	CMP	#'a'
+	STA	COUTC		; Store the character going out
 	JSR	COUT1
 	JSR	INC_CADDR
 	INC	C_COL
 	JSR	SET_CURSOR
 	RTS
 
-DO_BS:	RTS
+	;; Handle a back-space character.
+DO_BS:	LDA	C_COL
+	BNE	@l1		; Skip next bit
+	LDA	#$27
+	STA	C_COL
+	BNE	@l2
+@l1:	DEC	C_COL
+@l2:	JSR	DEC_CADDR	; Back up
+	JSR	SET_CURSOR
+
+@l3:	LDA	#$20
+	STA	COUTC		; Echo a space ($20)
+	JSR	COUT1
+	RTS
 
 DO_LF:	RTS			; Just swallow LF. CR emulates it.
 
@@ -175,7 +183,6 @@ DO_CR:	SEC
 	JSR	SET_CURSOR
 	;; Move the cursor
 	RTS
-	
 
 SET_CURSOR:
 	LDA	#14
@@ -187,7 +194,41 @@ SET_CURSOR:
 	LDA	CADDR_L
 	STA	$9001
 	RTS
-	
+
+	;; Clear the video window and put the cursor at the home
+	;; position
+CLRVID:
+	LDA	#$70
+	STA	CADDR_H
+	LDA	#$00		; Set cursor start to $7000
+	STA	CADDR_L
+	STA	C_ROW
+	STA	C_COL
+	JSR	SET_CURSOR
+	;; Fill with space character
+	STY	TMPY
+	LDA	#$20		; Space
+	LDY	#$00
+@l1:	STA	$7000,Y
+	INY
+	BNE	@l1
+@l2:	STA	$7100,Y
+	INY
+	BNE	@l2
+@l3:	STA	$7200,Y
+	INY
+	BNE	@l3
+@l4:	STA	$7300,Y
+	INY
+	BNE	@l4
+@l5:	STA	$7400,Y
+	INY
+	BNE	@l5
+
+	LDY	TMPY
+
+	RTS
+
 	;; Handle a scroll request
 DO_SCROLL:
 	;; Copy $7028 through $70FF to $7000 through $70D7
@@ -224,13 +265,13 @@ DO_SCROLL:
 	STA	CADDR_H
 	LDY	TMPY		; Restore Y
 	RTS
-	
+
 	;; Decrement the cursor address
 INC_CADDR:
 	INC	CADDR_L
 	BNE	@l1		; Did we increment to 0?
 	INC	CADDR_H		; Yes, also increment high
-@l1	RTS  
+@l1	RTS
 
 	;; Increment the cursor address
 DEC_CADDR:
@@ -240,14 +281,14 @@ DEC_CADDR:
 @l1	DEC	CADDR_L
 	RTS
 
-COUT1:	
+COUT1:
 	STY	TMPY
 	LDY	#$00
 	LDA	COUTC
 	STA	(CADDR_L),Y
 	LDY	TMPY
 	RTS
-	
+
 ;
 ; byte in from ACIA. This subroutine will also force
 ; all lowercase letters to be uppercase.
