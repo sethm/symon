@@ -16,17 +16,24 @@ NMI_vec	= IRQ_vec+$0A	; NMI code vector
 ; setup for the 6502 simulator environment
 
 IO_AREA		= $8800
-ACIAdata	= IO_AREA		; simulated ACIA r/w port
+ACIAdata	= IO_AREA	; simulated ACIA r/w port
 ACIAstatus	= IO_AREA+1
 ACIAcommand	= IO_AREA+2
 ACIAcontrol	= IO_AREA+3
 
+	CRTC_A	= $9000		; CRTC register select
+	CRTC_C	= $9001		; CRTC register IO
 	CADDR_L	= $E0		; Cursor address (low)
 	CADDR_H	= $E1		; Cursor address (high)
 	C_COL	= $E2		; Cursor column
 	C_ROW	= $E3		; Cursor row
 	COUTC	= $E4		; Temp storage for char out.
 	TMPY	= $E5
+	R_STRT	= $E6		; E6,E7 contains starting address of
+				; current row
+
+	N_ROWS	= 24
+	N_COLS	= 40
 
 
 ; now the code. all this does is set up the vectors and interrupt code
@@ -34,21 +41,29 @@ ACIAcontrol	= IO_AREA+3
 ; fits in less than 128 bytes
 
 .segment "MONITOR"
-	.org	$FC00			; pretend this is in a 1/8K ROM
+	.org	$FC00		; pretend this is in a 1/8K ROM
 
 ; reset vector points here
 
-RES_vec
-	CLD				; clear decimal mode
-	LDX	#$FF			; empty stack
-	TXS				; set the stack
+RES_vec:
+	CLD			; clear decimal mode
+	LDX	#$FF		; empty stack
+	TXS			; set the stack
 
 	;; Initialize the CRTC
+	LDA	#$01
+	STA	CRTC_A
+	LDA	#N_COLS		; 40 columns
+	STA	CRTC_C
+	LDA	#$06
+	STA	CRTC_A
+	LDA	#N_ROWS		; 24 rows
+	STA	CRTC_C
 	JSR	CLRVID
 	;; TODO: Initialize params on CRTC
 
 ; Initialize the ACIA
-ACIA_init
+ACIA_init:
 	LDA	#$00
 	STA	ACIAstatus		; Soft reset
 	LDA	#$0B
@@ -59,7 +74,7 @@ ACIA_init
 ; set up vectors and interrupt code, copy them to page 2
 
 	LDY	#END_CODE-LAB_vec	; set index/count
-LAB_stlp
+LAB_stlp:
 	LDA	LAB_vec-1,Y		; get byte from interrupt code
 	STA	VEC_IN-1,Y		; save to RAM
 	DEY				; decrement index/count
@@ -67,29 +82,29 @@ LAB_stlp
 
 ; now do the signon message, Y = $00 here
 
-LAB_signon
-	LDA	LAB_mess,Y		; get byte from sign on message
-	BEQ	LAB_nokey		; exit loop if done
+LAB_signon:
+	LDA	LAB_mess,Y	; get byte from sign on message
+	BEQ	LAB_nokey	; exit loop if done
 
 	JSR	V_OUTP		; output character
-	INY				; increment index
-	BNE	LAB_signon		; loop, branch always
+	INY			; increment index
+	BNE	LAB_signon	; loop, branch always
 
-LAB_nokey
+LAB_nokey:
 	JSR	V_INPT		; call scan input device
-	BCC	LAB_nokey		; loop if no key
+	BCC	LAB_nokey	; loop if no key
 
-	AND	#$DF			; mask xx0x xxxx, ensure upper case
-	CMP	#'W'			; compare with [W]arm start
-	BEQ	LAB_dowarm		; branch if [W]arm start
+	AND	#$DF		; mask xx0x xxxx, ensure upper case
+	CMP	#'W'		; compare with [W]arm start
+	BEQ	LAB_dowarm	; branch if [W]arm start
 
-	CMP	#'C'			; compare with [C]old start
+	CMP	#'C'		; compare with [C]old start
 	BNE	RES_vec		; loop if not [C]old start
 
-	JMP	LAB_COLD		; do EhBASIC cold start
+	JMP	LAB_COLD	; do EhBASIC cold start
 
-LAB_dowarm
-	JMP	LAB_WARM		; do EhBASIC warm start
+LAB_dowarm:
+	JMP	LAB_WARM	; do EhBASIC warm start
 
 
 ACIAout:
@@ -140,7 +155,7 @@ CRTCout:
 	;; Handle a back-space character.
 DO_BS:	LDA	C_COL
 	BNE	@l1		; Skip next bit
-	LDA	#$27
+	LDA	#N_COLS-1
 	STA	C_COL
 	BNE	@l2
 @l1:	DEC	C_COL
@@ -165,7 +180,7 @@ DO_CR:	SEC
 
 	;; 1. Are we on the last row? Scroll.
 	LDA	C_ROW
-	CMP	#$18
+	CMP	#N_ROWS-1
 	BNE	@inc
 	JSR	DO_SCROLL
 	JMP	@lf
@@ -186,13 +201,13 @@ DO_CR:	SEC
 
 SET_CURSOR:
 	LDA	#14
-	STA	$9000
+	STA	CRTC_A
 	LDA	CADDR_H
-	STA	$9001
+	STA	CRTC_C
 	LDA	#15
-	STA	$9000
+	STA	CRTC_A
 	LDA	CADDR_L
-	STA	$9001
+	STA	CRTC_C
 	RTS
 
 	;; Clear the video window and put the cursor at the home
@@ -224,7 +239,6 @@ CLRVID:
 @l5:	STA	$7400,Y
 	INY
 	BNE	@l5
-
 	LDY	TMPY
 
 	RTS
@@ -271,14 +285,14 @@ INC_CADDR:
 	INC	CADDR_L
 	BNE	@l1		; Did we increment to 0?
 	INC	CADDR_H		; Yes, also increment high
-@l1	RTS
+@l1:	RTS
 
 	;; Increment the cursor address
 DEC_CADDR:
 	CMP	CADDR_L		; Is low alrady 0?
 	BNE	@l1
 	DEC	CADDR_H		; Yes, decrement high
-@l1	DEC	CADDR_L
+@l1:	DEC	CADDR_L
 	RTS
 
 COUT1:
@@ -289,34 +303,35 @@ COUT1:
 	LDY	TMPY
 	RTS
 
-;
-; byte in from ACIA. This subroutine will also force
-; all lowercase letters to be uppercase.
-;
-ACIAin
-	LDA	ACIAstatus		; Read 6551 status
-	AND	#$08			;
-	BEQ	LAB_nobyw		; If rx buffer empty, no byte
+;;;
+;;; byte in from ACIA. This subroutine will also force
+;;; all lowercase letters to be uppercase, because EhBASIC
+;;; only understands upper-case tokens
+;;;
+ACIAin:
+	LDA	ACIAstatus	; Read 6551 status
+	AND	#$08		;
+	BEQ	LAB_nobyw	; If rx buffer empty, no byte
 
-	LDA	ACIAdata		; Read byte from 6551
-	CMP	#'a'			; Is it < 'a'?
-	BCC	@done			; Yes, we're done
-	CMP	#'{'			; Is it >= '{'?
-	BCS	@done			; Yes, we're done
-	AND	#$5f			; Otherwise, mask to uppercase
-@done
-	SEC				; Flag byte received
+	LDA	ACIAdata	; Read byte from 6551
+	CMP	#'a'		; Is it < 'a'?
+	BCC	@done		; Yes, we're done
+	CMP	#'{'		; Is it >= '{'?
+	BCS	@done		; Yes, we're done
+	AND	#$5f		; Otherwise, mask to uppercase
+@done:
+	SEC			; Flag byte received
 	RTS
 
-LAB_nobyw
-	CLC				; flag no byte received
-no_load				; empty load vector for EhBASIC
-no_save				; empty save vector for EhBASIC
+LAB_nobyw:
+	CLC			; flag no byte received
+no_load:			; empty load vector for EhBASIC
+no_save:			; empty save vector for EhBASIC
 	RTS
 
 ; vector tables
 
-LAB_vec
+LAB_vec:
 	.word	ACIAin		; byte in from simulated ACIA
 	.word	CRTCout		; byte out to simulated ACIA
 	.word	no_load		; null load vector for EhBASIC
@@ -324,34 +339,47 @@ LAB_vec
 
 ; EhBASIC IRQ support
 
-IRQ_CODE
-	PHA				; save A
+IRQ_CODE:
+	PHA			; save A
 	LDA	IrqBase		; get the IRQ flag byte
-	LSR				; shift the set b7 to b6, and on down ...
+	LSR			; shift the set b7 to b6, and on down ...
 	ORA	IrqBase		; OR the original back in
 	STA	IrqBase		; save the new IRQ flag byte
-	PLA				; restore A
+	PLA			; restore A
 	RTI
 
 ; EhBASIC NMI support
 
-NMI_CODE
-	PHA				; save A
+NMI_CODE:
+	PHA			; save A
 	LDA	NmiBase		; get the NMI flag byte
-	LSR				; shift the set b7 to b6, and on down ...
+	LSR			; shift the set b7 to b6, and on down ...
 	ORA	NmiBase		; OR the original back in
 	STA	NmiBase		; save the new NMI flag byte
-	PLA				; restore A
+	PLA			; restore A
 	RTI
 
-END_CODE
+END_CODE:
+
+
+;;; CRTC row addresses: HIGH
+CRA_HI:
+	.byte	$70,$70,$70,$70,$70,$70,$70,$71
+	.byte	$71,$71,$71,$71,$71,$72,$72,$72
+	.byte	$72,$72,$72,$72,$73,$73,$73,$73
+
+
+;;; CRTC row addresses: LOW
+CRA_LO:
+	.byte	$00,$28,$50,$78,$A0,$C8,$F0,$18
+	.byte	$40,$68,$90,$B8,$E0,$08,$30,$58
+	.byte	$80,$A8,$D0,$F8,$20,$48,$70,$98
 
 ; sign on string
-
-LAB_mess
-	.byte	$0D,$0A,"Symon (c) 2008-2014, Seth Morabito"
-	.byte   $0D,$0A,"Enhanced 6502 BASIC 2.22 (c) Lee Davison"
-	.byte   $0D,$0A,"[C]old/[W]arm ?",$00
+LAB_mess:
+	.byte	$0D,$0A,"SYMON (C) 2008-2014, SETH MORABITO"
+	.byte   $0D,$0A,"ENHANCED 6502 BASIC 2.22 (C) LEE DAVISON"
+	.byte   $0D,$0A,"[C]OLD/[W]ARM ?",$00
 
 
 ; system vectors
