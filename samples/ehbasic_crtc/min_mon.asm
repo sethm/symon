@@ -28,9 +28,10 @@ ACIAcontrol	= IO_AREA+3
 	C_COL	= $E2		; Cursor column
 	C_ROW	= $E3		; Cursor row
 	COUTC	= $E4		; Temp storage for char out.
-	TMPY	= $E5
-	R_STRT	= $E6		; E6,E7 contains starting address of
+	R_STRT	= $E5		; E5,E6 contains starting address of
 				; current row
+	R_NXT	= $E7		; E7,E8 contains starting address of
+				; next row
 
 	N_ROWS	= 24
 	N_COLS	= 40
@@ -59,6 +60,12 @@ RES_vec:
 	STA	CRTC_A
 	LDA	#N_ROWS		; 24 rows
 	STA	CRTC_C
+	LDA	#$70
+	STA	CADDR_H
+	LDA	#$00
+	STA	CADDR_L
+	STA	C_ROW
+	STA	C_COL
 	JSR	CLRVID
 	;; TODO: Initialize params on CRTC
 
@@ -144,10 +151,19 @@ CRTCout:
 	CMP	#$0d
 	BEQ	DO_CR
 	;; Any other character...
-	CMP	#'a'
 	STA	COUTC		; Store the character going out
-	JSR	COUT1
-	JSR	INC_CADDR
+	JSR	COUT1		; Output it where the cursor is.
+	;; We might need to scroll...
+	LDA	C_ROW
+	CMP	#N_ROWS-1
+	BNE	@noscr
+	LDA	C_COL
+	CMP	#N_COLS-1
+	BNE	@noscr
+	;; ... yup, we DO need to scroll.
+	JSR	DO_SCROLL
+	RTS
+@noscr:	JSR	INC_CADDR
 	INC	C_COL
 	JSR	SET_CURSOR
 	RTS
@@ -183,8 +199,9 @@ DO_CR:	SEC
 	CMP	#N_ROWS-1
 	BNE	@inc
 	JSR	DO_SCROLL
-	JMP	@lf
-@inc:	INC	C_ROW
+	RTS
+
+@inc:	JSR	INCROW
 
 @lf:	CLC
 	LDA	CADDR_L
@@ -193,10 +210,10 @@ DO_CR:	SEC
 	LDA	CADDR_H
 	ADC	#$00		; Will increment if carry was set
 	STA	CADDR_H
+
 	LDA	#$00		; Reset cursor row to 0
 	STA	C_COL
 	JSR	SET_CURSOR
-	;; Move the cursor
 	RTS
 
 SET_CURSOR:
@@ -210,74 +227,112 @@ SET_CURSOR:
 	STA	CRTC_C
 	RTS
 
+	;; Increment C_ROW and put new
+	;; line start address in R_STRT,R_STRT+1
+INCROW:	TYA
+	PHA
+	INC	C_ROW
+	BNE	DECR2	      ; Share code with DECROW
+
+	;; Decrement C_ROW and put new
+	;; line start address in R_STRT,R_STRT+1
+DECROW:	TYA
+	PHA
+	DEC	C_ROW
+DECR2:	JSR	SETRSTRT
+	PLA
+	TAY
+	RTS
+
+	;; Send the cursor home to the start of the line
+HOME:
+	LDY	C_ROW
+	LDA	CRA_LO,Y
+	STA	CADDR_L
+	LDA	CRA_HI,Y
+	STA	CADDR_H
+	LDA	#$00
+	STA	C_COL
+	RTS
+
+	;; Set the start address of the current row
+SETRSTRT:
+	LDY	C_ROW
+	LDA	CRA_LO,Y
+	STA	R_STRT
+	LDA	CRA_HI,Y
+	STA	R_STRT+1
+	RTS
+
+	;; Clear the current video line
+CLRLN:	LDA	#$20
+	LDY	#$00
+@l1:	STA	(R_STRT),Y
+	INY
+	CPY	#N_COLS
+	BNE	@l1
+	RTS
+
 	;; Clear the video window and put the cursor at the home
 	;; position
 CLRVID:
-	LDA	#$70
-	STA	CADDR_H
-	LDA	#$00		; Set cursor start to $7000
-	STA	CADDR_L
-	STA	C_ROW
-	STA	C_COL
-	JSR	SET_CURSOR
-	;; Fill with space character
-	STY	TMPY
-	LDA	#$20		; Space
-	LDY	#$00
-@l1:	STA	$7000,Y
-	INY
-	BNE	@l1
-@l2:	STA	$7100,Y
-	INY
-	BNE	@l2
-@l3:	STA	$7200,Y
-	INY
-	BNE	@l3
-@l4:	STA	$7300,Y
-	INY
-	BNE	@l4
-@l5:	STA	$7400,Y
-	INY
-	BNE	@l5
-	LDY	TMPY
-
+	LDA	#$20
+	LDX	#N_ROWS-1
+@l1:	STX	C_ROW
+	JSR	SETRSTRT
+	JSR	CLRLN
+	DEX
+	BPL	@l1
 	RTS
 
-	;; Handle a scroll request
+	;; Handle a scroll request.
+	;;
+	;; The cursor could be anywhere on the line when this scroll
+	;; request comes in.
 DO_SCROLL:
-	;; Copy $7028 through $70FF to $7000 through $70D7
-	STY	TMPY		; Save Y
-	LDY	#$00
-@l1:	LDA	$7028,Y
-	STA	$7000,Y
-	INY
-	BNE	@l1
+	PHA
+	TYA
+	PHA
+	TXA
+	PHA
 
-@l2:	LDA	$7128,Y
-	STA	$7100,Y
+	;; The idea here is to copy each line to the line above it
+	LDX	#$00
+
+@l1:	LDA	CRA_LO,X
+	STA	R_STRT
+	LDA	CRA_HI,X
+	STA	R_STRT+1
+
+	INX
+
+	LDA	CRA_LO,X
+	STA	R_NXT
+	LDA	CRA_HI,X
+	STA	R_NXT+1
+
+	LDY	#0
+@l2:	LDA	(R_NXT),Y
+	STA	(R_STRT),Y
 	INY
+	CPY	#N_COLS
 	BNE	@l2
 
-@l3:	LDA	$7228,Y
-	STA	$7200,Y
-	INY
-	BNE	@l3
+	CPX	#N_ROWS
+	BNE	@l1
 
-@l4:	LDA	$7328,Y
-	STA	$7300,Y
-	INY
-	BNE	@l4
+	;; Clear the line the cursor occupies.
+	JSR	CLRLN
 
+	;; Move the cursor to the beginning of the line
+	JSR	HOME
+	JSR	SET_CURSOR
 
-	;; Now subtract 28 from C_ADDR
-	SEC
-	LDA	CADDR_L
-	SBC	#$28
-	STA	CADDR_L
-	LDA	CADDR_H
-	SBC	#$00
-	STA	CADDR_H
-	LDY	TMPY		; Restore Y
+	PLA
+	TAX
+	PLA
+	TAY			; Restore Y
+	PLA
 	RTS
 
 	;; Decrement the cursor address
@@ -296,11 +351,13 @@ DEC_CADDR:
 	RTS
 
 COUT1:
-	STY	TMPY
+	TYA
+	PHA			; Save Y
 	LDY	#$00
 	LDA	COUTC
 	STA	(CADDR_L),Y
-	LDY	TMPY
+	PLA
+	TAY			; Restore Y
 	RTS
 
 ;;;
