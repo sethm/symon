@@ -260,9 +260,8 @@ public class Cpu implements InstructionTable {
 
             /** Single Byte Instructions; Implied and Relative **/
             case 0x00: // BRK - Force Interrupt - Implied
-                if (!getIrqDisableFlag()) {
-                    handleIrq(state.pc + 1);
-                }
+                // BRK is non-maskable. - http://www.atarimax.com/jindroush.atari.org/aopc.html#BRK
+                handleBrk(state.pc + 1);
                 break;
             case 0x08: // PHP - Push Processor Status - Implied
                 // Break flag is always set in the stack value.
@@ -734,13 +733,18 @@ public class Cpu implements InstructionTable {
         delayLoop(state.ir);
     }
 
+    private void handleBrk(int returnPc) throws MemoryAccessException {
+        handleInterrupt(returnPc, IRQ_VECTOR_L, IRQ_VECTOR_H, true);
+        clearIrq();
+    }
+
     private void handleIrq(int returnPc) throws MemoryAccessException {
-        handleInterrupt(returnPc, IRQ_VECTOR_L, IRQ_VECTOR_H);
+        handleInterrupt(returnPc, IRQ_VECTOR_L, IRQ_VECTOR_H, false);
         clearIrq();
     }
 
     private void handleNmi() throws MemoryAccessException {
-        handleInterrupt(state.pc, NMI_VECTOR_L, NMI_VECTOR_H);
+        handleInterrupt(state.pc, NMI_VECTOR_L, NMI_VECTOR_H, false);
         clearNmi();
     }
 
@@ -749,9 +753,19 @@ public class Cpu implements InstructionTable {
      *
      * @throws MemoryAccessException
      */
-    private void handleInterrupt(int returnPc, int vectorLow, int vectorHigh) throws MemoryAccessException {
-        // Set the break flag before pushing.
-        setBreakFlag();
+    private void handleInterrupt(int returnPc, int vectorLow, int vectorHigh, boolean isBreak) throws MemoryAccessException {
+
+        if (isBreak)
+        {
+            // Set the break flag before pushing.
+            setBreakFlag();
+        }
+        else
+        {
+            // IRQ & NMI clear break flag - http://www.pagetable.com/?p=410
+            clearBreakFlag();
+        }
+
         // Push program counter + 1 onto the stack
         stackPush((returnPc >> 8) & 0xff); // PC high byte
         stackPush(returnPc & 0xff);        // PC low byte
