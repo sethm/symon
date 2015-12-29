@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Seth J. Morabito <web@loomcom.com>
+ * Copyrighi (c) 2016 Seth J. Morabito <web@loomcom.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -31,14 +31,14 @@ import com.loomcom.symon.exceptions.SymonException;
 import com.loomcom.symon.machines.Machine;
 import com.loomcom.symon.ui.*;
 import com.loomcom.symon.ui.Console;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Symon Simulator Interface and Control.
@@ -49,6 +49,8 @@ import java.util.logging.Logger;
  * with a basic 80x25 character display.
  */
 public class Simulator {
+
+    private final static Logger logger = LoggerFactory.getLogger(Simulator.class.getName());
 
     // UI constants
     private static final int  DEFAULT_FONT_SIZE    = 12;
@@ -65,8 +67,6 @@ public class Simulator {
     // TODO: Work around the event dispatch thread with custom painting code instead of relying on Swing.
     //
     private static final int MAX_STEPS_BETWEEN_UPDATES = 20000;
-
-    private final static Logger logger = Logger.getLogger(Simulator.class.getName());
 
     // The simulated machine
     private Machine machine;
@@ -287,7 +287,7 @@ public class Simulator {
         }
 
         try {
-            logger.log(Level.INFO, "Reset requested. Resetting CPU.");
+            logger.info("Reset requested. Resetting CPU.");
             // Reset CPU
             machine.getCpu().reset();
             // Clear the console.
@@ -302,15 +302,9 @@ public class Simulator {
                 }
             }
             // Update status.
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    // Now update the state
-                    statusPane.updateState();
-                    memoryWindow.updateState();
-                }
-            });
+            updateVisibleState();
         } catch (MemoryAccessException ex) {
-            logger.log(Level.SEVERE, "Exception during simulator reset: " + ex.getMessage());
+            logger.error("Exception during simulator reset", ex);
         }
     }
 
@@ -322,17 +316,9 @@ public class Simulator {
             for (int i = 0; i < numSteps; i++) {
                 step();
             }
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    if (traceLog.isVisible()) {
-                        traceLog.refresh();
-                    }
-                    statusPane.updateState();
-                    memoryWindow.updateState();
-                }
-            });
+            updateVisibleState();
         } catch (SymonException ex) {
-            logger.log(Level.SEVERE, "Exception during simulator step: " + ex.getMessage());
+            logger.error("Exception during simulator step", ex);
             ex.printStackTrace();
         }
     }
@@ -359,7 +345,7 @@ public class Simulator {
                 machine.getAcia().rxWrite((int) console.readInputChar());
             }
         } catch (FifoUnderrunException ex) {
-            logger.severe("Console type-ahead buffer underrun!");
+            logger.error("Console type-ahead buffer underrun!");
         }
 
         if (videoWindow != null && stepsSinceLastCrtcRefresh++ > stepsBetweenCrtcRefreshes) {
@@ -373,13 +359,7 @@ public class Simulator {
         // a delay, so we don't want to overwhelm the Swing event processing thread
         // with requests. Limit the number of ui updates that can be performed.
         if (stepsSinceLastUpdate++ > MAX_STEPS_BETWEEN_UPDATES) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    // Now update the state
-                    statusPane.updateState();
-                    memoryWindow.updateState();
-                }
-            });
+            updateVisibleState();
             stepsSinceLastUpdate = 0;
         }
 
@@ -394,8 +374,7 @@ public class Simulator {
             machine.getBus().write(addr++, program[i] & 0xff);
         }
 
-        logger.log(Level.INFO, "Loaded " + i + " bytes at address 0x" +
-                               Integer.toString(startAddress, 16));
+        logger.info("Loaded {} bytes at address 0x{}", i, Integer.toString(startAddress, 16));
 
         // After loading, be sure to reset and
         // Reset (but don't clear memory, naturally)
@@ -405,15 +384,8 @@ public class Simulator {
         machine.getCpu().setProgramCounter(preferences.getProgramStartAddress());
 
         // Immediately update the UI.
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                // Now update the state
-                statusPane.updateState();
-                memoryWindow.updateState();
-            }
-        });
+        updateVisibleState();
     }
-
 
     /**
      * The main run thread.
@@ -430,7 +402,7 @@ public class Simulator {
         }
 
         public void run() {
-            logger.log(Level.INFO, "Starting main run loop.");
+            logger.info("Starting main run loop.");
             isRunning = true;
 
             SwingUtilities.invokeLater(new Runnable() {
@@ -449,8 +421,7 @@ public class Simulator {
                     step();
                 } while (shouldContinue());
             } catch (SymonException ex) {
-                logger.log(Level.SEVERE, "Exception in main simulator run thread. Exiting run.");
-                ex.printStackTrace();
+                logger.error("Exception in main simulator run thread. Exiting run.", ex);
             }
 
             SwingUtilities.invokeLater(new Runnable() {
@@ -529,10 +500,10 @@ public class Simulator {
                     }
                 }
             } catch (IOException ex) {
-                logger.log(Level.SEVERE, "Unable to read program file: " + ex.getMessage());
+                logger.error("Unable to read program file.", ex);
                 JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             } catch (MemoryAccessException ex) {
-                logger.log(Level.SEVERE, "Memory access error loading program: " + ex.getMessage());
+                logger.error("Memory access error loading program", ex);
                 JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -555,34 +526,36 @@ public class Simulator {
 
                         if (fileSize != machine.getRomSize()) {
                             throw new IOException("ROM file must be exactly " + String.valueOf(machine.getRomSize()) + " bytes.");
-                        } else {
-                            
-                            // Load the new ROM image
-                            Memory rom = Memory.makeROM(machine.getRomBase(), machine.getRomBase() + machine.getRomSize() - 1, romFile);
-                            machine.setRom(rom);
-
-                            // Now, reset
-                            machine.getCpu().reset();
-
-                            logger.log(Level.INFO, "ROM File `" + romFile.getName() + "' loaded at " +
-                                                   String.format("0x%04X", machine.getRomBase()));
-                            // TODO: "Don't Show Again" checkbox
-                            JOptionPane.showMessageDialog(mainWindow,
-                                    "Loaded Successfully At " +
-                                            String.format("$%04X", machine.getRomBase()),
-                                    "OK",
-                                    JOptionPane.PLAIN_MESSAGE);
                         }
+                            
+                        // Load the new ROM image
+                        Memory rom = Memory.makeROM(machine.getRomBase(), machine.getRomBase() + machine.getRomSize() - 1, romFile);
+                        machine.setRom(rom);
+
+                        // Now, reset
+                        machine.getCpu().reset();
+
+                        updateVisibleState();
+
+                        logger.info("ROM File `{}' loaded at {}", romFile.getName(),
+                                String.format("0x%04X", machine.getRomBase()));
+                        // TODO: "Don't Show Again" checkbox
+                        JOptionPane.showMessageDialog(mainWindow,
+                                "Loaded Successfully At " +
+                                        String.format("$%04X", machine.getRomBase()),
+                                "OK",
+                                JOptionPane.PLAIN_MESSAGE);
+
                     }
                 }
             } catch (IOException ex) {
-                logger.log(Level.SEVERE, "Unable to read ROM file: " + ex.getMessage());
+                logger.error("Unable to read ROM file: {}", ex.getMessage());
                 JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             } catch (MemoryRangeException ex) {
-                logger.log(Level.SEVERE, "Memory range error while loading ROM file: " + ex.getMessage());
+                logger.error("Memory range error while loading ROM file: {}", ex.getMessage());
                 JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             } catch (MemoryAccessException ex) {
-                logger.log(Level.SEVERE, "Memory access error while loading ROM file: " + ex.getMessage());
+                logger.error("Memory access error while loading ROM file: {}", ex.getMessage());
                 JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -835,6 +808,20 @@ public class Simulator {
             fontSubMenu.add(item);
             group.add(item);
         }
+    }
+
+    private void updateVisibleState() {
+        // Immediately update the UI.
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                // Now update the state
+                statusPane.updateState();
+                memoryWindow.updateState();
+                if (traceLog.shouldUpdate()) {
+                    traceLog.refresh();
+                }
+            }
+        });
     }
 
 }

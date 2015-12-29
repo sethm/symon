@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Seth J. Morabito <web@loomcom.com>
+ * Copyright (c) 2016 Seth J. Morabito <web@loomcom.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -32,9 +32,6 @@ import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * UI component that displays the current state of the simulated CPU.
@@ -154,7 +151,7 @@ public class StatusPanel extends JPanel {
 
         // Create and add register and address labels
         statusFlagsLabel = makeLabel("Flags");
-        opcodeLabel = makeLabel("IR");
+        opcodeLabel = makeLabel("Next IR");
         pcLabel = makeLabel("PC");
         spLabel = makeLabel("SP");
         aLabel = makeLabel("A");
@@ -317,7 +314,9 @@ public class StatusPanel extends JPanel {
         negativeFlagLabel.setIcon(iconForFlag(status, 7));
 
         // Update the register and address displays
-        opcodeField.setText(cpu.getCpuState().disassembleOp());
+
+        // We always want to show the NEXT instruction that will be executed
+        opcodeField.setText(cpu.getCpuState().disassembleNextOp());
         pcField.setText(cpu.getProgramCounterStatus());
         spField.setText(cpu.getStackPointerStatus());
         aField.setText(cpu.getAccumulatorStatus());

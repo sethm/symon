@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Seth J. Morabito <web@loomcom.com>
+ * Copyright (c) 2016 Seth J. Morabito <web@loomcom.com>
  *                    Maik Merten <maikmerten@googlemail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -28,13 +28,14 @@ import com.loomcom.symon.Bus;
 import com.loomcom.symon.Cpu;
 import com.loomcom.symon.devices.*;
 import com.loomcom.symon.exceptions.MemoryRangeException;
-import java.io.File;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 
 public class SymonMachine implements Machine {
     
-    private final static Logger logger = Logger.getLogger(SymonMachine.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(SymonMachine.class.getName());
     
     // Constants used by the simulated system. These define the memory map.
     private static final int BUS_BOTTOM = 0x0000;
@@ -86,11 +87,10 @@ public class SymonMachine implements Machine {
         // TODO: Make this configurable, of course.
         File romImage = new File("rom.bin");
         if (romImage.canRead()) {
-            logger.info("Loading ROM image from file " + romImage);
+            logger.info("Loading ROM image from file {}", romImage);
             this.rom = Memory.makeROM(ROM_BASE, ROM_BASE + ROM_SIZE - 1, romImage);
         } else {
-            logger.info("Default ROM file " + romImage +
-                        " not found, loading empty R/W memory image.");
+            logger.info("Default ROM file {} not found, loading empty R/W memory image.", romImage);
             this.rom = Memory.makeRAM(ROM_BASE, ROM_BASE + ROM_SIZE - 1);
         }
 

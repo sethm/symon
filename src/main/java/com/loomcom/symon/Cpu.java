@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Seth J. Morabito <web@loomcom.com>
+ * Copyright (c) 2016 Seth J. Morabito <web@loomcom.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -25,8 +25,9 @@ package com.loomcom.symon;
 
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.util.HexUtil;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * This class provides a simulation of the MOS 6502 CPU's state machine.
@@ -34,6 +35,8 @@ import java.util.logging.Logger;
  * and exposes some of the internal state for inspection and debugging.
  */
 public class Cpu implements InstructionTable {
+
+    private final static Logger logger = LoggerFactory.getLogger(Cpu.class.getName());
 
     /* Process status register mnemonics */
     public static final int P_CARRY       = 0x01;
@@ -146,6 +149,8 @@ public class Cpu implements InstructionTable {
         state.a = 0;
         state.x = 0;
         state.y = 0;
+
+        peekAhead();
     }
 
     public void step(int num) throws MemoryAccessException {
@@ -732,6 +737,18 @@ public class Cpu implements InstructionTable {
         }
 
         delayLoop(state.ir);
+
+        // Peek ahead to the next insturction and arguments
+        peekAhead();
+    }
+
+    private void peekAhead() throws MemoryAccessException {
+        state.nextIr = bus.read(state.pc);
+        int nextInstSize = Cpu.instructionSizes[state.nextIr];
+        for (int i = 1; i < nextInstSize; i++) {
+            int nextRead = (state.pc + i) % bus.endAddress();
+            state.nextArgs[i-1] = bus.read(nextRead);
+        }
     }
 
     private void handleIrq(int returnPc) throws MemoryAccessException {
@@ -1117,6 +1134,14 @@ public class Cpu implements InstructionTable {
 
     public void setProgramCounter(int addr) {
         state.pc = addr;
+
+        // As a side-effect of setting the program counter,
+        // we want to peek ahead at the next state.
+        try {
+            peekAhead();
+        } catch (MemoryAccessException ex) {
+            logger.error("Could not peek ahead at next instruction state.");
+        }
     }
 
     public int getStackPointer() {
@@ -1359,15 +1384,20 @@ public class Cpu implements InstructionTable {
          */
         public int pc;
         /**
-         * Instruction Register
+         * Last Loaded Instruction Register
          */
         public int ir;
-        public int lastPc;
+        /**
+         * Peek-Ahead to next IR
+         */
+        public int nextIr;
         public int[] args = new int[2];
+        public int[] nextArgs = new int[2];
         public int instSize;
         public boolean opTrap;
         public boolean irqAsserted;
         public boolean nmiAsserted;
+        public int lastPc;
 
         /* Status Flag Register bits */
         public boolean carryFlag;
@@ -1387,7 +1417,7 @@ public class Cpu implements InstructionTable {
         /**
          * Snapshot a copy of the CpuState.
          *
-         * (This is a copy constructor rather than an implementation of <code>Clonable</code>
+         * (This is a copy constructor rather than an implementation of <code>Cloneable</code>
          * based on Josh Bloch's recommendation)
          *
          * @param s The CpuState to copy.
@@ -1399,9 +1429,12 @@ public class Cpu implements InstructionTable {
             this.sp = s.sp;
             this.pc = s.pc;
             this.ir = s.ir;
+            this.nextIr = s.nextIr;
             this.lastPc = s.lastPc;
             this.args[0] = s.args[0];
             this.args[1] = s.args[1];
+            this.nextArgs[0] = s.nextArgs[0];
+            this.nextArgs[1] = s.nextArgs[1];
             this.instSize = s.instSize;
             this.opTrap = s.opTrap;
             this.irqAsserted = s.irqAsserted;
@@ -1421,7 +1454,7 @@ public class Cpu implements InstructionTable {
          * @return a string formatted for the trace log.
          */
         public String toTraceEvent() {
-            String opcode = disassembleOp();
+            String opcode = disassembleLastOp();
             StringBuilder sb = new StringBuilder(getInstructionByteStatus());
             sb.append("  ");
             sb.append(String.format("%-14s", opcode));
@@ -1483,13 +1516,13 @@ public class Cpu implements InstructionTable {
             }
         }
 
-
         /**
-         * Given an opcode and its operands, return a formatted name.
+         * Return a formatted string representing the last instruction and
+         * operands that were executed.
          *
          * @return A string representing the mnemonic and operands of the instruction
          */
-        public String disassembleOp() {
+        private String disassembleOp(int ir, int[] args) {
             String mnemonic = opcodeNames[ir];
 
             if (mnemonic == null) {
@@ -1533,6 +1566,20 @@ public class Cpu implements InstructionTable {
             }
 
             return sb.toString();
+        }
+
+        public String disassembleLastOp() {
+            return disassembleOp(ir, args);
+        }
+
+        /**
+         * Return a formatted string representing the next instruction and
+         * operands to be executed.
+         *
+         * @return A string representing the mnemonic and operands of the instruction
+         */
+        public String disassembleNextOp() {
+            return disassembleOp(nextIr, nextArgs);
         }
 
         /**
