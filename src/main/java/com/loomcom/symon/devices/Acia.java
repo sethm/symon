@@ -82,6 +82,7 @@ public abstract class Acia extends Device {
     /**
      * @return The simulated baud rate in bps.
      */
+    @SuppressWarnings("unused")
     public int getBaudRate() {
         return baudRate;
     }
@@ -153,6 +154,7 @@ public abstract class Acia extends Device {
     /**
      * @return true if there is character data in the RX register.
      */
+    @SuppressWarnings("unused")
     public boolean hasRxChar() {
         return rxFull;
     }

@@ -35,27 +35,27 @@ import com.loomcom.symon.exceptions.MemoryRangeException;
 
 public interface Machine {
     
-    public Bus getBus();
+    Bus getBus();
+
+    Cpu getCpu();
     
-    public Cpu getCpu();
+    Memory getRam();
     
-    public Memory getRam();
+    Acia getAcia();
     
-    public Acia getAcia();
+    Pia getPia();
     
-    public Pia getPia();
+    Crtc getCrtc();
     
-    public Crtc getCrtc();
+    Memory getRom();
     
-    public Memory getRom();
+    void setRom(Memory rom) throws MemoryRangeException;
     
-    public void setRom(Memory rom) throws MemoryRangeException;
+    int getRomBase();
     
-    public int getRomBase();
+    int getRomSize();
     
-    public int getRomSize();
-    
-    public int getMemorySize();
+    int getMemorySize();
 
     String getName();
 }

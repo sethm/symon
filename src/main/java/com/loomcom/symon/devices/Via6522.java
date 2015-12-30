@@ -39,10 +39,6 @@ public class Via6522 extends Pia {
         T2C_L, T2C_H, SR, ACR, PCR, IFR, IER, ORA_H
     }
 
-    // Ports A and B
-    private char[] portData = {0, 0};
-    private char[] portDirections = {0, 0};
-
     public Via6522(int address) throws MemoryRangeException {
         super(address, address + VIA_SIZE - 1, "MOS 6522 VIA");
     }

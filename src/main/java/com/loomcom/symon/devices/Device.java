@@ -62,16 +62,11 @@ public abstract class Device implements Comparable<Device> {
      */
     private Set<DeviceChangeListener> deviceChangeListeners;
 
-    public Device(int startAddress, int endAddress, String name)
-            throws MemoryRangeException {
+    public Device(int startAddress, int endAddress, String name) throws MemoryRangeException {
         this.memoryRange = new MemoryRange(startAddress, endAddress);
         this.size = endAddress - startAddress + 1;
         this.name = name;
-        this.deviceChangeListeners = new HashSet<DeviceChangeListener>();
-    }
-
-    public Device(int startAddress, int endAddress) throws MemoryRangeException {
-        this(startAddress, endAddress, null);
+        this.deviceChangeListeners = new HashSet<>();
     }
 
     /* Methods required to be implemented by inheriting classes. */
@@ -97,6 +92,7 @@ public abstract class Device implements Comparable<Device> {
         return memoryRange.endAddress();
     }
 
+    @SuppressWarnings("unused")
     public int startAddress() {
         return memoryRange.startAddress();
     }
@@ -105,6 +101,7 @@ public abstract class Device implements Comparable<Device> {
         return name;
     }
 
+    @SuppressWarnings("unused")
     public void setName(String name) {
         this.name = name;
     }
@@ -118,9 +115,7 @@ public abstract class Device implements Comparable<Device> {
     }
 
     public void notifyListeners() {
-        for (DeviceChangeListener l : deviceChangeListeners) {
-            l.deviceStateChanged();
-        }
+        deviceChangeListeners.forEach(DeviceChangeListener::deviceStateChanged);
     }
 
     /**

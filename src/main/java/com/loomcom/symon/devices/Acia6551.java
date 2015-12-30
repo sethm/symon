@@ -26,7 +26,6 @@ package com.loomcom.symon.devices;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 
-
 /**
  * This is a simulation of the MOS 6551 ACIA, with limited
  * functionality.  Interrupts are not supported.
@@ -44,7 +43,6 @@ public class Acia6551 extends Acia {
     static final int STAT_REG = 1;
     static final int CMND_REG = 2;
     static final int CTRL_REG = 3;
-
 
     /**
      * Registers. These are ignored in the current implementation.
@@ -106,7 +104,7 @@ public class Acia6551 extends Acia {
     /**
      * Set the control register and associated state.
      *
-     * @param data
+     * @param data Data to write into the control register
      */
     private void setControlRegister(int data) {
         controlRegister = data;

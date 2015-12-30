@@ -97,23 +97,19 @@ public class PreferencesDialog extends Observable implements Preferences {
         JButton applyButton = new JButton("Apply");
         JButton cancelButton = new JButton("Cancel");
 
-        cancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                updateUi();
-                dialog.setVisible(false);
-            }
+        cancelButton.addActionListener(actionEvent -> {
+            updateUi();
+            dialog.setVisible(false);
         });
 
-        applyButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                haltOnBreak = haltOnBreakCheckBox.isSelected();
-                programLoadAddress = hexToInt(programLoadAddressField.getText());
-                updateUi();
-                // TODO: Actually check to see if values have changed, don't assume.
-                setChanged();
-                PreferencesDialog.this.notifyObservers();
-                dialog.setVisible(false);
-            }
+        applyButton.addActionListener(actionEvent -> {
+            haltOnBreak = haltOnBreakCheckBox.isSelected();
+            programLoadAddress = hexToInt(programLoadAddressField.getText());
+            updateUi();
+            // TODO: Actually check to see if values have changed, don't assume.
+            setChanged();
+            PreferencesDialog.this.notifyObservers();
+            dialog.setVisible(false);
         });
 
         buttonsContainer.add(applyButton);

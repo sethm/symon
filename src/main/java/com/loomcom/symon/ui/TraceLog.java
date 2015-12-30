@@ -44,7 +44,7 @@ public class TraceLog extends JFrame {
     private static final int       MAX_LOG_LENGTH = 50000;
 
     public TraceLog() {
-        traceLog = new FifoRingBuffer<Cpu.CpuState>(MAX_LOG_LENGTH);
+        traceLog = new FifoRingBuffer<>(MAX_LOG_LENGTH);
         setMinimumSize(MIN_SIZE);
         setPreferredSize(PREFERRED_SIZE);
         setResizable(true);

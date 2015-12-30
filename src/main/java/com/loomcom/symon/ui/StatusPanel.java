@@ -53,7 +53,6 @@ public class StatusPanel extends JPanel {
     private ImageIcon negativeOn;
     private ImageIcon negativeOff;
 
-    private JLabel statusFlagsLabel;
     private JLabel carryFlagLabel;
     private JLabel zeroFlagLabel;
     private JLabel irqDisableFlagLabel;
@@ -68,13 +67,6 @@ public class StatusPanel extends JPanel {
     private JTextField aField;
     private JTextField xField;
     private JTextField yField;
-
-    private JLabel opcodeLabel;
-    private JLabel pcLabel;
-    private JLabel spLabel;
-    private JLabel aLabel;
-    private JLabel xLabel;
-    private JLabel yLabel;
 
     private Machine machine;
 
@@ -150,13 +142,13 @@ public class StatusPanel extends JPanel {
         statusFlagsPanel.add(carryFlagLabel);
 
         // Create and add register and address labels
-        statusFlagsLabel = makeLabel("Flags");
-        opcodeLabel = makeLabel("Next IR");
-        pcLabel = makeLabel("PC");
-        spLabel = makeLabel("SP");
-        aLabel = makeLabel("A");
-        xLabel = makeLabel("X");
-        yLabel = makeLabel("Y");
+        JLabel statusFlagsLabel = makeLabel("Flags");
+        JLabel opcodeLabel = makeLabel("Next IR");
+        JLabel pcLabel = makeLabel("PC");
+        JLabel spLabel = makeLabel("SP");
+        JLabel aLabel = makeLabel("A");
+        JLabel xLabel = makeLabel("X");
+        JLabel yLabel = makeLabel("Y");
 
         statusFlagsLabel.setToolTipText("6502 Processor Status Flags");
         opcodeLabel.setToolTipText("Instruction Register");
@@ -171,74 +163,59 @@ public class StatusPanel extends JPanel {
         yField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
 
         // Make fields editable
-        pcField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int newVal = getHexVal(pcField) & 0xffff;
-                    machine.getCpu().setProgramCounter(newVal);
-                } catch (Exception ex) {
-                    // Swallow exception
-                }
-
-                updateState();
+        pcField.addActionListener(e -> {
+            try {
+                int newVal = getHexVal(pcField) & 0xffff;
+                machine.getCpu().setProgramCounter(newVal);
+            } catch (Exception ex) {
+                // Swallow exception
             }
+
+            updateState();
         });
 
-        spField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int newVal = getHexVal(spField) & 0xff;
-                    machine.getCpu().setStackPointer(newVal);
-                } catch (Exception ex) {
-                    // Swallow exception
-                }
-
-                updateState();
+        spField.addActionListener(e -> {
+            try {
+                int newVal = getHexVal(spField) & 0xff;
+                machine.getCpu().setStackPointer(newVal);
+            } catch (Exception ex) {
+                // Swallow exception
             }
+
+            updateState();
         });
 
-        aField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int newVal = getHexVal(aField) & 0xff;
-                    machine.getCpu().setAccumulator(newVal);
-                } catch (Exception ex) {
-                    // Swallow exception
-                }
-
-                updateState();
+        aField.addActionListener(e -> {
+            try {
+                int newVal = getHexVal(aField) & 0xff;
+                machine.getCpu().setAccumulator(newVal);
+            } catch (Exception ex) {
+                // Swallow exception
             }
+
+            updateState();
         });
 
-        xField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int newVal = getHexVal(xField) & 0xff;
-                    machine.getCpu().setXRegister(newVal);
-                } catch (Exception ex) {
-                    // Swallow exception
-                }
-
-                updateState();
+        xField.addActionListener(e -> {
+            try {
+                int newVal = getHexVal(xField) & 0xff;
+                machine.getCpu().setXRegister(newVal);
+            } catch (Exception ex) {
+                // Swallow exception
             }
+
+            updateState();
         });
 
-        yField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int newVal = getHexVal(yField) & 0xff;
-                    machine.getCpu().setYRegister(newVal);
-                } catch (Exception ex) {
-                    // Swallow exception
-                }
-
-                updateState();
+        yField.addActionListener(e -> {
+            try {
+                int newVal = getHexVal(yField) & 0xff;
+                machine.getCpu().setYRegister(newVal);
+            } catch (Exception ex) {
+                // Swallow exception
             }
+
+            updateState();
         });
 
         constraints.anchor = GridBagConstraints.LINE_START;

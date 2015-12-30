@@ -31,7 +31,7 @@ public interface InstructionTable {
      *
      * TODO: As of version 0.6, this is still not used! All CPUs are "idealized" NMOS 6502 only.
      */
-    public enum CpuBehavior {
+    enum CpuBehavior {
         /**
          * The earliest NMOS 6502 includes a bug that causes the ROR instruction
          * to behave like an ASL that does not affect the carry bit. This version
@@ -65,7 +65,7 @@ public interface InstructionTable {
     /**
      * Enumeration of Addressing Modes.
      */
-    public enum Mode {
+    enum Mode {
         ACC {
             public String toString() {
                 return "Accumulator";
@@ -156,7 +156,7 @@ public interface InstructionTable {
     /**
      * Instruction opcode names.
      */
-    public static final String[] opcodeNames = {
+    String[] opcodeNames = {
         "BRK", "ORA",  null,  null,  null, "ORA", "ASL",  null,
         "PHP", "ORA", "ASL",  null,  null, "ORA", "ASL",  null,
         "BPL", "ORA",  null,  null,  null, "ORA", "ASL",  null,
@@ -194,7 +194,7 @@ public interface InstructionTable {
     /**
      * Instruction addressing modes.
      */
-    public static final Mode[] instructionModes = {
+    Mode[] instructionModes = {
         Mode.IMP, Mode.XIN, Mode.NUL, Mode.NUL,   // 0x00-0x03
         Mode.NUL, Mode.ZPG, Mode.ZPG, Mode.NUL,   // 0x04-0x07
         Mode.IMP, Mode.IMM, Mode.ACC, Mode.NUL,   // 0x08-0x0b
@@ -265,7 +265,7 @@ public interface InstructionTable {
     /**
      * Size, in bytes, required for each instruction.
      */
-    public static final int[] instructionSizes = {
+    int[] instructionSizes = {
         1, 2, 0, 0, 0, 2, 2, 0, 1, 2, 1, 0, 0, 3, 3, 0,
         2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0,
         3, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
@@ -287,7 +287,7 @@ public interface InstructionTable {
     /**
      * Number of clock cycles required for each instruction
      */
-    public static final int[] instructionClocks = {
+    int[] instructionClocks = {
         7, 6, 0, 0, 0, 3, 5, 0, 3, 2, 2, 0, 0, 4, 6, 0,
         2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
         6, 6, 0, 0, 3, 3, 5, 0, 4, 2, 2, 0, 4, 4, 6, 0,

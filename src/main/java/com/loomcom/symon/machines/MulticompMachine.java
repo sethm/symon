@@ -65,7 +65,6 @@ public class MulticompMachine implements Machine {
     private final Cpu    cpu;
     private final Acia   acia;
     private final Memory ram;
-    private final SdController sdController;
     private       Memory rom;
 
 
@@ -75,12 +74,11 @@ public class MulticompMachine implements Machine {
         this.ram = new Memory(MEMORY_BASE, MEMORY_BASE + MEMORY_SIZE - 1, false);
         this.acia = new Acia6850(ACIA_BASE);
         this.acia.setBaudRate(0);
-        this.sdController = new SdController(SD_BASE);
 
         bus.addCpu(cpu);
         bus.addDevice(ram);
         bus.addDevice(acia, 1);
-        bus.addDevice(sdController, 1);
+        bus.addDevice(new SdController(SD_BASE), 1);
         
         // TODO: Make this configurable, of course.
         File romImage = new File("rom.bin");

@@ -73,7 +73,7 @@ public class Simulator {
 
     // Number of CPU steps between CRT repaints.
     // TODO: Dynamically refresh the value at runtime based on performance figures to reach ~ 30fps.
-    private long stepsBetweenCrtcRefreshes = 2500;
+    private static final long STEPS_BETWEEN_CRTC_REFRESHES = 2500;
 
     // A counter to keep track of the number of UI updates that have been
     // requested
@@ -93,14 +93,14 @@ public class Simulator {
     /**
      * The Trace Window shows the most recent 50,000 CPU states.
      */
-    private TraceLog traceLog;
+    private final TraceLog traceLog;
 
     /**
      * The Memory Window shows the contents of one page of memory.
      */
-    private MemoryWindow memoryWindow;
+    private final MemoryWindow memoryWindow;
 
-    private VideoWindow videoWindow;
+    private final VideoWindow videoWindow;
 
     private SimulatorMenu menuBar;
 
@@ -110,8 +110,6 @@ public class Simulator {
 
     private JButton runStopButton;
     private JButton stepButton;
-    private JButton softResetButton;
-    private JButton hardResetButton;
     private JComboBox<String> stepCountBox;
 
     private JFileChooser      fileChooser;
@@ -119,7 +117,7 @@ public class Simulator {
 
     private final Object commandMonitorObject = new Object();
     private MAIN_CMD command = MAIN_CMD.NONE;
-    public static enum MAIN_CMD  {
+    public enum MAIN_CMD  {
         NONE,
         SELECTMACHINE
     }
@@ -131,6 +129,15 @@ public class Simulator {
 
     public Simulator(Class machineClass) throws Exception {
         this.machine = (Machine) machineClass.getConstructors()[0].newInstance();
+
+        // Initialize final fields in the constructor.
+        this.traceLog = new TraceLog();
+        this.memoryWindow = new MemoryWindow(machine.getBus());
+        if(machine.getCrtc() != null) {
+            videoWindow = new VideoWindow(machine.getCrtc(), 2, 2);
+        } else {
+            videoWindow = null;
+        }
     }
 
     /**
@@ -143,7 +150,7 @@ public class Simulator {
         mainWindow.getContentPane().setLayout(new BorderLayout());
 
         // UI components used for I/O.
-        this.console = new com.loomcom.symon.ui.Console(80, 25, DEFAULT_FONT);
+        this.console = new com.loomcom.symon.ui.Console(80, 25, DEFAULT_FONT, false);
         this.statusPane = new StatusPanel(machine);
 
         console.setBorderWidth(CONSOLE_BORDER_WIDTH);
@@ -162,19 +169,17 @@ public class Simulator {
 
         runStopButton = new JButton("Run");
         stepButton = new JButton("Step");
-        softResetButton = new JButton("Soft Reset");
-        hardResetButton = new JButton("Hard Reset");
+        JButton softResetButton = new JButton("Soft Reset");
+        JButton hardResetButton = new JButton("Hard Reset");
 
-        stepCountBox = new JComboBox<String>(STEPS);
-        stepCountBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                try {
-                    JComboBox cb = (JComboBox) actionEvent.getSource();
-                    stepsPerClick = Integer.parseInt((String) cb.getSelectedItem());
-                } catch (NumberFormatException ex) {
-                    stepsPerClick = 1;
-                    stepCountBox.setSelectedIndex(0);
-                }
+        stepCountBox = new JComboBox<>(STEPS);
+        stepCountBox.addActionListener(actionEvent -> {
+            try {
+                JComboBox cb = (JComboBox) actionEvent.getSource();
+                stepsPerClick = Integer.parseInt((String) cb.getSelectedItem());
+            } catch (NumberFormatException ex) {
+                stepsPerClick = 1;
+                stepCountBox.setSelectedIndex(0);
             }
         });
 
@@ -194,48 +199,27 @@ public class Simulator {
         // Bottom - buttons.
         mainWindow.getContentPane().add(buttonContainer, BorderLayout.PAGE_END);
 
-        runStopButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                if (runLoop != null && runLoop.isRunning()) {
-                    handleStop();
-                } else {
-                    handleStart();
-                }
+        runStopButton.addActionListener(actionEvent -> {
+            if (runLoop != null && runLoop.isRunning()) {
+                handleStop();
+            } else {
+                handleStart();
             }
         });
 
-        stepButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                handleStep(stepsPerClick);
-            }
+        stepButton.addActionListener(actionEvent -> handleStep(stepsPerClick));
+
+        softResetButton.addActionListener(actionEvent -> {
+            // If this was a CTRL-click, do a hard reset.
+            handleReset(false);
         });
 
-        softResetButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                // If this was a CTRL-click, do a hard reset.
-                handleReset(false);
-            }
+        hardResetButton.addActionListener(actionEvent -> {
+            // If this was a CTRL-click, do a hard reset.
+            handleReset(true);
         });
 
-        hardResetButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                // If this was a CTRL-click, do a hard reset.
-                handleReset(true);
-            }
-        });
-
-        // Prepare the log window
-        traceLog = new TraceLog();
-
-        // Prepare the memory window
-        memoryWindow = new MemoryWindow(machine.getBus());
-
-        // Composite Video and 6545 CRTC
-        if(machine.getCrtc() != null) {
-            videoWindow = new VideoWindow(machine.getCrtc(), 2, 2);
-        }
-
-        mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         // The Menu. This comes last, because it relies on other components having
         // already been initialized.
@@ -348,7 +332,7 @@ public class Simulator {
             logger.error("Console type-ahead buffer underrun!");
         }
 
-        if (videoWindow != null && stepsSinceLastCrtcRefresh++ > stepsBetweenCrtcRefreshes) {
+        if (videoWindow != null && stepsSinceLastCrtcRefresh++ > STEPS_BETWEEN_CRTC_REFRESHES) {
             stepsSinceLastCrtcRefresh = 0;
             if (videoWindow.isVisible()) {
                 videoWindow.repaint();
@@ -405,15 +389,13 @@ public class Simulator {
             logger.info("Starting main run loop.");
             isRunning = true;
 
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    // Don't allow step while the simulator is running
-                    stepButton.setEnabled(false);
-                    stepCountBox.setEnabled(false);
-                    menuBar.simulatorDidStart();
-                    // Toggle the state of the run button
-                    runStopButton.setText("Stop");
-                }
+            SwingUtilities.invokeLater(() -> {
+                // Don't allow step while the simulator is running
+                stepButton.setEnabled(false);
+                stepCountBox.setEnabled(false);
+                menuBar.simulatorDidStart();
+                // Toggle the state of the run button
+                runStopButton.setText("Stop");
             });
 
             try {
@@ -424,19 +406,17 @@ public class Simulator {
                 logger.error("Exception in main simulator run thread. Exiting run.", ex);
             }
 
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    statusPane.updateState();
-                    memoryWindow.updateState();
-                    runStopButton.setText("Run");
-                    stepButton.setEnabled(true);
-                    stepCountBox.setEnabled(true);
-                    if (traceLog.isVisible()) {
-                        traceLog.refresh();
-                    }
-                    menuBar.simulatorDidStop();
-                    traceLog.simulatorDidStop();
+            SwingUtilities.invokeLater(() -> {
+                statusPane.updateState();
+                memoryWindow.updateState();
+                runStopButton.setText("Run");
+                stepButton.setEnabled(true);
+                stepCountBox.setEnabled(true);
+                if (traceLog.isVisible()) {
+                    traceLog.refresh();
                 }
+                menuBar.simulatorDidStop();
+                traceLog.simulatorDidStop();
             });
 
             isRunning = false;
@@ -482,11 +462,7 @@ public class Simulator {
                                 program[i++] = dis.readByte();
                             }
 
-                            SwingUtilities.invokeLater(new Runnable() {
-                                public void run() {
-                                    console.reset();
-                                }
-                            });
+                            SwingUtilities.invokeLater(() -> console.reset());
 
                             // Now load the program at the starting address.
                             loadProgram(program, preferences.getProgramStartAddress());
@@ -625,11 +601,9 @@ public class Simulator {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    console.setFont(new Font("Monospaced", Font.PLAIN, size));
-                    mainWindow.pack();
-                }
+            SwingUtilities.invokeLater(() -> {
+                console.setFont(new Font("Monospaced", Font.PLAIN, size));
+                mainWindow.pack();
             });
         }
     }
@@ -812,14 +786,12 @@ public class Simulator {
 
     private void updateVisibleState() {
         // Immediately update the UI.
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                // Now update the state
-                statusPane.updateState();
-                memoryWindow.updateState();
-                if (traceLog.shouldUpdate()) {
-                    traceLog.refresh();
-                }
+        SwingUtilities.invokeLater(() -> {
+            // Now update the state
+            statusPane.updateState();
+            memoryWindow.updateState();
+            if (traceLog.shouldUpdate()) {
+                traceLog.refresh();
             }
         });
     }

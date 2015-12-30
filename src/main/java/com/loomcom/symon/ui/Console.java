@@ -44,21 +44,20 @@ import java.awt.event.MouseListener;
 
 public class Console extends JTerminal implements KeyListener, MouseListener {
 
-    private static final int     DEFAULT_COLUMNS      = 80;
-    private static final int     DEFAULT_ROWS         = 24;
     private static final int     DEFAULT_BORDER_WIDTH = 10;
     // If true, swap CR and LF characters.
     private static final boolean SWAP_CR_AND_LF       = true;
-    // If true, send CRLF (0x0d 0x0a) whenever CR is typed
-    private static final boolean SEND_CR_LF_FOR_CR    = false;
 
+    // If true, send CRLF (0x0d 0x0a) whenever CR is typed
+    private boolean sendCrForLf = false;
     private FifoRingBuffer<Character> typeAheadBuffer;
 
-    public Console(int columns, int rows, Font font) {
+    public Console(int columns, int rows, Font font, boolean sendCrForLf) {
         super(new Vt100TerminalModel(columns, rows), font);
         // A small type-ahead buffer, as might be found in any real
         // VT100-style serial terminal.
-        this.typeAheadBuffer = new FifoRingBuffer<Character>(128);
+        this.typeAheadBuffer = new FifoRingBuffer<>(128);
+        this.sendCrForLf = sendCrForLf;
         setBorderWidth(DEFAULT_BORDER_WIDTH);
         addKeyListener(this);
         addMouseListener(this);
@@ -83,7 +82,7 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
     /**
      * Returns true if a key has been pressed since the last time input was read.
      *
-     * @return
+     * @return true if the type-ahead buffer has data
      */
     public boolean hasInput() {
         return !typeAheadBuffer.isEmpty();
@@ -105,7 +104,7 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
             }
         }
 
-        if (SEND_CR_LF_FOR_CR && keyTyped == 0x0d) {
+        if (sendCrForLf && keyTyped == 0x0d) {
             typeAheadBuffer.push((char) 0x0d);
             typeAheadBuffer.push((char) 0x0a);
         } else {

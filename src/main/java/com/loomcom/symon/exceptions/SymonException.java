@@ -31,7 +31,4 @@ public class SymonException extends Exception {
     public SymonException(String msg) {
         super(msg);
     }
-    public SymonException() {
-        super();
-    }
 }

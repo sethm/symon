@@ -59,7 +59,7 @@ public class Cpu implements InstructionTable {
     public static final int IRQ_VECTOR_H = 0xffff;
 
     /* Simulated behavior */
-    private static CpuBehavior behavior;
+    private CpuBehavior behavior;
 
     /* The Bus */
     private Bus bus;
@@ -67,16 +67,6 @@ public class Cpu implements InstructionTable {
     /* The CPU state */
     private static final CpuState state = new CpuState();
 
-    /* Scratch space for addressing mode and effective address
-     * calculations */
-    private int irAddressMode; // Bits 3-5 of IR:  [ | | |X|X|X| | ]
-    private int irOpMode;      // Bits 6-7 of IR:  [ | | | | | |X|X]
-    private int effectiveAddress;
-
-    /* Internal scratch space */
-    private int lo = 0, hi = 0;  // Used in address calculation
-    private int tmp; // Temporary storage
-    
     /* start time of op execution, needed for speed simulation */
     private long opBeginTime;
 
@@ -107,10 +97,6 @@ public class Cpu implements InstructionTable {
 
     public void setBehavior(CpuBehavior behavior) {
         this.behavior = behavior;
-    }
-
-    public CpuBehavior getBehavior() {
-        return behavior;
     }
 
     /**
@@ -177,8 +163,8 @@ public class Cpu implements InstructionTable {
 
         // Fetch memory location for this instruction.
         state.ir = bus.read(state.pc);
-        irAddressMode = (state.ir >> 2) & 0x07;
-        irOpMode = state.ir & 0x03;
+        int irAddressMode = (state.ir >> 2) & 0x07;  // Bits 3-5 of IR:  [ | | |X|X|X| | ]
+        int irOpMode = state.ir & 0x03;              // Bits 6-7 of IR:  [ | | | | | |X|X]
 
         incrementPC();
 
@@ -195,7 +181,8 @@ public class Cpu implements InstructionTable {
         state.stepCounter++;
 
         // Get the data from the effective address (if any)
-        effectiveAddress = 0;
+        int effectiveAddress = 0;
+        int tmp; // Temporary storage
 
         switch (irOpMode) {
             case 0:
@@ -299,8 +286,8 @@ public class Cpu implements InstructionTable {
                 break;
             case 0x40: // RTI - Return from Interrupt - Implied
                 setProcessorStatus(stackPop());
-                lo = stackPop();
-                hi = stackPop();
+                int lo = stackPop();
+                int hi = stackPop();
                 setProgramCounter(address(lo, hi));
                 break;
             case 0x48: // PHA - Push Accumulator - Implied
@@ -787,7 +774,7 @@ public class Cpu implements InstructionTable {
      *
      * @param acc     The current value of the accumulator
      * @param operand The operand
-     * @return
+     * @return The sum of the accumulator and the operand
      */
     private int adc(int acc, int operand) {
         int result = (operand & 0xff) + (acc & 0xff) + getCarryBit();
@@ -1455,20 +1442,18 @@ public class Cpu implements InstructionTable {
          */
         public String toTraceEvent() {
             String opcode = disassembleLastOp();
-            StringBuilder sb = new StringBuilder(getInstructionByteStatus());
-            sb.append("  ");
-            sb.append(String.format("%-14s", opcode));
-            sb.append("A:" + HexUtil.byteToHex(a) + " ");
-            sb.append("X:" + HexUtil.byteToHex(x) + " ");
-            sb.append("Y:" + HexUtil.byteToHex(y) + " ");
-            sb.append("F:" + HexUtil.byteToHex(getStatusFlag()) + " ");
-            sb.append("S:1" + HexUtil.byteToHex(sp) + " ");
-            sb.append(getProcessorStatusString() + "\n");
-            return sb.toString();
+            return getInstructionByteStatus() + "  " +
+                    String.format("%-14s", opcode) +
+                    "A:" + HexUtil.byteToHex(a) + " " +
+                    "X:" + HexUtil.byteToHex(x) + " " +
+                    "Y:" + HexUtil.byteToHex(y) + " " +
+                    "F:" + HexUtil.byteToHex(getStatusFlag()) + " " +
+                    "S:1" + HexUtil.byteToHex(sp) + " " +
+                    getProcessorStatusString() + "\n";
         }
 
         /**
-         * @returns The value of the Process Status Register, as a byte.
+         * @return The value of the Process Status Register, as a byte.
          */
         public int getStatusFlag() {
             int status = 0x20;
@@ -1533,35 +1518,35 @@ public class Cpu implements InstructionTable {
 
             switch (instructionModes[ir]) {
                 case ABS:
-                    sb.append(" $" + HexUtil.wordToHex(address(args[0], args[1])));
+                    sb.append(" $").append(HexUtil.wordToHex(address(args[0], args[1])));
                     break;
                 case ABX:
-                    sb.append(" $" + HexUtil.wordToHex(address(args[0], args[1])) + ",X");
+                    sb.append(" $").append(HexUtil.wordToHex(address(args[0], args[1]))).append(",X");
                     break;
                 case ABY:
-                    sb.append(" $" + HexUtil.wordToHex(address(args[0], args[1])) + ",Y");
+                    sb.append(" $").append(HexUtil.wordToHex(address(args[0], args[1]))).append(",Y");
                     break;
                 case IMM:
-                    sb.append(" #$" + HexUtil.byteToHex(args[0]));
+                    sb.append(" #$").append(HexUtil.byteToHex(args[0]));
                     break;
                 case IND:
-                    sb.append(" ($" + HexUtil.wordToHex(address(args[0], args[1])) + ")");
+                    sb.append(" ($").append(HexUtil.wordToHex(address(args[0], args[1]))).append(")");
                     break;
                 case XIN:
-                    sb.append(" ($" + HexUtil.byteToHex(args[0]) + ",X)");
+                    sb.append(" ($").append(HexUtil.byteToHex(args[0])).append(",X)");
                     break;
                 case INY:
-                    sb.append(" ($" + HexUtil.byteToHex(args[0]) + "),Y");
+                    sb.append(" ($").append(HexUtil.byteToHex(args[0])).append("),Y");
                     break;
                 case REL:
                 case ZPG:
-                    sb.append(" $" + HexUtil.byteToHex(args[0]));
+                    sb.append(" $").append(HexUtil.byteToHex(args[0]));
                     break;
                 case ZPX:
-                    sb.append(" $" + HexUtil.byteToHex(args[0]) + ",X");
+                    sb.append(" $").append(HexUtil.byteToHex(args[0])).append(",X");
                     break;
                 case ZPY:
-                    sb.append(" $" + HexUtil.byteToHex(args[0]) + ",Y");
+                    sb.append(" $").append(HexUtil.byteToHex(args[0])).append(",Y");
                     break;
             }
 
@@ -1594,17 +1579,15 @@ public class Cpu implements InstructionTable {
          * @return A string representing the current status register state.
          */
         public String getProcessorStatusString() {
-            StringBuilder sb = new StringBuilder("[");
-            sb.append(negativeFlag ? 'N' : '.');    // Bit 7
-            sb.append(overflowFlag ? 'V' : '.');    // Bit 6
-            sb.append("-");                         // Bit 5 (always 1)
-            sb.append(breakFlag ? 'B' : '.');       // Bit 4
-            sb.append(decimalModeFlag ? 'D' : '.'); // Bit 3
-            sb.append(irqDisableFlag ? 'I' : '.');  // Bit 2
-            sb.append(zeroFlag ? 'Z' : '.');        // Bit 1
-            sb.append(carryFlag ? 'C' : '.');       // Bit 0
-            sb.append("]");
-            return sb.toString();
+            return "[" + (negativeFlag ? 'N' : '.') +
+                    (overflowFlag ? 'V' : '.') +
+                    "-" +
+                    (breakFlag ? 'B' : '.') +
+                    (decimalModeFlag ? 'D' : '.') +
+                    (irqDisableFlag ? 'I' : '.') +
+                    (zeroFlag ? 'Z' : '.') +
+                    (carryFlag ? 'C' : '.') +
+                    "]";
         }
     }
 }

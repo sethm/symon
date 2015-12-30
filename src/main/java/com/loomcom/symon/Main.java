@@ -39,7 +39,7 @@ public class Main {
      * Main entry point to the simulator. Creates a simulator and shows the main
      * window.
      *
-     * @param args
+     * @param args Program arguments
      */
     public static void main(String args[]) throws Exception {
         
@@ -48,12 +48,16 @@ public class Main {
             String arg = args[i].toLowerCase(Locale.ENGLISH);
             if(arg.equals("-machine") && (i+1) < args.length) {
                 String machine = args[i+1].trim().toLowerCase(Locale.ENGLISH);
-                if(machine.equals("symon")) {
-                    machineClass = SymonMachine.class;
-                } else if(machine.equals("multicomp")) {
-                    machineClass = MulticompMachine.class;
-                } else if (machine.equals("simple")) {
-                    machineClass = SimpleMachine.class;
+                switch (machine) {
+                    case "symon":
+                        machineClass = SymonMachine.class;
+                        break;
+                    case "multicomp":
+                        machineClass = MulticompMachine.class;
+                        break;
+                    case "simple":
+                        machineClass = SimpleMachine.class;
+                        break;
                 }
             }
         }
@@ -82,15 +86,13 @@ public class Main {
         
             final Simulator simulator = new Simulator(machineClass);
         
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    try {
-                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                        // Create the main UI window
-                        simulator.createAndShowUi();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    // Create the main UI window
+                    simulator.createAndShowUi();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             });
         

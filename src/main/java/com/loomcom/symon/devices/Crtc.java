@@ -27,17 +27,11 @@ import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 
 import java.io.IOException;
-import java.util.logging.Logger;
-
 
 /**
  * Simulation of a 6545 CRTC and virtual CRT output.
  */
 public class Crtc extends Device {
-
-    private static final Logger logger = Logger.getLogger(Crtc.class.getName());
-
-
     // Memory locations in the CRTC address space
     public static final int REGISTER_SELECT          = 0;
     public static final int REGISTER_RW              = 1;

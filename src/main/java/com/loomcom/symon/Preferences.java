@@ -27,15 +27,15 @@ import javax.swing.*;
 
 public interface Preferences {
 
-    public static final int DEFAULT_PROGRAM_LOAD_ADDRESS = 0x0300;
+    int DEFAULT_PROGRAM_LOAD_ADDRESS = 0x0300;
 
-    public static final boolean DEFAULT_HALT_ON_BREAK = true;
+    boolean DEFAULT_HALT_ON_BREAK = true;
 
-    public JDialog getDialog();
+    JDialog getDialog();
 
-    public int getProgramStartAddress();
+    int getProgramStartAddress();
 
-    public boolean getHaltOnBreak();
+    boolean getHaltOnBreak();
 
-    public void updateUi();
+    void updateUi();
 }

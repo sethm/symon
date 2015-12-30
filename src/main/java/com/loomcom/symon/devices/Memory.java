@@ -28,8 +28,6 @@ import java.util.*;
 
 import com.loomcom.symon.exceptions.*;
 
-import javax.swing.*;
-
 public class Memory extends Device {
 
     private boolean readOnly;
@@ -57,8 +55,7 @@ public class Memory extends Device {
     }
 
     public static Memory makeRAM(int startAddress, int endAddress) throws MemoryRangeException {
-        Memory memory = new Memory(startAddress, endAddress, false);
-        return memory;
+        return new Memory(startAddress, endAddress, false);
     }
 
     public void write(int address, int data) throws MemoryAccessException {
@@ -107,9 +104,5 @@ public class Memory extends Device {
 
     public String toString() {
         return "Memory: " + getMemoryRange().toString();
-    }
-
-    public int[] getDmaAccess() {
-        return mem;
     }
 }

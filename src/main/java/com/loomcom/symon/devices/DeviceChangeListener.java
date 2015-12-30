@@ -24,5 +24,5 @@
 package com.loomcom.symon.devices;
 
 public interface DeviceChangeListener {
-    public void deviceStateChanged();
+    void deviceStateChanged();
 }

@@ -121,9 +121,6 @@ public class HexUtil {
      * @return Four digit, zero padded hexadecimal string.
      */
     public static String wordToHex(int val) {
-        StringBuilder sb = new StringBuilder(4);
-        sb.append(HEX_CONSTANTS[(val >> 8) & 0xff]);
-        sb.append(HEX_CONSTANTS[val & 0xff]);
-        return sb.toString();
+        return HEX_CONSTANTS[(val >> 8) & 0xff] + HEX_CONSTANTS[val & 0xff];
     }
 }

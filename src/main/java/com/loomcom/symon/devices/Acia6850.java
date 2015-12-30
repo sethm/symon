@@ -41,19 +41,11 @@ public class Acia6850 extends Acia {
 
     public static final int ACIA_SIZE = 2;
 
-
     static final int STAT_REG = 0;	// read-only
     static final int CTRL_REG = 0;	// write-only
 	
     static final int RX_REG = 1;	// read-only
     static final int TX_REG = 1;	// write-only
-
-    
-    /**
-     * Registers. These are ignored in the current implementation.
-     */
-    private int commandRegister;
-
 
     public Acia6850(int address) throws MemoryRangeException {
         super(address, ACIA_SIZE, "ACIA6850");
@@ -88,17 +80,15 @@ public class Acia6850 extends Acia {
     }
     
     private void setCommandRegister(int data) {
-        commandRegister = data;
-		
         // Bits 0 & 1 control the master reset
-        if((commandRegister & 0x01) != 0 && (commandRegister & 0x02) != 0) {
+        if((data & 0x01) != 0 && (data & 0x02) != 0) {
             reset();
         }
 
         // Bit 7 controls receiver IRQ behavior
-        receiveIrqEnabled = (commandRegister & 0x80) != 0;
+        receiveIrqEnabled = (data & 0x80) != 0;
         // Bits 5 & 6 controls transmit IRQ behavior
-        transmitIrqEnabled = (commandRegister & 0x20) != 0 && (commandRegister & 0x40) == 0;
+        transmitIrqEnabled = (data & 0x20) != 0 && (data & 0x40) == 0;
     }
 
 

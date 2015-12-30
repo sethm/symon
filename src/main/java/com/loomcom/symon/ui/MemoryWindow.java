@@ -346,12 +346,8 @@ public class MemoryWindow extends JFrame implements ActionListener {
                     int fullAddress = fullAddress(row, column);
                     int newValue = Integer.parseInt(hexValue, 16) & 0xff;
                     bus.write(fullAddress, newValue);
-                } catch (MemoryAccessException ex) {
-                    ;
-                } catch (NumberFormatException ex) {
-                    ;
-                } catch (ClassCastException ex) {
-                    ;
+                } catch (MemoryAccessException | NumberFormatException | ClassCastException ex) {
+                    // Intentionally swallow exception
                 }
                 fireTableCellUpdated(row, column);
             }

@@ -38,7 +38,7 @@ public class FifoRingBuffer<E> implements Iterable<E> {
     private int maxLength;
 
     public FifoRingBuffer(int maxLength) {
-        this.fifoBuffer = new LinkedList<E>();
+        this.fifoBuffer = new LinkedList<>();
         this.maxLength = maxLength;
     }
 

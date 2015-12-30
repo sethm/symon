@@ -34,6 +34,7 @@ import java.util.Map;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * The Bus ties the whole thing together, man.
@@ -62,7 +63,7 @@ public class Bus {
     }
 
     public Bus(int startAddress, int endAddress) {
-        this.deviceMap = new HashMap<Integer, SortedSet<Device>>();
+        this.deviceMap = new HashMap<>();
         this.startAddress = startAddress;
         this.endAddress = endAddress;
     }
@@ -92,24 +93,26 @@ public class Bus {
     /**
      * Add a device to the bus.
      *
-     * @param device
-     * @param priority
+     * @param device Device to add
+     * @param priority Bus prioirity.
      * @throws MemoryRangeException
      */
     public void addDevice(Device device, int priority) throws MemoryRangeException {
         
         MemoryRange range = device.getMemoryRange();
-        if(range.startAddress() < this.startAddress || range.startAddress() > this.endAddress) {
+
+        if (range.startAddress() < this.startAddress || range.startAddress() > this.endAddress) {
             throw new MemoryRangeException("start address of device " + device.getName() + " does not fall within the address range of the bus");
         }
-        if(range.endAddress() < this.startAddress || range.endAddress() > this.endAddress) {
+
+        if (range.endAddress() < this.startAddress || range.endAddress() > this.endAddress) {
             throw new MemoryRangeException("end address of device " + device.getName() + " does not fall within the address range of the bus");
         }
-  
-        
+
         SortedSet<Device> deviceSet = deviceMap.get(priority);
-        if(deviceSet == null) {
-            deviceSet = new TreeSet<Device>();
+
+        if (deviceSet == null) {
+            deviceSet = new TreeSet<>();
             deviceMap.put(priority, deviceSet);
         }
         
@@ -121,7 +124,7 @@ public class Bus {
     /**
      * Add a device to the bus. Throws a MemoryRangeException if the device overlaps with any others.
      *
-     * @param device
+     * @param device Device to add
      * @throws MemoryRangeException
      */
     public void addDevice(Device device) throws MemoryRangeException {
@@ -132,7 +135,7 @@ public class Bus {
     /**
      * Remove a device from the bus.
      *
-     * @param device
+     * @param device Device to remove
      */
     public void removeDevice(Device device) {
         for(SortedSet<Device> deviceSet : deviceMap.values()) {
@@ -214,16 +217,14 @@ public class Bus {
 
     public SortedSet<Device> getDevices() {
         // create an ordered set of devices, ordered by device priorities
-        SortedSet<Device> devices = new TreeSet<Device>();
+        SortedSet<Device> devices = new TreeSet<>();
         
-        List<Integer> priorities = new ArrayList<Integer>(deviceMap.keySet());
+        List<Integer> priorities = new ArrayList<>(deviceMap.keySet());
         Collections.sort(priorities);
         
         for(int priority : priorities) {
             SortedSet<Device> deviceSet = deviceMap.get(priority);
-            for(Device device : deviceSet) {
-                devices.add(device);
-            }
+            devices.addAll(deviceSet.stream().collect(Collectors.toList()));
         }
         
         return devices;
