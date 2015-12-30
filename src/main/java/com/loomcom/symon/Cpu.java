@@ -58,8 +58,10 @@ public class Cpu implements InstructionTable {
     public static final int IRQ_VECTOR_L = 0xfffe;
     public static final int IRQ_VECTOR_H = 0xffff;
 
-    // Simulated speed is 1 MHz
-    private static final long CLOCK_IN_NS = 1000;
+    public static final long DEFAULT_CLOCK_PERIOD_IN_NS = 1000;
+
+    /* Simulated clock speed (default is 1MHz) */
+    private long clockPeriodInNs = DEFAULT_CLOCK_PERIOD_IN_NS;
 
     /* Simulated behavior */
     private CpuBehavior behavior;
@@ -902,6 +904,21 @@ public class Cpu implements InstructionTable {
     }
 
     /**
+     * @param clockPeriodInNs The simulated clock period, in nanoseconds
+     */
+    public void setClockPeriodInNs(long clockPeriodInNs) {
+        logger.debug("Setting simulated clock period to {} ns.", clockPeriodInNs);
+        this.clockPeriodInNs = clockPeriodInNs;
+    }
+
+    /**
+     * @return The simulated clock period, in nanoseconds
+     */
+    public long getClockPeriodInNs() {
+        return clockPeriodInNs;
+    }
+
+    /**
      * Return the current Cpu State.
      *
      * @return the current Cpu State.
@@ -1344,7 +1361,7 @@ public class Cpu implements InstructionTable {
             return;
         }
 
-        long interval = clockSteps * CLOCK_IN_NS;
+        long interval = clockSteps * clockPeriodInNs;
         long end;
 
         do {

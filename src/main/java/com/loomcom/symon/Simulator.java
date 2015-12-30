@@ -57,6 +57,9 @@ public class Simulator {
     private static final Font DEFAULT_FONT         = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
     private static final int  CONSOLE_BORDER_WIDTH = 10;
 
+    // Clock periods, in NS, for each speed. 0MHz, 1MHz, 2MHz, 3MHz, 4MHz, 5MHz, 6MHz, 7MHz, 8MHz.
+    private static final long[] CLOCK_PERIODS = {0, 1000, 500, 333, 250, 200, 167, 143, 125};
+
     // Since it is very expensive to update the UI with Swing's Event Dispatch Thread, we can't afford
     // to refresh the status view on every simulated clock cycle. Instead, we will only refresh the status view
     // after this number of steps when running normally.
@@ -597,7 +600,7 @@ public class Simulator {
         public SetFontAction(int size) {
             super(Integer.toString(size) + " pt", null);
             this.size = size;
-            putValue(SHORT_DESCRIPTION, "Set font to " + Integer.toString(size) + "pt.");
+            putValue(SHORT_DESCRIPTION, "Set font to " + size + "pt.");
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
@@ -605,6 +608,25 @@ public class Simulator {
                 console.setFont(new Font("Monospaced", Font.PLAIN, size));
                 mainWindow.pack();
             });
+        }
+    }
+
+    class SetSpeedAction extends AbstractAction {
+        private int speed;
+
+        public SetSpeedAction(int speed) {
+            super(Integer.toString(speed) + " MHz", null);
+            this.speed = speed;
+            putValue(SHORT_DESCRIPTION, "Set simulated speed to " + speed + " MHz.");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            if (speed < 1 || speed > CLOCK_PERIODS.length - 1) {
+                return;
+            }
+
+            machine.getCpu().setClockPeriodInNs(CLOCK_PERIODS[speed]);
         }
     }
 
@@ -712,9 +734,6 @@ public class Simulator {
             JMenuItem prefsItem = new JMenuItem(new ShowPrefsAction());
             fileMenu.add(prefsItem);
 
-            JMenuItem selectMachineItem = new JMenuItem(new SelectMachineAction());
-            fileMenu.add(selectMachineItem);
-
             JMenuItem quitItem = new JMenuItem(new QuitAction());
             fileMenu.add(quitItem);
 
@@ -772,14 +791,46 @@ public class Simulator {
             }
 
             add(viewMenu);
+
+            /*
+             * Simulator Menu
+             */
+            JMenu simulatorMenu = new JMenu("Simulator");
+            JMenu speedSubMenu = new JMenu("Clock Speed");
+            ButtonGroup speedGroup = new ButtonGroup();
+
+            makeSpeedMenuItem(1, speedSubMenu, speedGroup);
+            makeSpeedMenuItem(2, speedSubMenu, speedGroup);
+            makeSpeedMenuItem(4, speedSubMenu, speedGroup);
+            makeSpeedMenuItem(8, speedSubMenu, speedGroup);
+
+            simulatorMenu.add(speedSubMenu);
+
+            JMenuItem selectMachineItem = new JMenuItem(new SelectMachineAction());
+            simulatorMenu.add(selectMachineItem);
+
+            add(simulatorMenu);
         }
 
-        private void makeFontSizeMenuItem(int size, JMenu fontSubMenu, ButtonGroup group) {
+        private void makeFontSizeMenuItem(int size, JMenu subMenu, ButtonGroup group) {
             Action action = new SetFontAction(size);
 
             JCheckBoxMenuItem item = new JCheckBoxMenuItem(action);
             item.setSelected(size == DEFAULT_FONT_SIZE);
-            fontSubMenu.add(item);
+            subMenu.add(item);
+            group.add(item);
+        }
+
+        private void makeSpeedMenuItem(int speed, JMenu subMenu, ButtonGroup group) {
+            if (speed < 1 || speed > CLOCK_PERIODS.length - 1) {
+                return;
+            }
+
+            Action action = new SetSpeedAction(speed);
+
+            JCheckBoxMenuItem item = new JCheckBoxMenuItem(action);
+            item.setSelected(CLOCK_PERIODS[speed] == Cpu.DEFAULT_CLOCK_PERIOD_IN_NS);
+            subMenu.add(item);
             group.add(item);
         }
     }
