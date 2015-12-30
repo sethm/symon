@@ -58,6 +58,9 @@ public class Cpu implements InstructionTable {
     public static final int IRQ_VECTOR_L = 0xfffe;
     public static final int IRQ_VECTOR_H = 0xffff;
 
+    // Simulated speed is 1 MHz
+    private static final long CLOCK_IN_NS = 1000;
+
     /* Simulated behavior */
     private CpuBehavior behavior;
 
@@ -150,6 +153,7 @@ public class Cpu implements InstructionTable {
      */
     public void step() throws MemoryAccessException {
         opBeginTime = System.nanoTime();
+
         // Store the address from which the IR was read, for debugging
         state.lastPc = state.pc;
 
@@ -1330,19 +1334,22 @@ public class Cpu implements InstructionTable {
     }
 
     /*
-     * Perform a busy-loop for CLOCK_IN_NS nanoseconds
+     * Perform a busy-loop until the instruction should complete on the wall clock
      */
     private void delayLoop(int opcode) {
         int clockSteps = Cpu.instructionClocks[0xff & opcode];
-        // Just a precaution. This could be better.
+
         if (clockSteps == 0) {
-            clockSteps = 1;
+            logger.warn("Opcode {} has clock step of 0!", opcode);
+            return;
         }
-        long opScheduledEnd = opBeginTime + clockSteps;
-        long now = System.nanoTime();
-        while(now < opScheduledEnd) {
-            now = System.nanoTime();
-        }
+
+        long interval = clockSteps * CLOCK_IN_NS;
+        long end;
+
+        do {
+            end = System.nanoTime();
+        } while (opBeginTime + interval >= end);
     }
 
 
