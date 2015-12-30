@@ -1,9 +1,9 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**Version:** 1.0.0
+**Version:** 1.1.0-SNAPSHOT
 
-**Last Updated:** 11 August, 2014
+**Last Updated:** 30 December, 2015
 
 See the file COPYING for license.
 
@@ -30,7 +30,7 @@ are always welcome.
 
 ## 2.0 Requirements
 
-  - Java 1.7 or higher
+  - Java 1.8 or higher
   - Maven 2.0.x or higher (for building from source)
   - JUnit 4 or higher (for testing)
 
@@ -171,9 +171,9 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 `target` directory containing the compiled simulator.
 
 Symon is meant to be invoked directly from the jar file. To run with
-Java 1.5 or greater, just type:
+Java 1.8 or greater, just type:
 
-    $ java -jar symon-0.9.1.0.jar
+    $ java -jar symon-1.1.0.0-SNAPSHOT.jar
 
 When Symon is running, you should be presented with a simple graphical
 interface.
@@ -220,7 +220,13 @@ running.
 
 ## 5.0 Revision History
 
-  - **1.0.0-SNAPSHOT:** 10 August, 2014 - Added "Simple" machine
+  - **1.1.0-SNAPSHOT:** 30 December, 2015 - Fixed delay loop
+    to better simulate various clock speeds. Added ability
+    to select clock speed at runtime. Status display now shows
+    the next instruction to be executed, instead of the last
+    instruction executed.
+
+  - **1.0.0:** 10 August, 2014 - Added "Simple" machine
     implementation, pure RAM with no IO. Added Klaus Dormann's
     6502 Functional Tests for further machine verification (these
     tests must be run in the "Simple" machine).
