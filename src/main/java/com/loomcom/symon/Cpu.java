@@ -912,13 +912,6 @@ public class Cpu implements InstructionTable {
     }
 
     /**
-     * @return The simulated clock period, in nanoseconds
-     */
-    public long getClockPeriodInNs() {
-        return clockPeriodInNs;
-    }
-
-    /**
      * Return the current Cpu State.
      *
      * @return the current Cpu State.

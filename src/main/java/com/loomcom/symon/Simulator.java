@@ -24,10 +24,7 @@
 package com.loomcom.symon;
 
 import com.loomcom.symon.devices.Memory;
-import com.loomcom.symon.exceptions.FifoUnderrunException;
-import com.loomcom.symon.exceptions.MemoryAccessException;
-import com.loomcom.symon.exceptions.MemoryRangeException;
-import com.loomcom.symon.exceptions.SymonException;
+import com.loomcom.symon.exceptions.*;
 import com.loomcom.symon.machines.Machine;
 import com.loomcom.symon.ui.*;
 import com.loomcom.symon.ui.Console;
@@ -39,6 +36,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Symon Simulator Interface and Control.
@@ -53,9 +52,9 @@ public class Simulator {
     private final static Logger logger = LoggerFactory.getLogger(Simulator.class.getName());
 
     // UI constants
-    private static final int  DEFAULT_FONT_SIZE    = 12;
-    private static final Font DEFAULT_FONT         = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
-    private static final int  CONSOLE_BORDER_WIDTH = 10;
+    private static final int DEFAULT_FONT_SIZE = 12;
+    private static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
+    private static final int CONSOLE_BORDER_WIDTH = 10;
 
     // Clock periods, in NS, for each speed. 0MHz, 1MHz, 2MHz, 3MHz, 4MHz, 5MHz, 6MHz, 7MHz, 8MHz.
     private static final long[] CLOCK_PERIODS = {0, 1000, 500, 333, 250, 200, 167, 143, 125};
@@ -105,38 +104,48 @@ public class Simulator {
 
     private final VideoWindow videoWindow;
 
+    private final BreakpointsWindow breakpointsWindow;
+
     private SimulatorMenu menuBar;
 
-    private RunLoop     runLoop;
-    private Console     console;
+    private RunLoop runLoop;
+    private Console console;
     private StatusPanel statusPane;
 
     private JButton runStopButton;
     private JButton stepButton;
     private JComboBox<String> stepCountBox;
 
-    private JFileChooser      fileChooser;
+    private JFileChooser fileChooser;
     private PreferencesDialog preferences;
 
+    private SortedSet<Integer> breakpoints;
+
     private final Object commandMonitorObject = new Object();
-    private MAIN_CMD command = MAIN_CMD.NONE;
-    public enum MAIN_CMD  {
+
+    private MainCommand command = MainCommand.NONE;
+
+    public enum MainCommand {
         NONE,
         SELECTMACHINE
     }
-    
+
     /**
      * The list of step counts that will appear in the "Step" drop-down.
      */
     private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
     public Simulator(Class machineClass) throws Exception {
+        this.breakpoints = new TreeSet<>();
+
         this.machine = (Machine) machineClass.getConstructors()[0].newInstance();
 
         // Initialize final fields in the constructor.
         this.traceLog = new TraceLog();
         this.memoryWindow = new MemoryWindow(machine.getBus());
-        if(machine.getCrtc() != null) {
+        this.breakpointsWindow = new BreakpointsWindow(breakpoints, mainWindow);
+
+        if (machine.getCrtc() != null) {
             videoWindow = new VideoWindow(machine.getCrtc(), 2, 2);
         } else {
             videoWindow = null;
@@ -235,9 +244,9 @@ public class Simulator {
         console.requestFocus();
         handleReset(false);
     }
-    
-    public MAIN_CMD waitForCommand() {
-        synchronized(commandMonitorObject) {
+
+    public MainCommand waitForCommand() {
+        synchronized (commandMonitorObject) {
             try {
                 commandMonitorObject.wait();
             } catch (InterruptedException ex) {
@@ -246,7 +255,7 @@ public class Simulator {
         }
         return command;
     }
-    
+
 
     private void handleStart() {
         // Shift focus to the console.
@@ -274,7 +283,7 @@ public class Simulator {
         }
 
         try {
-            logger.info("Reset requested. Resetting CPU.");
+            logger.debug("Reset requested. Resetting CPU.");
             // Reset CPU
             machine.getCpu().reset();
             // Clear the console.
@@ -349,7 +358,6 @@ public class Simulator {
             updateVisibleState();
             stepsSinceLastUpdate = 0;
         }
-
     }
 
     /**
@@ -389,7 +397,7 @@ public class Simulator {
         }
 
         public void run() {
-            logger.info("Starting main run loop.");
+            logger.debug("Starting main run loop.");
             isRunning = true;
 
             SwingUtilities.invokeLater(() -> {
@@ -426,12 +434,12 @@ public class Simulator {
         }
 
         /**
-         * Returns true if the run loop should proceed to the next step.
-         *
          * @return True if the run loop should proceed to the next step.
          */
         private boolean shouldContinue() {
-            return isRunning && !(preferences.getHaltOnBreak() && machine.getCpu().getInstruction() == 0x00);
+            return !breakpoints.contains(machine.getCpu().getProgramCounter()) &&
+                    isRunning &&
+                    !(preferences.getHaltOnBreak() && machine.getCpu().getInstruction() == 0x00);
         }
     }
 
@@ -506,7 +514,7 @@ public class Simulator {
                         if (fileSize != machine.getRomSize()) {
                             throw new IOException("ROM file must be exactly " + String.valueOf(machine.getRomSize()) + " bytes.");
                         }
-                            
+
                         // Load the new ROM image
                         Memory rom = Memory.makeROM(machine.getRomBase(), machine.getRomBase() + machine.getRomSize() - 1, romFile);
                         machine.setRom(rom);
@@ -551,7 +559,7 @@ public class Simulator {
             preferences.getDialog().setVisible(true);
         }
     }
-    
+
     class SelectMachineAction extends AbstractAction {
         public SelectMachineAction() {
             super("Switch emulated machine...", null);
@@ -560,19 +568,19 @@ public class Simulator {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            if(runLoop != null) {
+            if (runLoop != null) {
                 runLoop.requestStop();
             }
 
             memoryWindow.dispose();
             traceLog.dispose();
-            if(videoWindow != null) {
+            if (videoWindow != null) {
                 videoWindow.dispose();
             }
             mainWindow.dispose();
 
-            command = MAIN_CMD.SELECTMACHINE;
-            synchronized(commandMonitorObject) {
+            command = MainCommand.SELECTMACHINE;
+            synchronized (commandMonitorObject) {
                 commandMonitorObject.notifyAll();
             }
         }
@@ -682,6 +690,23 @@ public class Simulator {
         }
     }
 
+    class ToggleBreakpointWindowAction extends AbstractAction {
+        public ToggleBreakpointWindowAction() {
+            super("Breakpoints...", null);
+            putValue(SHORT_DESCRIPTION, "Show or Hide Breakpoints");
+        }
+
+        public void actionPerformed(ActionEvent actionEvent) {
+            synchronized (breakpointsWindow) {
+                if (breakpointsWindow.isVisible()) {
+                    breakpointsWindow.setVisible(false);
+                } else {
+                    breakpointsWindow.setVisible(true);
+                }
+            }
+        }
+    }
+
     class SimulatorMenu extends JMenuBar {
         // Menu Items
         private JMenuItem loadProgramItem;
@@ -779,7 +804,7 @@ public class Simulator {
             });
             viewMenu.add(showMemoryTable);
 
-            if(videoWindow != null) {
+            if (videoWindow != null) {
                 final JCheckBoxMenuItem showVideoWindow = new JCheckBoxMenuItem(new ToggleVideoWindowAction());
                 videoWindow.addWindowListener(new WindowAdapter() {
                     @Override
@@ -795,7 +820,15 @@ public class Simulator {
             /*
              * Simulator Menu
              */
+
+
             JMenu simulatorMenu = new JMenu("Simulator");
+
+            // "Select Machine..." item.
+            JMenuItem selectMachineItem = new JMenuItem(new SelectMachineAction());
+            simulatorMenu.add(selectMachineItem);
+
+            // "Clock Speed" sub-menu
             JMenu speedSubMenu = new JMenu("Clock Speed");
             ButtonGroup speedGroup = new ButtonGroup();
 
@@ -806,8 +839,16 @@ public class Simulator {
 
             simulatorMenu.add(speedSubMenu);
 
-            JMenuItem selectMachineItem = new JMenuItem(new SelectMachineAction());
-            simulatorMenu.add(selectMachineItem);
+            // "Breakpoints"
+            final JCheckBoxMenuItem showBreakpoints = new JCheckBoxMenuItem(new ToggleBreakpointWindowAction());
+            // Un-check the menu item if the user closes the window directly
+            breakpointsWindow.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    showBreakpoints.setSelected(false);
+                }
+            });
+            simulatorMenu.add(showBreakpoints);
 
             add(simulatorMenu);
         }

@@ -26,6 +26,8 @@ package com.loomcom.symon.ui;
 import com.loomcom.symon.Bus;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.util.HexUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -37,14 +39,15 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.EventObject;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  * This Frame displays the contents of a page of memory. The page number to be displayed
  * is selectable by the user.
  */
 public class MemoryWindow extends JFrame implements ActionListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(MemoryWindow.class);
 
     private MemoryTableModel memoryTableModel;
     private JTable memoryTable;
@@ -209,9 +212,9 @@ public class MemoryWindow extends JFrame implements ActionListener {
             } catch (NumberFormatException ex) {
                 // An invalid number was entered. Log the error, but otherwise
                 // take no action.
-                Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Can't parse page number " +
-                        pageNumberInput);
+                logger.warn("Can't parse page number {}", pageNumberInput);
             }
+
             updateControls();
         }
     }

@@ -97,8 +97,8 @@ public class Main {
             });
         
         
-            Simulator.MAIN_CMD cmd = simulator.waitForCommand();
-            if (cmd.equals(Simulator.MAIN_CMD.SELECTMACHINE)) {
+            Simulator.MainCommand cmd = simulator.waitForCommand();
+            if (cmd.equals(Simulator.MainCommand.SELECTMACHINE)) {
                 machineClass = null;
             } else {
                 break;
