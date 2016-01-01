@@ -1,9 +1,9 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**Version:** 1.1.0-SNAPSHOT
+**Version:** 1.1.0
 
-**Last Updated:** 30 December, 2015
+**Last Updated:** 31 December, 2015
 
 See the file COPYING for license.
 
@@ -220,11 +220,11 @@ running.
 
 ## 5.0 Revision History
 
-  - **1.1.0-SNAPSHOT:** 30 December, 2015 - Fixed delay loop
-    to better simulate various clock speeds. Added ability
-    to select clock speed at runtime. Status display now shows
-    the next instruction to be executed, instead of the last
-    instruction executed.
+  - **1.1.0:** 31 December, 2015 - Fixed delay loop to better 
+    simulate various clock speeds. Added ability to select clock
+    speed at runtime. Status display now shows the next instruction
+    to be executed, instead of the last instruction executed.
+    Added support for breakpoints.
 
   - **1.0.0:** 10 August, 2014 - Added "Simple" machine
     implementation, pure RAM with no IO. Added Klaus Dormann's
