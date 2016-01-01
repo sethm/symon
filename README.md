@@ -103,19 +103,32 @@ Memory contents can be viewed (and edited) one page at a time through the Memory
 
 ![Trace Log] (https://github.com/sethm/symon/raw/master/screenshots/trace_log.png)
 
-The last 20,000 execution steps are disassembled and logged to the Trace Log Window.
+The last 20,000 execution steps are disassembled and logged to the Trace Log
+Window.
 
-### 3.6 NEW - Experimental 6545 CRTC Video
+### 3.6 Simulator Speeds
+
+![Speeds] (https://github.com/sethm/symon/raw/master/screenshots/simulator_menu.png)
+
+Simulated speeds may be set from 1MHz to 8MHz.
+
+### 3.7 Breakpoints
+
+![Breakpoints] (https://github.com/sethm/symon/raw/master/screenshots/breakpoints.png)
+
+Breakpoints can be set and removed through the Breakpoints window.
+
+### 3.8 Experimental 6545 CRTC Video
 
 ![Composite Video] (https://github.com/sethm/symon/raw/master/screenshots/video_window.png)
 
-This feature is highly experimental. It's possible to open a video window from the "View" menu.
-This window simulates the output of a MOS 6545 CRT Controller located at address `$9000` and
-`$9001`.
+This feature is highly experimental. It's possible to open a video window
+from the "View" menu.  This window simulates the output of a MOS 6545 CRT
+Controller located at address `$9000` and `$9001`.
 
-By default, the 40 x 25 character display uses video memory located at base address `$7000`.
-This means that the memory from address `$7000` (28672 decimal) to `$73E8` (29672 decimal)
-is directly mapped to video.
+By default, the 40 x 25 character display uses video memory located at base
+address `$7000`.  This means that the memory from address `$7000` (28672
+decimal) to `$73E8` (29672 decimal) is directly mapped to video.
 
   - Address Register (at address `$9000`)
   - R1: Horizontal Displayed Columns
@@ -128,18 +141,20 @@ is directly mapped to video.
   - R14: Cursor Position (High Byte)
   - R15: Cursor Position (Low Byte)
 
-Although the simulation is pretty good, there are a few key differences between
-the simulated 6545 and a real 6545:
+Although the simulation is pretty good, there are a few key differences
+between the simulated 6545 and a real 6545:
 
-  - The simulated 6545 supports only the straight binary addressing mode of the real 6545,
-    and not the Row/Column addressing mode.
-  - The simulated 6545 has full 16 bit addressing, where the real 6545 has only
-    a 14-bit address bus.
-  - The simulation is done at a whole-frame level, meaning that lots of
-    6545 programming tricks that were achieved by updating the frame address
-    during vertical and horizontal sync times are not achievable. There is no way
-    (for example) to change the Display Start Address (R12 and R13) while a
-    frame is being drawn.
+  - The simulated 6545 supports only the straight binary addressing
+    mode of the real 6545, and not the Row/Column addressing mode.
+
+  - The simulated 6545 has full 16 bit addressing, where the real 6545
+    has only a 14-bit address bus.
+
+  - The simulation is done at a whole-frame level, meaning that lots
+    of 6545 programming tricks that were achieved by updating the
+    frame address during vertical and horizontal sync times are not
+    achievable.  There is no way (for example) to change the Display Start
+    Address (R12 and R13) while a frame is being drawn.  
 
 For more information on the 6545 CRTC and its programming model, please see the following resources
 
@@ -148,7 +163,7 @@ For more information on the 6545 CRTC and its programming model, please see the 
   - [MOS 6545 Datasheet (PDF)] (http://www.6502.org/users/andre/hwinfo/crtc/crtc.html)
 
 
-#### 3.6.1 Example BASIC Program to test Video
+#### 3.8.1 Example BASIC Program to test Video
 
 This program will fill the video screen with all printable characters.
 
