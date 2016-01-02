@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.SortedSet;
 
@@ -126,7 +127,7 @@ public class BreakpointsWindow extends JFrame {
             }
         });
 
-        addButton.addActionListener(e -> {
+        ActionListener addBreakpointListener = e -> {
             int value = -1;
 
             String newBreakpoint = addTextField.getText();
@@ -136,7 +137,7 @@ public class BreakpointsWindow extends JFrame {
             }
 
             try {
-                value = Integer.parseInt(addTextField.getText(), 16);
+                value = (Integer.parseInt(addTextField.getText(), 16) & 0xffff);
             } catch (NumberFormatException ex) {
                 logger.warn("Can't parse page number {}", newBreakpoint);
                 return;
@@ -151,7 +152,10 @@ public class BreakpointsWindow extends JFrame {
             logger.debug("Added breakpoint ${}", HexUtil.wordToHex(value));
 
             addTextField.setText(EMPTY_STRING);
-        });
+        };
+
+        addButton.addActionListener(addBreakpointListener);
+        addTextField.addActionListener(addBreakpointListener);
 
         removeButton.addActionListener(e -> listModel.removeElement(breakpointsList.getSelectedIndex()));
 
