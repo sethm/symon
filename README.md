@@ -1,9 +1,9 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**Version:** 1.1.0
+**Version:** 1.1.1
 
-**Last Updated:** 31 December, 2015
+**Last Updated:** 2 January, 2016
 
 See the file COPYING for license.
 
@@ -188,7 +188,7 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.8 or greater, just type:
 
-    $ java -jar symon-1.1.0.0-SNAPSHOT.jar
+    $ java -jar symon-1.1.1.jar
 
 When Symon is running, you should be presented with a simple graphical
 interface.
@@ -234,6 +234,9 @@ After loading a program or ROM image, clicking "Run" will start the simulator
 running.
 
 ## 5.0 Revision History
+
+  - **1.1.1:** 2 January, 2016 - Minor enhancement: Allows breakpoints
+    to be added with the Enter key.
 
   - **1.1.0:** 31 December, 2015 - Fixed delay loop to better 
     simulate various clock speeds. Added ability to select clock
