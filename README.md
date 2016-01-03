@@ -286,7 +286,15 @@ running.
 
   - **0.1:** 20 January, 2010
 
-## 6.0 To Do
+## 6.0 Roadmap
+
+  - **1.2:** Better breakpoint support. Symbolic debugging of breakpoints.
+
+  - **2.0:** Complete rewrite of the UI in JavaFX instead of Swing. Complete
+    assembler and disassembler built in. Ability to attach source code for
+    symbolic debugging.
+
+## 7.0 To Do
 
   - Feedback (in the form of dialogs, status bar, etc).
 
@@ -310,7 +318,7 @@ running.
 
   - Symbolic debugging.
 
-## 7.0 Copyright and Acknowledgements
+## 8.0 Copyright and Acknowledgements
 
 **Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;**
 
@@ -330,7 +338,7 @@ This project would not have been possible without the following resources:
   - [Neil Parker's "The 6502/65C02/65C816 Instruction Set Decoded"] (http://www.llx.com/~nparker/a2/opcodes.html),
     for information about how instructions are coded
 
-## 8.0 Licensing
+## 9.0 Licensing
 
 Symon is free software.  It is distributed under the MIT License.
 Please see the file 'COPYING' for full details of the license.
