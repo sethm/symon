@@ -24,14 +24,13 @@
 package com.loomcom.symon.ui;
 
 import com.loomcom.symon.Cpu;
+import com.loomcom.symon.CpuState;
 import com.loomcom.symon.machines.Machine;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * UI component that displays the current state of the simulated CPU.
@@ -277,7 +276,7 @@ public class StatusPanel extends JPanel {
      */
     public void updateState() {
         Cpu cpu = machine.getCpu();
-        Cpu.CpuState cpuState = cpu.getCpuState();
+        CpuState cpuState = cpu.getCpuState();
 
         // Update the Processor Status Flag display
         int status = cpuState.getStatusFlag();
@@ -293,7 +292,7 @@ public class StatusPanel extends JPanel {
         // Update the register and address displays
 
         // We always want to show the NEXT instruction that will be executed
-        opcodeField.setText(cpu.getCpuState().disassembleNextOp());
+        opcodeField.setText(cpu.disassembleNextOp());
         pcField.setText(cpu.getProgramCounterStatus());
         spField.setText(cpu.getStackPointerStatus());
         aField.setText(cpu.getAccumulatorStatus());

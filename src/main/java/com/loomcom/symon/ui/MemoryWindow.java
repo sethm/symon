@@ -25,7 +25,7 @@ package com.loomcom.symon.ui;
 
 import com.loomcom.symon.Bus;
 import com.loomcom.symon.exceptions.MemoryAccessException;
-import com.loomcom.symon.util.HexUtil;
+import com.loomcom.symon.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +107,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
 
         previousPageButton.setEnabled(pageNumber > 0x00);
         nextPageButton.setEnabled(pageNumber < 0xff);
-        pageNumberTextField.setText(HexUtil.byteToHex(pageNumber));
+        pageNumberTextField.setText(Utils.byteToHex(pageNumber));
     }
 
     /**
@@ -328,13 +328,13 @@ public class MemoryWindow extends JFrame implements ActionListener {
         public Object getValueAt(int row, int column) {
             try {
                 if (column == 0) {
-                    return HexUtil.wordToHex(fullAddress(row, 1));
+                    return Utils.wordToHex(fullAddress(row, 1));
                 } else if (column < 9) {
                     // Display hex value of the data
-                    return HexUtil.byteToHex(bus.read(fullAddress(row, column)));
+                    return Utils.byteToHex(bus.read(fullAddress(row, column)));
                 } else {
                     // Display the ASCII equivalent (if printable)
-                    return HexUtil.byteToAscii(bus.read(fullAddress(row, column - 8)));
+                    return Utils.byteToAscii(bus.read(fullAddress(row, column - 8)));
                 }
             } catch (MemoryAccessException ex) {
                 return "??";

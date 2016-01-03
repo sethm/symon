@@ -24,7 +24,7 @@
 
 package com.loomcom.symon.ui;
 
-import com.loomcom.symon.Cpu;
+import com.loomcom.symon.CpuState;
 import com.loomcom.symon.util.FifoRingBuffer;
 
 import javax.swing.*;
@@ -36,7 +36,7 @@ import java.awt.*;
  */
 public class TraceLog extends JFrame {
 
-    private final FifoRingBuffer<Cpu.CpuState> traceLog;
+    private final FifoRingBuffer<CpuState> traceLog;
     private final JTextArea                    traceLogTextArea;
 
     private static final Dimension MIN_SIZE       = new Dimension(320, 200);
@@ -71,7 +71,7 @@ public class TraceLog extends JFrame {
         StringBuilder logString = new StringBuilder();        
         
         synchronized(traceLog) {
-            for (Cpu.CpuState state : traceLog) {
+            for (CpuState state : traceLog) {
                 logString.append(state.toTraceEvent());
             }
         }
@@ -99,9 +99,9 @@ public class TraceLog extends JFrame {
      *
      * @param state The CPU State to append.
      */
-    public void append(Cpu.CpuState state) {
+    public void append(CpuState state) {
         synchronized(traceLog) {
-            traceLog.push(new Cpu.CpuState(state));
+            traceLog.push(new CpuState(state));
         }
     }
 

@@ -119,7 +119,7 @@ public class Simulator {
     private JFileChooser fileChooser;
     private PreferencesDialog preferences;
 
-    private SortedSet<Integer> breakpoints;
+    private Breakpoints breakpoints;
 
     private final Object commandMonitorObject = new Object();
 
@@ -136,7 +136,7 @@ public class Simulator {
     private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
     public Simulator(Class machineClass) throws Exception {
-        this.breakpoints = new TreeSet<>();
+        this.breakpoints = new Breakpoints(this);
 
         this.machine = (Machine) machineClass.getConstructors()[0].newInstance();
 
@@ -443,6 +443,10 @@ public class Simulator {
         }
     }
 
+    public String disassembleOpAtAddress(int address) throws MemoryAccessException {
+        return machine.getCpu().disassembleOpAtAddress(address);
+    }
+
     class LoadProgramAction extends AbstractAction {
         public LoadProgramAction() {
             super("Load Program...", null);
@@ -473,10 +477,14 @@ public class Simulator {
                                 program[i++] = dis.readByte();
                             }
 
-                            SwingUtilities.invokeLater(() -> console.reset());
-
                             // Now load the program at the starting address.
                             loadProgram(program, preferences.getProgramStartAddress());
+
+                            SwingUtilities.invokeLater(() -> {
+                                console.reset();
+                                breakpoints.refresh();
+                            });
+
                             // TODO: "Don't Show Again" checkbox
                             JOptionPane.showMessageDialog(mainWindow,
                                     "Loaded Successfully At " +
@@ -523,6 +531,9 @@ public class Simulator {
                         machine.getCpu().reset();
 
                         updateVisibleState();
+
+                        // Refresh breakpoints to show new memory contents.
+                        breakpoints.refresh();
 
                         logger.info("ROM File `{}' loaded at {}", romFile.getName(),
                                 String.format("0x%04X", machine.getRomBase()));
