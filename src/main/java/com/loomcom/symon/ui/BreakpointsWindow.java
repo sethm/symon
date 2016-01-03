@@ -23,7 +23,8 @@
 
 package com.loomcom.symon.ui;
 
-import com.loomcom.symon.util.HexUtil;
+import com.loomcom.symon.Breakpoints;
+import com.loomcom.symon.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +32,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.SortedSet;
 
 /**
  * Simple window to enter breakpoints.
@@ -45,45 +44,9 @@ public class BreakpointsWindow extends JFrame {
     private static final String EMPTY_STRING = "";
 
     private JFrame mainWindow;
-    private SortedSet<Integer> breakpoints;
+    private Breakpoints breakpoints;
 
-    /**
-     * Simple ListModel to back the list of breakpoints.
-     */
-    private class BreakpointsListModel extends AbstractListModel<String> {
-        private SortedSet<Integer> breakpoints;
-
-        public BreakpointsListModel(SortedSet<Integer> breakpoints) {
-            this.breakpoints = breakpoints;
-        }
-
-        @Override
-        public int getSize() {
-            return breakpoints.size();
-        }
-
-        @Override
-        public String getElementAt(int index) {
-            ArrayList<Integer> values = new ArrayList<>(breakpoints);
-            return "$" + HexUtil.wordToHex(values.get(index));
-        }
-
-        public void addElement(Integer breakpoint) {
-            breakpoints.add(breakpoint);
-            ArrayList<Integer> values = new ArrayList<>(breakpoints);
-            int index = values.indexOf(breakpoint);
-            fireIntervalAdded(this, index, index);
-        }
-
-        public void removeElement(int index) {
-            ArrayList<Integer> values = new ArrayList<>(breakpoints);
-            Integer breakpoint = values.get(index);
-            breakpoints.remove(breakpoint);
-            fireIntervalRemoved(this, index, index);
-        }
-    }
-
-    public BreakpointsWindow(SortedSet<Integer> breakpoints,
+    public BreakpointsWindow(Breakpoints breakpoints,
                              JFrame mainWindow) {
         this.breakpoints = breakpoints;
         this.mainWindow = mainWindow;
@@ -103,29 +66,25 @@ public class BreakpointsWindow extends JFrame {
         JButton removeButton = new JButton("Del");
         removeButton.setEnabled(false);
 
-        JTextField addTextField = new JTextField(5);
+        JTextField addTextField = new JTextField(4);
 
-        BreakpointsListModel listModel = new BreakpointsListModel(breakpoints);
-        JList<String> breakpointsList = new JList<>(listModel);
-        breakpointsList.setFont(new Font("Monospace", Font.PLAIN, 14));
-        breakpointsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JTable breakpointsTable = new JTable(breakpoints);
+        breakpointsTable.setShowGrid(true);
+        breakpointsTable.setGridColor(Color.LIGHT_GRAY);
+        breakpointsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        breakpointsTable.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getFirstIndex() > -1) {
+                removeButton.setEnabled(true);
+            } else {
+                removeButton.setEnabled(false);
+            }
+        });
 
-        JScrollPane scrollPane = new JScrollPane(breakpointsList);
+        JScrollPane scrollPane = new JScrollPane(breakpointsTable);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
         breakpointsPanel.add(scrollPane, BorderLayout.CENTER);
-
-
-        breakpointsList.addListSelectionListener(le -> {
-            int idx = breakpointsList.getSelectedIndex();
-
-            if (idx == -1) {
-                removeButton.setEnabled(false);
-            } else {
-                removeButton.setEnabled(true);
-            }
-        });
 
         ActionListener addBreakpointListener = e -> {
             int value = -1;
@@ -147,9 +106,9 @@ public class BreakpointsWindow extends JFrame {
                 return;
             }
 
-            listModel.addElement(value);
+            breakpoints.addBreakpoint(value);
 
-            logger.debug("Added breakpoint ${}", HexUtil.wordToHex(value));
+            logger.debug("Added breakpoint ${}", Utils.wordToHex(value));
 
             addTextField.setText(EMPTY_STRING);
         };
@@ -157,7 +116,7 @@ public class BreakpointsWindow extends JFrame {
         addButton.addActionListener(addBreakpointListener);
         addTextField.addActionListener(addBreakpointListener);
 
-        removeButton.addActionListener(e -> listModel.removeElement(breakpointsList.getSelectedIndex()));
+        removeButton.addActionListener(e -> breakpoints.removeBreakpointAtIndex(breakpointsTable.getSelectedRow()));
 
         controlPanel.add(addTextField);
         controlPanel.add(addButton);
