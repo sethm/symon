@@ -188,7 +188,7 @@ Maven will build Symon, run unit tests, and produce a jar file in the
 Symon is meant to be invoked directly from the jar file. To run with
 Java 1.8 or greater, just type:
 
-    $ java -jar symon-1.1.1.jar
+    $ java -jar symon-1.2.0.jar
 
 When Symon is running, you should be presented with a simple graphical
 interface.
