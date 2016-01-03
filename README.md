@@ -1,9 +1,9 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**Version:** 1.1.1
+**Version:** 1.2.0
 
-**Last Updated:** 2 January, 2016
+**Last Updated:** 3 January, 2016
 
 See the file COPYING for license.
 
@@ -235,6 +235,9 @@ running.
 
 ## 5.0 Revision History
 
+  - **1.2.0:** 3 January, 2016 - Add symbolic disassembly to breakpoints
+    window.
+  
   - **1.1.1:** 2 January, 2016 - Minor enhancement: Allows breakpoints
     to be added with the Enter key.
 
