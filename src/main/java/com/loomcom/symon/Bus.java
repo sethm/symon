@@ -222,9 +222,11 @@ public class Bus {
         List<Integer> priorities = new ArrayList<>(deviceMap.keySet());
         Collections.sort(priorities);
         
-        for(int priority : priorities) {
+        for (int priority : priorities) {
             SortedSet<Device> deviceSet = deviceMap.get(priority);
-            devices.addAll(deviceSet.stream().collect(Collectors.toList()));
+            for (Device device : deviceSet) {
+                devices.add(device);
+            }
         }
         
         return devices;

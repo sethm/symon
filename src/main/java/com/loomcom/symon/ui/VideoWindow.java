@@ -122,10 +122,13 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
      */
     private class CursorBlinker implements Runnable {
         public void run() {
-            SwingUtilities.invokeLater(() -> {
-                if (cursorBlinkRate > 0) {
-                    hideCursor = !hideCursor;
-                    repaint();
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    if (cursorBlinkRate > 0) {
+                        hideCursor = !hideCursor;
+                        VideoWindow.this.repaint();
+                    }
                 }
             });
         }

@@ -185,13 +185,16 @@ public class Simulator {
         JButton hardResetButton = new JButton("Hard Reset");
 
         stepCountBox = new JComboBox<>(STEPS);
-        stepCountBox.addActionListener(actionEvent -> {
-            try {
-                JComboBox cb = (JComboBox) actionEvent.getSource();
-                stepsPerClick = Integer.parseInt((String) cb.getSelectedItem());
-            } catch (NumberFormatException ex) {
-                stepsPerClick = 1;
-                stepCountBox.setSelectedIndex(0);
+        stepCountBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    JComboBox cb = (JComboBox) actionEvent.getSource();
+                    stepsPerClick = Integer.parseInt((String) cb.getSelectedItem());
+                } catch (NumberFormatException ex) {
+                    stepsPerClick = 1;
+                    stepCountBox.setSelectedIndex(0);
+                }
             }
         });
 
@@ -211,24 +214,38 @@ public class Simulator {
         // Bottom - buttons.
         mainWindow.getContentPane().add(buttonContainer, BorderLayout.PAGE_END);
 
-        runStopButton.addActionListener(actionEvent -> {
-            if (runLoop != null && runLoop.isRunning()) {
-                handleStop();
-            } else {
-                handleStart();
+        runStopButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (runLoop != null && runLoop.isRunning()) {
+                    Simulator.this.handleStop();
+                } else {
+                    Simulator.this.handleStart();
+                }
             }
         });
 
-        stepButton.addActionListener(actionEvent -> handleStep(stepsPerClick));
-
-        softResetButton.addActionListener(actionEvent -> {
-            // If this was a CTRL-click, do a hard reset.
-            handleReset(false);
+        stepButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                Simulator.this.handleStep(stepsPerClick);
+            }
         });
 
-        hardResetButton.addActionListener(actionEvent -> {
-            // If this was a CTRL-click, do a hard reset.
-            handleReset(true);
+        softResetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                // If this was a CTRL-click, do a hard reset.
+                Simulator.this.handleReset(false);
+            }
+        });
+
+        hardResetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                // If this was a CTRL-click, do a hard reset.
+                Simulator.this.handleReset(true);
+            }
         });
 
         mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -400,13 +417,16 @@ public class Simulator {
             logger.debug("Starting main run loop.");
             isRunning = true;
 
-            SwingUtilities.invokeLater(() -> {
-                // Don't allow step while the simulator is running
-                stepButton.setEnabled(false);
-                stepCountBox.setEnabled(false);
-                menuBar.simulatorDidStart();
-                // Toggle the state of the run button
-                runStopButton.setText("Stop");
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    // Don't allow step while the simulator is running
+                    stepButton.setEnabled(false);
+                    stepCountBox.setEnabled(false);
+                    menuBar.simulatorDidStart();
+                    // Toggle the state of the run button
+                    runStopButton.setText("Stop");
+                }
             });
 
             try {
@@ -417,17 +437,20 @@ public class Simulator {
                 logger.error("Exception in main simulator run thread. Exiting run.", ex);
             }
 
-            SwingUtilities.invokeLater(() -> {
-                statusPane.updateState();
-                memoryWindow.updateState();
-                runStopButton.setText("Run");
-                stepButton.setEnabled(true);
-                stepCountBox.setEnabled(true);
-                if (traceLog.isVisible()) {
-                    traceLog.refresh();
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    statusPane.updateState();
+                    memoryWindow.updateState();
+                    runStopButton.setText("Run");
+                    stepButton.setEnabled(true);
+                    stepCountBox.setEnabled(true);
+                    if (traceLog.isVisible()) {
+                        traceLog.refresh();
+                    }
+                    menuBar.simulatorDidStop();
+                    traceLog.simulatorDidStop();
                 }
-                menuBar.simulatorDidStop();
-                traceLog.simulatorDidStop();
             });
 
             isRunning = false;
@@ -480,9 +503,12 @@ public class Simulator {
                             // Now load the program at the starting address.
                             loadProgram(program, preferences.getProgramStartAddress());
 
-                            SwingUtilities.invokeLater(() -> {
-                                console.reset();
-                                breakpoints.refresh();
+                            SwingUtilities.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    console.reset();
+                                    breakpoints.refresh();
+                                }
                             });
 
                             // TODO: "Don't Show Again" checkbox
@@ -623,9 +649,12 @@ public class Simulator {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            SwingUtilities.invokeLater(() -> {
-                console.setFont(new Font("Monospaced", Font.PLAIN, size));
-                mainWindow.pack();
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    console.setFont(new Font("Monospaced", Font.PLAIN, size));
+                    mainWindow.pack();
+                }
             });
         }
     }
@@ -889,12 +918,15 @@ public class Simulator {
 
     private void updateVisibleState() {
         // Immediately update the UI.
-        SwingUtilities.invokeLater(() -> {
-            // Now update the state
-            statusPane.updateState();
-            memoryWindow.updateState();
-            if (traceLog.shouldUpdate()) {
-                traceLog.refresh();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                // Now update the state
+                statusPane.updateState();
+                memoryWindow.updateState();
+                if (traceLog.shouldUpdate()) {
+                    traceLog.refresh();
+                }
             }
         });
     }

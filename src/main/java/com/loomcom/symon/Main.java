@@ -86,13 +86,16 @@ public class Main {
         
             final Simulator simulator = new Simulator(machineClass);
         
-            SwingUtilities.invokeLater(() -> {
-                try {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                    // Create the main UI window
-                    simulator.createAndShowUi();
-                } catch (Exception e) {
-                    e.printStackTrace();
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                        // Create the main UI window
+                        simulator.createAndShowUi();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
         

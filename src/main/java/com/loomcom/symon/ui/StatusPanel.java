@@ -31,6 +31,8 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * UI component that displays the current state of the simulated CPU.
@@ -162,59 +164,74 @@ public class StatusPanel extends JPanel {
         yField = makeTextField(SMALL_TEXT_FIELD_SIZE, true);
 
         // Make fields editable
-        pcField.addActionListener(e -> {
-            try {
-                int newVal = getHexVal(pcField) & 0xffff;
-                machine.getCpu().setProgramCounter(newVal);
-            } catch (Exception ex) {
-                // Swallow exception
-            }
+        pcField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = StatusPanel.this.getHexVal(pcField) & 0xffff;
+                    machine.getCpu().setProgramCounter(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
 
-            updateState();
+                StatusPanel.this.updateState();
+            }
         });
 
-        spField.addActionListener(e -> {
-            try {
-                int newVal = getHexVal(spField) & 0xff;
-                machine.getCpu().setStackPointer(newVal);
-            } catch (Exception ex) {
-                // Swallow exception
-            }
+        spField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = StatusPanel.this.getHexVal(spField) & 0xff;
+                    machine.getCpu().setStackPointer(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
 
-            updateState();
+                StatusPanel.this.updateState();
+            }
         });
 
-        aField.addActionListener(e -> {
-            try {
-                int newVal = getHexVal(aField) & 0xff;
-                machine.getCpu().setAccumulator(newVal);
-            } catch (Exception ex) {
-                // Swallow exception
-            }
+        aField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = StatusPanel.this.getHexVal(aField) & 0xff;
+                    machine.getCpu().setAccumulator(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
 
-            updateState();
+                StatusPanel.this.updateState();
+            }
         });
 
-        xField.addActionListener(e -> {
-            try {
-                int newVal = getHexVal(xField) & 0xff;
-                machine.getCpu().setXRegister(newVal);
-            } catch (Exception ex) {
-                // Swallow exception
-            }
+        xField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = StatusPanel.this.getHexVal(xField) & 0xff;
+                    machine.getCpu().setXRegister(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
 
-            updateState();
+                StatusPanel.this.updateState();
+            }
         });
 
-        yField.addActionListener(e -> {
-            try {
-                int newVal = getHexVal(yField) & 0xff;
-                machine.getCpu().setYRegister(newVal);
-            } catch (Exception ex) {
-                // Swallow exception
-            }
+        yField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int newVal = StatusPanel.this.getHexVal(yField) & 0xff;
+                    machine.getCpu().setYRegister(newVal);
+                } catch (Exception ex) {
+                    // Swallow exception
+                }
 
-            updateState();
+                StatusPanel.this.updateState();
+            }
         });
 
         constraints.anchor = GridBagConstraints.LINE_START;

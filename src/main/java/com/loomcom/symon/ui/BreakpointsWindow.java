@@ -30,7 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
@@ -62,21 +65,24 @@ public class BreakpointsWindow extends JFrame {
         breakpointsPanel.setLayout(new BorderLayout());
         breakpointsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JButton addButton = new JButton("Add");
-        JButton removeButton = new JButton("Del");
+        final JButton addButton = new JButton("Add");
+        final JButton removeButton = new JButton("Del");
         removeButton.setEnabled(false);
 
-        JTextField addTextField = new JTextField(4);
+        final JTextField addTextField = new JTextField(4);
 
-        JTable breakpointsTable = new JTable(breakpoints);
+        final JTable breakpointsTable = new JTable(breakpoints);
         breakpointsTable.setShowGrid(true);
         breakpointsTable.setGridColor(Color.LIGHT_GRAY);
         breakpointsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        breakpointsTable.getSelectionModel().addListSelectionListener(e -> {
-            if (e.getFirstIndex() > -1) {
-                removeButton.setEnabled(true);
-            } else {
-                removeButton.setEnabled(false);
+        breakpointsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getFirstIndex() > -1) {
+                    removeButton.setEnabled(true);
+                } else {
+                    removeButton.setEnabled(false);
+                }
             }
         });
 
@@ -86,37 +92,45 @@ public class BreakpointsWindow extends JFrame {
 
         breakpointsPanel.add(scrollPane, BorderLayout.CENTER);
 
-        ActionListener addBreakpointListener = e -> {
-            int value = -1;
+        ActionListener addBreakpointListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int value;
 
-            String newBreakpoint = addTextField.getText();
+                String newBreakpoint = addTextField.getText();
 
-            if (newBreakpoint == null || newBreakpoint.isEmpty()) {
-                return;
+                if (newBreakpoint == null || newBreakpoint.isEmpty()) {
+                    return;
+                }
+
+                try {
+                    value = (Integer.parseInt(addTextField.getText(), 16) & 0xffff);
+                } catch (NumberFormatException ex) {
+                    logger.warn("Can't parse page number {}", newBreakpoint);
+                    return;
+                }
+
+                if (value < 0) {
+                    return;
+                }
+
+                breakpoints.addBreakpoint(value);
+
+                logger.debug("Added breakpoint ${}", Utils.wordToHex(value));
+
+                addTextField.setText(EMPTY_STRING);
             }
-
-            try {
-                value = (Integer.parseInt(addTextField.getText(), 16) & 0xffff);
-            } catch (NumberFormatException ex) {
-                logger.warn("Can't parse page number {}", newBreakpoint);
-                return;
-            }
-
-            if (value < 0) {
-                return;
-            }
-
-            breakpoints.addBreakpoint(value);
-
-            logger.debug("Added breakpoint ${}", Utils.wordToHex(value));
-
-            addTextField.setText(EMPTY_STRING);
         };
 
         addButton.addActionListener(addBreakpointListener);
         addTextField.addActionListener(addBreakpointListener);
 
-        removeButton.addActionListener(e -> breakpoints.removeBreakpointAtIndex(breakpointsTable.getSelectedRow()));
+        removeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                breakpoints.removeBreakpointAtIndex(breakpointsTable.getSelectedRow());
+            }
+        });
 
         controlPanel.add(addTextField);
         controlPanel.add(addButton);
