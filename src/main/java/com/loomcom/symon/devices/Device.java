@@ -30,7 +30,6 @@ import com.loomcom.symon.exceptions.MemoryRangeException;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * A memory-mapped IO Device.
@@ -116,12 +115,9 @@ public abstract class Device implements Comparable<Device> {
     }
 
     public void notifyListeners() {
-        deviceChangeListeners.forEach(new Consumer<DeviceChangeListener>() {
-            @Override
-            public void accept(DeviceChangeListener deviceChangeListener) {
-                deviceChangeListener.deviceStateChanged();
-            }
-        });
+        for (DeviceChangeListener listener : deviceChangeListeners) {
+            listener.deviceStateChanged();
+        }
     }
 
     /**
