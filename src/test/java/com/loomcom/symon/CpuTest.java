@@ -384,6 +384,41 @@ public class CpuTest extends TestCase {
         assertFalse(cpu.getCpuState().irqAsserted);
     }
 
+    public void testIrqDoesNotSetBRK() throws Exception {
+        // Ensure the IRQ disable flag is cleared
+        cpu.clearIrqDisableFlag();
+
+        // Set the IRQ vector
+        bus.write(0xffff, 0x12);
+        bus.write(0xfffe, 0x34);
+
+        // Create an IRQ handler at 0x1234
+        cpu.setProgramCounter(0x1234);
+        bus.loadProgram(0xa9, 0x33,  // LDA #$33
+                        0x69, 0x01); // ADC #$01
+
+        cpu.setProgramCounter(0x0200);
+        // Create a little program at 0x0200
+        bus.loadProgram(0x18,        // CLC
+                        0xa9, 0x01,  // LDA #$00
+                        0x69, 0x01); // ADC #$01
+
+        cpu.step();
+        assertEquals(0x0201, cpu.getProgramCounter()); // First instruction executed.
+        assertEquals(0x00, cpu.getAccumulator());
+
+        cpu.step();
+        assertEquals(0x0203, cpu.getProgramCounter());
+        assertEquals(0x01, cpu.getAccumulator());
+
+        cpu.assertIrq();
+
+        cpu.step();
+        assertTrue(cpu.getIrqDisableFlag()); // Should have been set by the IRQ
+        assertFalse(cpu.getBreakFlag());
+
+    }
+
     public void testIrqHonorsIrqDisabledFlag() throws Exception {
         // Ensure the IRQ disable flag is set
         cpu.setIrqDisableFlag();
@@ -497,6 +532,37 @@ public class CpuTest extends TestCase {
         // Be sure that the NMI line is no longer held low
         assertFalse(cpu.getCpuState().nmiAsserted);
     }
+
+    public void testNmiDoesNotSetBRK() throws Exception {
+        // Set the NMI vector to 0x1000
+        bus.write(0xfffb, 0x10);
+        bus.write(0xfffa, 0x00);
+
+        // Create an NMI handler at 0x1000
+        cpu.setProgramCounter(0x1000);
+        bus.loadProgram(0xa9, 0x33,  // LDA #$33
+                        0x69, 0x01); // ADC #$01
+
+        // Create a little program at 0x0200
+        cpu.setProgramCounter(0x0200);
+        bus.loadProgram(0x18,        // CLC
+                        0xa9, 0x01,  // LDA #$00
+                        0x69, 0x01); // ADC #$01
+
+        cpu.step();
+        assertEquals(0x0201, cpu.getProgramCounter()); // First instruction executed.
+        assertEquals(0x00, cpu.getAccumulator());
+
+        cpu.step();
+        assertEquals(0x0203, cpu.getProgramCounter());
+        assertEquals(0x01, cpu.getAccumulator());
+
+        cpu.assertNmi();
+
+        cpu.step();
+        assertFalse(cpu.getBreakFlag());
+
+}
 
     public void testNmiIgnoresIrqDisableFlag() throws Exception {
         // Set the IRQ disable flag, which should be ignored by the NMI

@@ -117,8 +117,21 @@ public class CpuImpliedModeTest {
     }
 
     @Test
-    public void test_BRK_HonorsIrqDisableFlag() throws MemoryAccessException {
+    public void test_BRK_IgnoresIrqDisableFlag() throws MemoryAccessException {
         cpu.setIrqDisableFlag();
+
+        cpu.setCarryFlag();
+        cpu.setOverflowFlag();
+        assertEquals(0x20 | Cpu.P_CARRY | Cpu.P_OVERFLOW | Cpu.P_IRQ_DISABLE,
+                     cpu.getProcessorStatus());
+        assertEquals(0x00, cpu.stackPeek());
+        assertFalse(cpu.getBreakFlag());
+        assertEquals(0x0200, cpu.getProgramCounter());
+        assertEquals(0xff, cpu.getStackPointer());
+        
+        // Set the IRQ vector
+        bus.write(0xffff, 0x12);
+        bus.write(0xfffe, 0x34);
 
         bus.loadProgram(0xea,
                         0xea,
@@ -131,22 +144,25 @@ public class CpuImpliedModeTest {
 
         assertEquals(0x203, cpu.getProgramCounter());
 
-        // Triggers the BRK, which should do nothing because
-        // of the Interrupt Disable flag
+        // Triggers the BRK
         cpu.step();
 
-        // Reset to original contents of PC
-        assertEquals(0x0204, cpu.getProgramCounter());
-        // Empty stack
-        assertEquals(0xff, cpu.getStackPointer());
 
-        cpu.step(2); // Two more NOPs
+        // Was at PC = 0x204.  PC+1 should now be on the stack
+        assertEquals(0x02, bus.read(0x1ff)); // PC high byte
+        assertEquals(0x05, bus.read(0x1fe)); // PC low byte
+        assertEquals(0x20 | Cpu.P_CARRY | Cpu.P_OVERFLOW | Cpu.P_BREAK | Cpu.P_IRQ_DISABLE,
+                     bus.read(0x1fd));       // Processor Status, with B set
 
-        // Reset to original contents of PC
-        assertEquals(0x0206, cpu.getProgramCounter());
-        // Empty stack
-        assertEquals(0xff, cpu.getStackPointer());
+        // Interrupt vector held 0x1234, so we should be there.
+        assertEquals(0x1234, cpu.getProgramCounter());
+        assertEquals(0xfc, cpu.getStackPointer());
+
+        // B and I flags should have been set on P
+        assertEquals(0x20 | Cpu.P_CARRY | Cpu.P_OVERFLOW | Cpu.P_BREAK | Cpu.P_IRQ_DISABLE,
+                     cpu.getProcessorStatus());
     }
+
 
     /* CLC - Clear Carry Flag - $18 */
     @Test
