@@ -260,7 +260,6 @@ public class Cpu implements InstructionTable {
 
             /** Single Byte Instructions; Implied and Relative **/
             case 0x00: // BRK - Force Interrupt - Implied
-                // BRK is non-maskable. - http://www.atarimax.com/jindroush.atari.org/aopc.html#BRK
                 handleBrk(state.pc + 1);
                 break;
             case 0x08: // PHP - Push Processor Status - Implied
@@ -762,7 +761,7 @@ public class Cpu implements InstructionTable {
         }
         else
         {
-            // IRQ & NMI clear break flag - http://www.pagetable.com/?p=410
+            // IRQ & NMI clear break flag
             clearBreakFlag();
         }
 

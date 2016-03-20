@@ -144,8 +144,7 @@ public class CpuImpliedModeTest {
 
         assertEquals(0x203, cpu.getProgramCounter());
 
-        // Triggers the BRK, which should do nothing because
-        // of the Interrupt Disable flag
+        // Triggers the BRK
         cpu.step();
 
 
