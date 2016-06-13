@@ -241,6 +241,7 @@ public class CpuTest extends TestCase {
 
     public void testSetProcessorStatus() {
         // Default
+
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getIrqDisableFlag());

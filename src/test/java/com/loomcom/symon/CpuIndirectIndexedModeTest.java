@@ -25,18 +25,10 @@ public class CpuIndirectIndexedModeTest {
         bus.write(0xfffd, (Bus.DEFAULT_LOAD_ADDRESS & 0xff00) >>> 8);
 
         cpu.reset();
-        // Assert initial state
-        assertEquals(0, cpu.getAccumulator());
-        assertEquals(0, cpu.getXRegister());
-        assertEquals(0, cpu.getYRegister());
-        assertEquals(0x200, cpu.getProgramCounter());
-        assertEquals(0xff, cpu.getStackPointer());
-        assertEquals(0x20, cpu.getProcessorStatus());
     }
 
     @Test
     public void test_LDA() throws Exception {
-        assertEquals(cpu.toString(), 0x00, cpu.getAccumulator());
         bus.write(0x0014, 0x00);
         bus.write(0x0015, 0xd8);
         bus.write(0xd828, 0x03);

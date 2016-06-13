@@ -3,15 +3,19 @@ package com.loomcom.symon;
 import com.loomcom.symon.devices.Memory;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
 
-public class CpuIndirectModeTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+
+public class CpuIndirectModeTest {
 
     protected Cpu    cpu;
     protected Bus    bus;
     protected Memory mem;
 
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         this.cpu = new Cpu();
         this.bus = new Bus(0x0000, 0xffff);
         this.mem = new Memory(0x0000, 0xffff);
@@ -41,6 +45,7 @@ public class CpuIndirectModeTest extends TestCase {
 
     /* JMP - Jump - $6c */
 
+    @Test
     public void test_JMP_notOnPageBoundary() throws MemoryAccessException {
         bus.write(0x3400, 0x00);
         bus.write(0x3401, 0x54);
@@ -51,6 +56,7 @@ public class CpuIndirectModeTest extends TestCase {
         assertEquals(0x20, cpu.getProcessorStatus());
     }
 
+    @Test
     public void test_JMP_with_ROR_Bug() throws MemoryAccessException {
         cpu.setBehavior(Cpu.CpuBehavior.NMOS_WITH_ROR_BUG);
         bus.write(0x3400, 0x22);
@@ -63,8 +69,9 @@ public class CpuIndirectModeTest extends TestCase {
         assertEquals(0x20, cpu.getProcessorStatus());
     }
 
+    @Test
     public void test_JMP_withIndirectBug() throws MemoryAccessException {
-        cpu.setBehavior(Cpu.CpuBehavior.NMOS_WITH_INDIRECT_JMP_BUG);
+        cpu.setBehavior(Cpu.CpuBehavior.NMOS_6502);
         bus.write(0x3400, 0x22);
         bus.write(0x34ff, 0x00);
         bus.write(0x3500, 0x54);
@@ -75,8 +82,9 @@ public class CpuIndirectModeTest extends TestCase {
         assertEquals(0x20, cpu.getProcessorStatus());
     }
 
+    @Test
     public void test_JMP_withOutIndirectBug() throws MemoryAccessException {
-        cpu.setBehavior(Cpu.CpuBehavior.NMOS_WITHOUT_INDIRECT_JMP_BUG);
+        cpu.setBehavior(Cpu.CpuBehavior.CMOS_6502);
         bus.write(0x3400, 0x22);
         bus.write(0x34ff, 0x00);
         bus.write(0x3500, 0x54);
@@ -87,8 +95,9 @@ public class CpuIndirectModeTest extends TestCase {
         assertEquals(0x20, cpu.getProcessorStatus());
     }
 
+    @Test
     public void test_JMP_cmos() throws MemoryAccessException {
-        cpu.setBehavior(Cpu.CpuBehavior.CMOS);
+        cpu.setBehavior(Cpu.CpuBehavior.CMOS_6502);
         bus.write(0x3400, 0x22);
         bus.write(0x34ff, 0x00);
         bus.write(0x3500, 0x54);

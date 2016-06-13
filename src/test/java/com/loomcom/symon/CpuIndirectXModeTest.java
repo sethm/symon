@@ -3,14 +3,21 @@ package com.loomcom.symon;
 import com.loomcom.symon.devices.Memory;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
 
-public class CpuIndirectXModeTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class CpuIndirectXModeTest {
 
     protected Cpu    cpu;
     protected Bus    bus;
     protected Memory mem;
 
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         this.cpu = new Cpu();
         this.bus = new Bus(0x0000, 0xffff);
         this.mem = new Memory(0x0000, 0xffff);
@@ -47,7 +54,7 @@ public class CpuIndirectXModeTest extends TestCase {
     */
 
     /* ORA - Logical Inclusive OR - $1d */
-
+    @Test
     public void test_ORA() throws MemoryAccessException {
         // Set some initial values in memory
         bus.write(0x2c30, 0x00);
@@ -93,7 +100,7 @@ public class CpuIndirectXModeTest extends TestCase {
     }
 
     /* AND - Logical AND - $3d */
-
+    @Test
     public void test_AND() throws MemoryAccessException {
         bus.write(0x1a30, 0x00);
         bus.write(0x1a31, 0x11);
@@ -153,7 +160,7 @@ public class CpuIndirectXModeTest extends TestCase {
     }
 
     /* EOR - Exclusive OR - $5d */
-
+    @Test
     public void test_EOR() throws MemoryAccessException {
         bus.write(0xab40, 0x00);
         bus.write(0xab41, 0xff);
@@ -162,7 +169,7 @@ public class CpuIndirectXModeTest extends TestCase {
 
         cpu.setXRegister(0x30);
 
-        bus.loadProgram(0xa9, 0x88,         // LDA #$88
+        bus.loadProgram(0xa9, 0x88,        // LDA #$88
                         0x5d, 0x10, 0xab,  // EOR $ab10,X
                         0x5d, 0x11, 0xab,  // EOR $ab11,X
                         0x5d, 0x12, 0xab,  // EOR $ab12,X
@@ -189,7 +196,7 @@ public class CpuIndirectXModeTest extends TestCase {
     }
 
     /* ADC - Add with Carry - $7d */
-
+    @Test
     public void test_ADC() throws MemoryAccessException {
         bus.write(0xab40, 0x01);
         bus.write(0xab41, 0xff);
@@ -290,6 +297,7 @@ public class CpuIndirectXModeTest extends TestCase {
         assertTrue(cpu.getCarryFlag());
     }
 
+    @Test
     public void test_ADC_IncludesCarry() throws MemoryAccessException {
         bus.write(0xab40, 0x01);
 
@@ -307,6 +315,7 @@ public class CpuIndirectXModeTest extends TestCase {
         assertFalse(cpu.getCarryFlag());
     }
 
+    @Test
     public void test_ADC_DecimalMode() throws MemoryAccessException {
         bus.write(0xab40, 0x01);
         bus.write(0xab41, 0x99);
@@ -404,7 +413,7 @@ public class CpuIndirectXModeTest extends TestCase {
     }
 
     /* STA - Store Accumulator - $9d */
-
+    @Test
     public void test_STA() throws MemoryAccessException {
         cpu.setXRegister(0x30);
 
@@ -438,7 +447,7 @@ public class CpuIndirectXModeTest extends TestCase {
     }
 
     /* LDA - Load Accumulator - $bd */
-
+    @Test
     public void test_LDA() throws MemoryAccessException {
         bus.write(0xab42, 0x00);
         bus.write(0xab43, 0x0f);
@@ -467,7 +476,7 @@ public class CpuIndirectXModeTest extends TestCase {
     }
 
     /* CMP - Compare Accumulator - $dd */
-
+    @Test
     public void test_CMP() throws MemoryAccessException {
         bus.write(0xab40, 0x00);
         bus.write(0xab41, 0x80);
@@ -498,7 +507,7 @@ public class CpuIndirectXModeTest extends TestCase {
     }
 
     /* SBC - Subtract with Carry - $fd */
-
+    @Test
     public void test_SBC() throws MemoryAccessException {
         bus.write(0xab40, 0x01);
 
@@ -557,6 +566,7 @@ public class CpuIndirectXModeTest extends TestCase {
         assertTrue(cpu.getCarryFlag());
     }
 
+    @Test
     public void test_SBC_IncludesNotOfCarry() throws MemoryAccessException {
         bus.write(0xab40, 0x01);
 
@@ -602,6 +612,7 @@ public class CpuIndirectXModeTest extends TestCase {
 
     }
 
+    @Test
     public void test_SBC_DecimalMode() throws MemoryAccessException {
         bus.write(0xab40, 0x01);
         bus.write(0xab50, 0x11);
