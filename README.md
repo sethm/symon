@@ -7,7 +7,7 @@ SYMON - A 6502 System Simulator
 
 See the file COPYING for license.
 
-![Symon Simulator in Action] (https://github.com/sethm/symon/raw/master/screenshots/full.jpg)
+![Symon Simulator in Action] (/screenshots/full.jpg?raw=true)
 
 ## 1.0 About
 
@@ -66,7 +66,7 @@ memory.
 
 ### 3.2 Serial Console and CPU Status
 
-![Serial Console] (https://github.com/sethm/symon/raw/master/screenshots/console.png)
+![Serial Console] (/screenshots/console.png?raw=true)
 
 The main window of the simulator acts as the primary Input/Output
 system through a virtual serial terminal. The terminal is attached to
@@ -78,13 +78,13 @@ It also provides CPU status. Contents of the accumulator, index
 registers, processor status flags, disassembly of the instruction
 register, and stack pointer are all displayed.
 
-![Font Selection] (https://github.com/sethm/symon/raw/master/screenshots/font_selection.png)
+![Font Selection] (/screenshots/font_selection.png?raw=true)
 
 The console supports font sizes from 10 to 20 points.
 
 ### 3.3 ROM Loading
 
-![ROM Loading] (https://github.com/sethm/symon/raw/master/screenshots/load_rom.png)
+![ROM Loading] (/screenshots/load_rom.png?raw=true)
 
 Symon can load any appropriately sized ROM image. The Symon
 architecture expects as 16KB (16384 byte) ROM image, while the
@@ -95,32 +95,32 @@ address.
 
 ### 3.4 Memory Window
 
-![Memory Window] (https://github.com/sethm/symon/raw/master/screenshots/memory_window.png)
+![Memory Window] (/screenshots/memory_window.png?raw=true)
 
 Memory contents can be viewed (and edited) one page at a time through the Memory Window.
 
 ### 3.5 Trace Log
 
-![Trace Log] (https://github.com/sethm/symon/raw/master/screenshots/trace_log.png)
+![Trace Log] (/screenshots/trace_log.png?raw=true)
 
 The last 20,000 execution steps are disassembled and logged to the Trace Log
 Window.
 
 ### 3.6 Simulator Speeds
 
-![Speeds] (https://github.com/sethm/symon/raw/master/screenshots/simulator_menu.png)
+![Speeds] (/screenshots/simulator_menu.png?raw=true)
 
 Simulated speeds may be set from 1MHz to 8MHz.
 
 ### 3.7 Breakpoints
 
-![Breakpoints] (https://github.com/sethm/symon/raw/master/screenshots/breakpoints.png)
+![Breakpoints] (/screenshots/breakpoints.png?raw=true)
 
 Breakpoints can be set and removed through the Breakpoints window.
 
 ### 3.8 Experimental 6545 CRTC Video
 
-![Composite Video] (https://github.com/sethm/symon/raw/master/screenshots/video_window.png)
+![Composite Video] (/screenshots/video_window.png?raw=true)
 
 This feature is highly experimental. It's possible to open a video window
 from the "View" menu.  This window simulates the output of a MOS 6545 CRT
