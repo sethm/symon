@@ -348,7 +348,7 @@ public class Simulator {
         // output ready.
         if (machine.getAcia() != null && machine.getAcia().hasTxChar()) {
             // This is thread-safe
-            console.print(Character.toString((char) machine.getAcia().txRead()));
+            console.print(Character.toString((char) machine.getAcia().txRead(true)));
             console.repaint();
         }
 

@@ -56,10 +56,10 @@ public class Acia6551 extends Acia {
     }
 
     @Override
-    public int read(int address) throws MemoryAccessException {
+    public int read(int address, boolean cpuAccess) throws MemoryAccessException {
         switch (address) {
             case DATA_REG:
-                return rxRead();
+                return rxRead(cpuAccess);
             case STAT_REG:
                 return statusReg();
             case CMND_REG:

@@ -119,7 +119,7 @@ public class Crtc extends Device {
     }
 
     @Override
-    public int read(int address) throws MemoryAccessException {
+    public int read(int address, boolean cpuAccess) throws MemoryAccessException {
         switch (address) {
             case REGISTER_RW:
                 switch (currentRegister) {
@@ -142,7 +142,7 @@ public class Crtc extends Device {
 
     public int getCharAtAddress(int address) throws MemoryAccessException {
         // TODO: Row/Column addressing
-        return memory.read(address);
+        return memory.read(address, false);
     }
 
     public int getHorizontalDisplayed() {

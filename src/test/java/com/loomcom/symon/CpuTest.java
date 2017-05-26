@@ -71,61 +71,61 @@ public class CpuTest extends TestCase {
 
     public void testStackPush() throws MemoryAccessException {
         assertEquals(0xff, cpu.getStackPointer());
-        assertEquals(0x00, bus.read(0x1ff));
+        assertEquals(0x00, bus.read(0x1ff, true));
 
         cpu.stackPush(0x06);
         assertEquals(0xfe, cpu.getStackPointer());
-        assertEquals(0x06, bus.read(0x1ff));
+        assertEquals(0x06, bus.read(0x1ff, true));
 
         cpu.stackPush(0x05);
         assertEquals(0xfd, cpu.getStackPointer());
-        assertEquals(0x06, bus.read(0x1ff));
-        assertEquals(0x05, bus.read(0x1fe));
+        assertEquals(0x06, bus.read(0x1ff, true));
+        assertEquals(0x05, bus.read(0x1fe, true));
 
         cpu.stackPush(0x04);
         assertEquals(0xfc, cpu.getStackPointer());
-        assertEquals(0x06, bus.read(0x1ff));
-        assertEquals(0x05, bus.read(0x1fe));
-        assertEquals(0x04, bus.read(0x1fd));
+        assertEquals(0x06, bus.read(0x1ff, true));
+        assertEquals(0x05, bus.read(0x1fe, true));
+        assertEquals(0x04, bus.read(0x1fd, true));
 
         cpu.stackPush(0x03);
         assertEquals(0xfb, cpu.getStackPointer());
-        assertEquals(0x06, bus.read(0x1ff));
-        assertEquals(0x05, bus.read(0x1fe));
-        assertEquals(0x04, bus.read(0x1fd));
-        assertEquals(0x03, bus.read(0x1fc));
+        assertEquals(0x06, bus.read(0x1ff, true));
+        assertEquals(0x05, bus.read(0x1fe, true));
+        assertEquals(0x04, bus.read(0x1fd, true));
+        assertEquals(0x03, bus.read(0x1fc, true));
 
         cpu.stackPush(0x02);
         assertEquals(0xfa, cpu.getStackPointer());
-        assertEquals(0x06, bus.read(0x1ff));
-        assertEquals(0x05, bus.read(0x1fe));
-        assertEquals(0x04, bus.read(0x1fd));
-        assertEquals(0x03, bus.read(0x1fc));
-        assertEquals(0x02, bus.read(0x1fb));
+        assertEquals(0x06, bus.read(0x1ff, true));
+        assertEquals(0x05, bus.read(0x1fe, true));
+        assertEquals(0x04, bus.read(0x1fd, true));
+        assertEquals(0x03, bus.read(0x1fc, true));
+        assertEquals(0x02, bus.read(0x1fb, true));
 
         cpu.stackPush(0x01);
         assertEquals(0xf9, cpu.getStackPointer());
-        assertEquals(0x06, bus.read(0x1ff));
-        assertEquals(0x05, bus.read(0x1fe));
-        assertEquals(0x04, bus.read(0x1fd));
-        assertEquals(0x03, bus.read(0x1fc));
-        assertEquals(0x02, bus.read(0x1fb));
-        assertEquals(0x01, bus.read(0x1fa));
+        assertEquals(0x06, bus.read(0x1ff, true));
+        assertEquals(0x05, bus.read(0x1fe, true));
+        assertEquals(0x04, bus.read(0x1fd, true));
+        assertEquals(0x03, bus.read(0x1fc, true));
+        assertEquals(0x02, bus.read(0x1fb, true));
+        assertEquals(0x01, bus.read(0x1fa, true));
     }
 
     public void testStackPushWrapsAroundToStackTop() throws MemoryAccessException {
         cpu.setStackPointer(0x01);
 
         cpu.stackPush(0x01);
-        assertEquals(0x01, bus.read(0x101));
+        assertEquals(0x01, bus.read(0x101, true));
         assertEquals(0x00, cpu.getStackPointer());
 
         cpu.stackPush(0x02);
-        assertEquals(0x02, bus.read(0x100));
+        assertEquals(0x02, bus.read(0x100, true));
         assertEquals(0xff, cpu.getStackPointer());
 
         cpu.stackPush(0x03);
-        assertEquals(0x03, bus.read(0x1ff));
+        assertEquals(0x03, bus.read(0x1ff, true));
         assertEquals(0xfe, cpu.getStackPointer());
     }
 

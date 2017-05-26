@@ -331,10 +331,10 @@ public class MemoryWindow extends JFrame implements ActionListener {
                     return Utils.wordToHex(fullAddress(row, 1));
                 } else if (column < 9) {
                     // Display hex value of the data
-                    return Utils.byteToHex(bus.read(fullAddress(row, column)));
+                    return Utils.byteToHex(bus.read(fullAddress(row, column), false));
                 } else {
                     // Display the ASCII equivalent (if printable)
-                    return Utils.byteToAscii(bus.read(fullAddress(row, column - 8)));
+                    return Utils.byteToAscii(bus.read(fullAddress(row, column - 8), false));
                 }
             } catch (MemoryAccessException ex) {
                 return "??";

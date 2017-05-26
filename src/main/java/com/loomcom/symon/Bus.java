@@ -168,12 +168,12 @@ public class Bus {
         return true;
     }
 
-    public int read(int address) throws MemoryAccessException {
+    public int read(int address, boolean cpuAccess) throws MemoryAccessException {
         Device d = deviceAddressArray[address - this.startAddress];
         if (d != null) {
             MemoryRange range = d.getMemoryRange();
             int devAddr = address - range.startAddress();
-            return d.read(devAddr) & 0xff;
+            return d.read(devAddr, cpuAccess) & 0xff;
         }
 
         throw new MemoryAccessException("Bus read failed. No device at address " + String.format("$%04X", address));

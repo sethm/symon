@@ -67,7 +67,7 @@ public class AciaTest6850 {
         verify(mockBus, never()).assertIrq();
 
         // Transmission should cause IRQ
-        acia.txRead();
+        acia.txRead(true);
 
         verify(mockBus, atLeastOnce()).assertIrq();
     }
@@ -86,7 +86,7 @@ public class AciaTest6850 {
         acia.write(DATA_REG, 'a');
 
         // Transmission should cause IRQ
-        acia.txRead();
+        acia.txRead(true);
 
         verify(mockBus, never()).assertIrq();
     }
@@ -95,7 +95,7 @@ public class AciaTest6850 {
     public void newAciaShouldHaveTxEmptyStatus() throws Exception {
         Acia acia = newAcia();
 
-        assertEquals(0x02, acia.read(CMD_STAT_REG) & 0x02);
+        assertEquals(0x02, acia.read(CMD_STAT_REG, true) & 0x02);
     }
 
     @Test
@@ -103,7 +103,7 @@ public class AciaTest6850 {
         Acia acia = newAcia();
 
         acia.txWrite('a');
-        assertEquals(0x00, acia.read(CMD_STAT_REG) & 0x02);
+        assertEquals(0x00, acia.read(CMD_STAT_REG, true) & 0x02);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class AciaTest6850 {
 
         acia.rxWrite('a');
        
-        assertEquals(0x01, acia.read(CMD_STAT_REG) & 0x01);
+        assertEquals(0x01, acia.read(CMD_STAT_REG, true) & 0x01);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class AciaTest6850 {
         acia.rxWrite('a');
         acia.txWrite('b');
 
-        assertEquals(0x01, acia.read(CMD_STAT_REG) & 0x03);
+        assertEquals(0x01, acia.read(CMD_STAT_REG, true) & 0x03);
     }
     
     @Test
@@ -136,11 +136,11 @@ public class AciaTest6850 {
         acia.rxWrite('a');
         acia.rxWrite('b');
         
-        assertEquals(0x20, acia.read(CMD_STAT_REG) & 0x20);
+        assertEquals(0x20, acia.read(CMD_STAT_REG, true) & 0x20);
         
         // read should reset
-        acia.rxRead();
-        assertEquals(0x00, acia.read(CMD_STAT_REG) & 0x20);
+        acia.rxRead(true);
+        assertEquals(0x00, acia.read(CMD_STAT_REG, true) & 0x20);
         
     }
 
@@ -149,15 +149,15 @@ public class AciaTest6850 {
             throws Exception {
         Acia acia = newAcia();
 
-        assertEquals(0x00, acia.read(CMD_STAT_REG) & 0x01);
+        assertEquals(0x00, acia.read(CMD_STAT_REG, true) & 0x01);
         
         acia.rxWrite('a');
         
-        assertEquals(0x01, acia.read(CMD_STAT_REG) & 0x01);
+        assertEquals(0x01, acia.read(CMD_STAT_REG, true) & 0x01);
         
-        acia.rxRead();
+        acia.rxRead(true);
         
-        assertEquals(0x00, acia.read(CMD_STAT_REG) & 0x01);        
+        assertEquals(0x00, acia.read(CMD_STAT_REG, true) & 0x01);
         
     }
 }

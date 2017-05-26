@@ -55,7 +55,7 @@ public class AciaTest {
         verify(mockBus, never()).assertIrq();
 
         // Transmission should cause IRQ
-        acia.txRead();
+        acia.txRead(true);
 
         verify(mockBus, atLeastOnce()).assertIrq();
     }
@@ -74,7 +74,7 @@ public class AciaTest {
         acia.write(0, 'a');
 
         // Transmission should cause IRQ
-        acia.txRead();
+        acia.txRead(true);
 
         verify(mockBus, never()).assertIrq();
     }
@@ -83,7 +83,7 @@ public class AciaTest {
     public void newAciaShouldHaveTxEmptyStatus() throws Exception {
         Acia acia = new Acia6551(0x000);
 
-        assertEquals(0x10, acia.read(0x0001));
+        assertEquals(0x10, acia.read(0x0001, true));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class AciaTest {
         Acia acia = new Acia6551(0x000);
 
         acia.txWrite('a');
-        assertEquals(0x00, acia.read(0x0001));
+        assertEquals(0x00, acia.read(0x0001, true));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class AciaTest {
         Acia acia = new Acia6551(0x000);
 
         acia.rxWrite('a');
-        assertEquals(0x18, acia.read(0x0001));
+        assertEquals(0x18, acia.read(0x0001, true));
     }
 
     @Test
@@ -110,7 +110,7 @@ public class AciaTest {
         acia.rxWrite('a');
         acia.txWrite('b');
 
-        assertEquals(0x08, acia.read(0x0001));
+        assertEquals(0x08, acia.read(0x0001, true));
     }
     
     @Test
@@ -123,14 +123,31 @@ public class AciaTest {
         acia.rxWrite('a');
         acia.rxWrite('b');
         
-        assertEquals(0x04, acia.read(0x0001) & 0x04);
+        assertEquals(0x04, acia.read(0x0001, true) & 0x04);
         
         // read should reset
-        acia.rxRead();
-        assertEquals(0x00, acia.read(0x0001) & 0x04);
+        acia.rxRead(true);
+        assertEquals(0x00, acia.read(0x0001, true) & 0x04);
         
     }
 
+    @Test
+    public void aciaShouldOverrunAndMemoryWindowReadShouldNotReset()
+            throws Exception {
+
+        Acia acia = new Acia6551(0x0000);
+
+        // overrun ACIA
+        acia.rxWrite('a');
+        acia.rxWrite('b');
+
+        assertEquals(0x04, acia.read(0x0001, true) & 0x04);
+
+        // memory window read should not reset
+        acia.rxRead(false);
+        assertEquals(0x04, acia.read(0x0001, true) & 0x04);
+
+    }
 
     @Test
     public void readingBuffersShouldResetStatus()
@@ -141,11 +158,28 @@ public class AciaTest {
         acia.txWrite('b');
 
 
-        assertEquals(0x08, acia.read(0x0001));
+        assertEquals(0x08, acia.read(0x0001, true));
 
-        assertEquals('a', acia.rxRead());
-        assertEquals('b', acia.txRead());
+        assertEquals('a', acia.rxRead(true));
+        assertEquals('b', acia.txRead(true));
 
-        assertEquals(0x10, acia.read(0x0001));
+        assertEquals(0x10, acia.read(0x0001, true));
+    }
+
+    @Test
+    public void A()
+            throws Exception {
+        Acia acia = new Acia6551(0x0000);
+
+        acia.rxWrite('a');
+        acia.txWrite('b');
+
+
+        assertEquals(0x08, acia.read(0x0001, true));
+
+        assertEquals('a', acia.rxRead(false));
+        assertEquals('b', acia.txRead(false));
+
+        assertEquals(0x08, acia.read(0x0001, true));
     }
 }

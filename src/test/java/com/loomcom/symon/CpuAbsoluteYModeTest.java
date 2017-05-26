@@ -411,7 +411,7 @@ public class CpuAbsoluteYModeTest extends TestCase {
         cpu.setAccumulator(0x00);
         bus.loadProgram(0x99, 0x10, 0xab); // STA $ab10,Y
         cpu.step();
-        assertEquals(0x00, bus.read(0xab40));
+        assertEquals(0x00, bus.read(0xab40, true));
         // STA should have NO effect on flags
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
@@ -423,7 +423,7 @@ public class CpuAbsoluteYModeTest extends TestCase {
         cpu.setAccumulator(0x0f);
         bus.loadProgram(0x99, 0x10, 0xab); // STA $ab10,Y
         cpu.step();
-        assertEquals(0x0f, bus.read(0xab40));
+        assertEquals(0x0f, bus.read(0xab40, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
@@ -433,7 +433,7 @@ public class CpuAbsoluteYModeTest extends TestCase {
         cpu.setAccumulator(0x80);
         bus.loadProgram(0x99, 0x10, 0xab); // STA $ab10,Y
         cpu.step();
-        assertEquals(0x80, bus.read(0xab40));
+        assertEquals(0x80, bus.read(0xab40, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
     }

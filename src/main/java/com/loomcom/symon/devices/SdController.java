@@ -94,7 +94,7 @@ public class SdController extends Device {
     }
 
     @Override
-    public int read(int address) throws MemoryAccessException {
+    public int read(int address, boolean cpuAccess) throws MemoryAccessException {
         switch (address) {
             case 0:
                 return readData();

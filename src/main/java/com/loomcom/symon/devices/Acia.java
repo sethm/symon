@@ -107,10 +107,12 @@ public abstract class Acia extends Device {
         return name + "@" + String.format("%04X", baseAddress);
     }
 
-    public synchronized int rxRead() {
-        lastRxRead = System.nanoTime();
-        overrun = false;
-        rxFull = false;
+    public synchronized int rxRead(boolean cpuAccess) {
+        if (cpuAccess) {
+            lastRxRead = System.nanoTime();
+            overrun = false;
+            rxFull = false;
+        }
         return rxChar;
     }
 
@@ -128,13 +130,14 @@ public abstract class Acia extends Device {
         rxChar = data;
     }
 
-    public synchronized int txRead() {
-        txEmpty = true;
+    public synchronized int txRead(boolean cpuAccess) {
+        if (cpuAccess) {
+          txEmpty = true;
 
-        if (transmitIrqEnabled) {
+          if (transmitIrqEnabled) {
             getBus().assertIrq();
+           }
         }
-
         return txChar;
     }
 

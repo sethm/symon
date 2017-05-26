@@ -75,7 +75,7 @@ public class Via6522 extends Pia {
     }
 
     @Override
-    public int read(int address) throws MemoryAccessException {
+    public int read(int address, boolean cpuAccess) throws MemoryAccessException {
         Register[] registers = Register.values();
 
         if (address >= registers.length) {
