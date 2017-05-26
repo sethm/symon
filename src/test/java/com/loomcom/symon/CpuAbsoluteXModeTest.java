@@ -117,31 +117,31 @@ public class CpuAbsoluteXModeTest extends TestCase {
                         0x1e, 0x04, 0x2c); // ASL $2c04,X
 
         cpu.step();
-        assertEquals(0x00, bus.read(0x2c30));
+        assertEquals(0x00, bus.read(0x2c30, true));
         assertTrue(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x02, bus.read(0x2c31));
+        assertEquals(0x02, bus.read(0x2c31, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x04, bus.read(0x2c32));
+        assertEquals(0x04, bus.read(0x2c32, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x88, bus.read(0x2c33));
+        assertEquals(0x88, bus.read(0x2c33, true));
         assertFalse(cpu.getZeroFlag());
         assertTrue(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x00, bus.read(0x2c34));
+        assertEquals(0x00, bus.read(0x2c34, true));
         assertTrue(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertTrue(cpu.getCarryFlag());
@@ -229,61 +229,61 @@ public class CpuAbsoluteXModeTest extends TestCase {
                         0x3e, 0x01, 0x10); // ROL $1001,X (m=%10000001, c=0)
 
         cpu.step();
-        assertEquals(0x00, bus.read(0x1070));
+        assertEquals(0x00, bus.read(0x1070, true));
         assertTrue(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x02, bus.read(0x1071));
+        assertEquals(0x02, bus.read(0x1071, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step(2);
-        assertEquals(0x05, bus.read(0x1071));
+        assertEquals(0x05, bus.read(0x1071, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x0a, bus.read(0x1071));
+        assertEquals(0x0a, bus.read(0x1071, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x14, bus.read(0x1071));
+        assertEquals(0x14, bus.read(0x1071, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x28, bus.read(0x1071));
+        assertEquals(0x28, bus.read(0x1071, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x50, bus.read(0x1071));
+        assertEquals(0x50, bus.read(0x1071, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0xa0, bus.read(0x1071));
+        assertEquals(0xa0, bus.read(0x1071, true));
         assertFalse(cpu.getZeroFlag());
         assertTrue(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x40, bus.read(0x1071));
+        assertEquals(0x40, bus.read(0x1071, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertTrue(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x81, bus.read(0x1071));
+        assertEquals(0x81, bus.read(0x1071, true));
         assertFalse(cpu.getZeroFlag());
         assertTrue(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
@@ -346,38 +346,38 @@ public class CpuAbsoluteXModeTest extends TestCase {
                         0x5e, 0x05, 0xab); // LSR $ab05,X
 
         cpu.step();
-        assertEquals(0x00, bus.read(0xab30));
+        assertEquals(0x00, bus.read(0xab30, true));
         assertTrue(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x00, bus.read(0xab31));
+        assertEquals(0x00, bus.read(0xab31, true));
         assertTrue(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertTrue(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x01, bus.read(0xab32));
+        assertEquals(0x01, bus.read(0xab32, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x22, bus.read(0xab33));
+        assertEquals(0x22, bus.read(0xab33, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x40, bus.read(0xab34));
+        assertEquals(0x40, bus.read(0xab34, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         // Setting Carry should not affect the result.
         cpu.step(2);
-        assertEquals(0x01, bus.read(0xab35));
+        assertEquals(0x01, bus.read(0xab35, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
@@ -609,61 +609,61 @@ public class CpuAbsoluteXModeTest extends TestCase {
         cpu.setXRegister(0x30);
 
         cpu.step();
-        assertEquals(0x00, bus.read(0xab40));
+        assertEquals(0x00, bus.read(0xab40, true));
         assertTrue(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x08, bus.read(0xab41));
+        assertEquals(0x08, bus.read(0xab41, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x04, bus.read(0xab41));
+        assertEquals(0x04, bus.read(0xab41, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x02, bus.read(0xab41));
+        assertEquals(0x02, bus.read(0xab41, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x01, bus.read(0xab41));
+        assertEquals(0x01, bus.read(0xab41, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x00, bus.read(0xab41));
+        assertEquals(0x00, bus.read(0xab41, true));
         assertTrue(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertTrue(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x80, bus.read(0xab41));
+        assertEquals(0x80, bus.read(0xab41, true));
         assertFalse(cpu.getZeroFlag());
         assertTrue(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x40, bus.read(0xab41));
+        assertEquals(0x40, bus.read(0xab41, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x20, bus.read(0xab41));
+        assertEquals(0x20, bus.read(0xab41, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
 
         cpu.step();
-        assertEquals(0x10, bus.read(0xab41));
+        assertEquals(0x10, bus.read(0xab41, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
         assertFalse(cpu.getCarryFlag());
@@ -677,7 +677,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
         cpu.setAccumulator(0x00);
         bus.loadProgram(0x9d, 0x10, 0xab); // STA $ab10,X
         cpu.step();
-        assertEquals(0x00, bus.read(0xab40));
+        assertEquals(0x00, bus.read(0xab40, true));
         // STA should have NO affect on flags.
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
@@ -688,7 +688,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
         cpu.setAccumulator(0x0f);
         bus.loadProgram(0x9d, 0x10, 0xab); // STA $ab10,X
         cpu.step();
-        assertEquals(0x0f, bus.read(0xab40));
+        assertEquals(0x0f, bus.read(0xab40, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
@@ -698,7 +698,7 @@ public class CpuAbsoluteXModeTest extends TestCase {
         cpu.setAccumulator(0x80);
         bus.loadProgram(0x9d, 0x10, 0xab); // STA $ab10,X
         cpu.step();
-        assertEquals(0x80, bus.read(0xab40));
+        assertEquals(0x80, bus.read(0xab40, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
     }
@@ -808,22 +808,22 @@ public class CpuAbsoluteXModeTest extends TestCase {
         cpu.setXRegister(0x30);
 
         cpu.step();
-        assertEquals(0xff, bus.read(0xab40));
+        assertEquals(0xff, bus.read(0xab40, true));
         assertFalse(cpu.getZeroFlag());
         assertTrue(cpu.getNegativeFlag());
 
         cpu.step();
-        assertEquals(0x00, bus.read(0xab41));
+        assertEquals(0x00, bus.read(0xab41, true));
         assertTrue(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
         cpu.step();
-        assertEquals(0x7f, bus.read(0xab42));
+        assertEquals(0x7f, bus.read(0xab42, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
         cpu.step();
-        assertEquals(0xfe, bus.read(0xab43));
+        assertEquals(0xfe, bus.read(0xab43, true));
         assertFalse(cpu.getZeroFlag());
         assertTrue(cpu.getNegativeFlag());
     }
@@ -1051,17 +1051,17 @@ public class CpuAbsoluteXModeTest extends TestCase {
                         0xfe, 0x12, 0xab); // INC $ab12,X
 
         cpu.step();
-        assertEquals(0x01, bus.read(0xab30));
+        assertEquals(0x01, bus.read(0xab30, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
         cpu.step();
-        assertEquals(0x80, bus.read(0xab31));
+        assertEquals(0x80, bus.read(0xab31, true));
         assertFalse(cpu.getZeroFlag());
         assertTrue(cpu.getNegativeFlag());
 
         cpu.step();
-        assertEquals(0x00, bus.read(0xab32));
+        assertEquals(0x00, bus.read(0xab32, true));
         assertTrue(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
     }

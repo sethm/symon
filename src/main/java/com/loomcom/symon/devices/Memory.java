@@ -94,7 +94,7 @@ public class Memory extends Device {
 
     }
 
-    public int read(int address) throws MemoryAccessException {
+    public int read(int address, boolean cpuAccess) throws MemoryAccessException {
         return this.mem[address];
     }
 

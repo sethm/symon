@@ -101,10 +101,10 @@ public class CpuImpliedModeTest {
         cpu.step(); // Triggers the BRK
 
         // Was at PC = 0x204.  PC+1 should now be on the stack
-        assertEquals(0x02, bus.read(0x1ff)); // PC high byte
-        assertEquals(0x05, bus.read(0x1fe)); // PC low byte
+        assertEquals(0x02, bus.read(0x1ff, true)); // PC high byte
+        assertEquals(0x05, bus.read(0x1fe, true)); // PC low byte
         assertEquals(0x20 | Cpu.P_CARRY | Cpu.P_OVERFLOW | Cpu.P_BREAK,
-                     bus.read(0x1fd));       // Processor Status, with B set
+                     bus.read(0x1fd, true));       // Processor Status, with B set
 
         // Interrupt vector held 0x1234, so we should be there.
         assertEquals(0x1234, cpu.getProgramCounter());
@@ -149,10 +149,10 @@ public class CpuImpliedModeTest {
 
 
         // Was at PC = 0x204.  PC+1 should now be on the stack
-        assertEquals(0x02, bus.read(0x1ff)); // PC high byte
-        assertEquals(0x05, bus.read(0x1fe)); // PC low byte
+        assertEquals(0x02, bus.read(0x1ff, true)); // PC high byte
+        assertEquals(0x05, bus.read(0x1fe, true)); // PC low byte
         assertEquals(0x20 | Cpu.P_CARRY | Cpu.P_OVERFLOW | Cpu.P_BREAK | Cpu.P_IRQ_DISABLE,
-                     bus.read(0x1fd));       // Processor Status, with B set
+                     bus.read(0x1fd, true));       // Processor Status, with B set
 
         // Interrupt vector held 0x1234, so we should be there.
         assertEquals(0x1234, cpu.getProgramCounter());

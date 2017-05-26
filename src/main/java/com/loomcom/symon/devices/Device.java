@@ -72,7 +72,7 @@ public abstract class Device implements Comparable<Device> {
     /* Methods required to be implemented by inheriting classes. */
     public abstract void write(int address, int data) throws MemoryAccessException;
 
-    public abstract int read(int address) throws MemoryAccessException;
+    public abstract int read(int address, boolean cpuAccess) throws MemoryAccessException;
 
     public abstract String toString();
 

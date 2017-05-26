@@ -411,7 +411,7 @@ public class CpuIndirectXModeTest extends TestCase {
         cpu.setAccumulator(0x00);
         bus.loadProgram(0x9d, 0x10, 0xab); // STA $ab10,X
         cpu.step();
-        assertEquals(0x00, bus.read(0xab40));
+        assertEquals(0x00, bus.read(0xab40, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
@@ -422,7 +422,7 @@ public class CpuIndirectXModeTest extends TestCase {
         cpu.setAccumulator(0x0f);
         bus.loadProgram(0x9d, 0x10, 0xab); // STA $ab10,X
         cpu.step();
-        assertEquals(0x0f, bus.read(0xab40));
+        assertEquals(0x0f, bus.read(0xab40, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
@@ -432,7 +432,7 @@ public class CpuIndirectXModeTest extends TestCase {
         cpu.setAccumulator(0x80);
         bus.loadProgram(0x9d, 0x10, 0xab); // STA $ab10,X
         cpu.step();
-        assertEquals(0x80, bus.read(0xab40));
+        assertEquals(0x80, bus.read(0xab40, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
     }

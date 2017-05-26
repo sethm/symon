@@ -47,7 +47,7 @@ public class CpuZeroPageYModeTest extends TestCase {
         cpu.setXRegister(0x00);
         bus.loadProgram(0x96, 0x10);  // STX $10,Y
         cpu.step();
-        assertEquals(0x00, bus.read(0x40));
+        assertEquals(0x00, bus.read(0x40, true));
         // Should have no effect on flags.
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
@@ -57,7 +57,7 @@ public class CpuZeroPageYModeTest extends TestCase {
         cpu.setXRegister(0x0f);
         bus.loadProgram(0x96, 0x10);  // STX $10,Y
         cpu.step();
-        assertEquals(0x0f, bus.read(0x40));
+        assertEquals(0x0f, bus.read(0x40, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
 
@@ -66,7 +66,7 @@ public class CpuZeroPageYModeTest extends TestCase {
         cpu.setXRegister(0x80);
         bus.loadProgram(0x96, 0x10);  // STX $10,Y
         cpu.step();
-        assertEquals(0x80, bus.read(0x40));
+        assertEquals(0x80, bus.read(0x40, true));
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getNegativeFlag());
     }

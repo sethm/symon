@@ -242,19 +242,19 @@ public class CrtcTest {
         crtc.write(0, 12); // High byte
 
         crtc.write(1, 0x03);
-        assertEquals(0, crtc.read(1));
+        assertEquals(0, crtc.read(1, true));
 
         crtc.write(1, 0x70);
-        assertEquals(0, crtc.read(1));
+        assertEquals(0, crtc.read(1, true));
 
 
         crtc.write(0, 13); // Low byte
 
         crtc.write(1, 0xff);
-        assertEquals(0, crtc.read(1));
+        assertEquals(0, crtc.read(1, true));
 
         crtc.write(1, 0x0e);
-        assertEquals(0, crtc.read(1));
+        assertEquals(0, crtc.read(1, true));
     }
 
 
@@ -278,10 +278,10 @@ public class CrtcTest {
         crtc.write(0, 14);
 
         crtc.write(1, 0x3f);
-        assertEquals(0x3f, crtc.read(1));
+        assertEquals(0x3f, crtc.read(1, true));
 
         crtc.write(1, 0x70);
-        assertEquals(0x70, crtc.read(1));
+        assertEquals(0x70, crtc.read(1, true));
     }
 
     @Test
@@ -313,13 +313,13 @@ public class CrtcTest {
         crtc.write(0, 15);
 
         crtc.write(1, 0x00);
-        assertEquals(0x00, crtc.read(1));
+        assertEquals(0x00, crtc.read(1, true));
 
         crtc.write(1, 0x1f);
-        assertEquals(0x1f, crtc.read(1));
+        assertEquals(0x1f, crtc.read(1, true));
 
         crtc.write(1, 0xff);
-        assertEquals(0xff, crtc.read(1));
+        assertEquals(0xff, crtc.read(1, true));
     }
 
 

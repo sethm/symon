@@ -7,7 +7,7 @@ SYMON - A 6502 System Simulator
 
 See the file COPYING for license.
 
-![Symon Simulator in Action] (http://www.loomcom.com/symon/screenshots/full.jpg)
+![Symon Simulator in Action](http://www.loomcom.com/symon/screenshots/full.jpg)
 
 ## 1.0 About
 
@@ -22,7 +22,7 @@ experimental 6545 CRTC.
 
 Symon has extensive unit tests to verify correctness, and fully passes
 Klaus Dormann's 6502 Functional Test Suite as of version 0.8.2
-(See [this thread on the 6502.org Forums] (http://forum.6502.org/viewtopic.php?f=2&t=2241)
+(See [this thread on the 6502.org Forums](http://forum.6502.org/viewtopic.php?f=2&t=2241)
 for more information about this functional test suite).
 
 Symon is under constant, active development. Feedback and patches
@@ -66,7 +66,7 @@ memory.
 
 ### 3.2 Serial Console and CPU Status
 
-![Serial Console] (http://www.loomcom.com/symon/screenshots/console.png)
+![Serial Console](http://www.loomcom.com/symon/screenshots/console.png)
 
 The main window of the simulator acts as the primary Input/Output
 system through a virtual serial terminal. The terminal is attached to
@@ -78,13 +78,13 @@ It also provides CPU status. Contents of the accumulator, index
 registers, processor status flags, disassembly of the instruction
 register, and stack pointer are all displayed.
 
-![Font Selection] (http://www.loomcom.com/symon/screenshots/font_selection.png)
+![Font Selection](http://www.loomcom.com/symon/screenshots/font_selection.png)
 
 The console supports font sizes from 10 to 20 points.
 
 ### 3.3 ROM Loading
 
-![ROM Loading] (http://www.loomcom.com/symon/screenshots/load_rom.png)
+![ROM Loading](http://www.loomcom.com/symon/screenshots/load_rom.png)
 
 Symon can load any appropriately sized ROM image. The Symon
 architecture expects as 16KB (16384 byte) ROM image, while the
@@ -95,32 +95,32 @@ address.
 
 ### 3.4 Memory Window
 
-![Memory Window] (http://www.loomcom.com/symon/screenshots/memory_window.png)
+![Memory Window](http://www.loomcom.com/symon/screenshots/memory_window.png)
 
 Memory contents can be viewed (and edited) one page at a time through the Memory Window.
 
 ### 3.5 Trace Log
 
-![Trace Log] (http://www.loomcom.com/symon/screenshots/trace_log.png)
+![Trace Log](http://www.loomcom.com/symon/screenshots/trace_log.png)
 
 The last 20,000 execution steps are disassembled and logged to the Trace Log
 Window.
 
 ### 3.6 Simulator Speeds
 
-![Speeds] (http://www.loomcom.com/symon/screenshots/simulator_menu.png)
+![Speeds](http://www.loomcom.com/symon/screenshots/simulator_menu.png)
 
 Simulated speeds may be set from 1MHz to 8MHz.
 
 ### 3.7 Breakpoints
 
-![Breakpoints] (http://www.loomcom.com/symon/screenshots/breakpoints.png)
+![Breakpoints](http://www.loomcom.com/symon/screenshots/breakpoints.png)
 
 Breakpoints can be set and removed through the Breakpoints window.
 
 ### 3.8 Experimental 6545 CRTC Video
 
-![Composite Video] (http://www.loomcom.com/symon/screenshots/video_window.png)
+![Composite Video](http://www.loomcom.com/symon/screenshots/video_window.png)
 
 This feature is highly experimental. It's possible to open a video window
 from the "View" menu.  This window simulates the output of a MOS 6545 CRT
@@ -158,9 +158,9 @@ between the simulated 6545 and a real 6545:
 
 For more information on the 6545 CRTC and its programming model, please see the following resources
 
-  - [CRTC 6545/6845 Information (André Fachat)] (http://6502.org/users/andre/hwinfo/crtc/index.html)
-  - [CRTC Operation (André Fachat)] (http://www.6502.org/users/andre/hwinfo/crtc/crtc.html)
-  - [MOS 6545 Datasheet (PDF)] (http://www.6502.org/users/andre/hwinfo/crtc/crtc.html)
+  - [CRTC 6545/6845 Information (André Fachat)](http://6502.org/users/andre/hwinfo/crtc/index.html)
+  - [CRTC Operation (André Fachat)](http://www.6502.org/users/andre/hwinfo/crtc/crtc.html)
+  - [MOS 6545 Datasheet (PDF)](http://www.6502.org/users/andre/hwinfo/crtc/crtc.html)
 
 
 #### 3.8.1 Example BASIC Program to test Video
@@ -338,10 +338,10 @@ Additional components used in this project are copyright their respective owners
 
 This project would not have been possible without the following resources:
 
-  - [Andrew Jacobs' 6502 Pages] (http://www.obelisk.demon.co.uk/6502/), for
+  - [Andrew Jacobs' 6502 Pages](http://www.obelisk.demon.co.uk/6502/), for
     wonderfully detailed information about the 6502
 
-  - [Neil Parker's "The 6502/65C02/65C816 Instruction Set Decoded"] (http://www.llx.com/~nparker/a2/opcodes.html),
+  - [Neil Parker's "The 6502/65C02/65C816 Instruction Set Decoded"](http://www.llx.com/~nparker/a2/opcodes.html),
     for information about how instructions are coded
 
 ## 9.0 Licensing

@@ -62,7 +62,7 @@ public class CpuIndirectIndexedModeTest {
         cpu.step(1);
 
         assertEquals(0xf3, cpu.getAccumulator());
-        assertEquals(0xe3, bus.read(0xd828));
+        assertEquals(0xe3, bus.read(0xd828, true));
     }
 
     @Test
@@ -78,7 +78,7 @@ public class CpuIndirectIndexedModeTest {
         cpu.step(1);
 
         assertEquals(0x22, cpu.getAccumulator());
-        assertEquals(0xe3, bus.read(0xd828));
+        assertEquals(0xe3, bus.read(0xd828, true));
     }
 
 }

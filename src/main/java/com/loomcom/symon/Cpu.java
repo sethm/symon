@@ -114,7 +114,7 @@ public class Cpu implements InstructionTable {
         state.sp = 0xff;
 
         // Set the PC to the address stored in the reset vector
-        state.pc = Utils.address(bus.read(RST_VECTOR_L), bus.read(RST_VECTOR_H));
+        state.pc = Utils.address(bus.read(RST_VECTOR_L, true), bus.read(RST_VECTOR_H, true));
 
         // Clear instruction register.
         state.ir = 0;
@@ -168,7 +168,7 @@ public class Cpu implements InstructionTable {
         }
 
         // Fetch memory location for this instruction.
-        state.ir = bus.read(state.pc);
+        state.ir = bus.read(state.pc, true);
         int irAddressMode = (state.ir >> 2) & 0x07;  // Bits 3-5 of IR:  [ | | |X|X|X| | ]
         int irOpMode = state.ir & 0x03;              // Bits 6-7 of IR:  [ | | | | | |X|X]
 
@@ -179,7 +179,7 @@ public class Cpu implements InstructionTable {
         // Decode the instruction and operands
         state.instSize = Cpu.instructionSizes[state.ir];
         for (int i = 0; i < state.instSize - 1; i++) {
-            state.args[i] = bus.read(state.pc);
+            state.args[i] = bus.read(state.pc, true);
             // Increment PC after reading
             incrementPC();
         }
@@ -224,7 +224,7 @@ public class Cpu implements InstructionTable {
                 switch (irAddressMode) {
                     case 0: // (Zero Page,X)
                         tmp = (state.args[0] + state.x) & 0xff;
-                        effectiveAddress = Utils.address(bus.read(tmp), bus.read(tmp + 1));
+                        effectiveAddress = Utils.address(bus.read(tmp, true), bus.read(tmp + 1, true));
                         break;
                     case 1: // Zero Page
                         effectiveAddress = state.args[0];
@@ -236,8 +236,8 @@ public class Cpu implements InstructionTable {
                         effectiveAddress = Utils.address(state.args[0], state.args[1]);
                         break;
                     case 4: // (Zero Page),Y
-                        tmp = Utils.address(bus.read(state.args[0]),
-                                      bus.read((state.args[0] + 1) & 0xff));
+                        tmp = Utils.address(bus.read(state.args[0], true),
+                                      bus.read((state.args[0] + 1) & 0xff, true));
                         effectiveAddress = (tmp + state.y) & 0xffff;
                         break;
                     case 5: // Zero Page,X
@@ -409,7 +409,7 @@ public class Cpu implements InstructionTable {
                     hi = lo + 1;
                 }
 
-                state.pc = Utils.address(bus.read(lo), bus.read(hi));
+                state.pc = Utils.address(bus.read(lo, true), bus.read(hi, true));
                 /* TODO: For accuracy, allow a flag to enable broken behavior of early 6502s:
                  *
                  * "An original 6502 has does not correctly fetch the target
@@ -436,7 +436,7 @@ public class Cpu implements InstructionTable {
             case 0x15: // Zero Page,X
             case 0x19: // Absolute,Y
             case 0x1d: // Absolute,X
-                state.a |= bus.read(effectiveAddress);
+                state.a |= bus.read(effectiveAddress, true);
                 setArithmeticFlags(state.a);
                 break;
 
@@ -450,7 +450,7 @@ public class Cpu implements InstructionTable {
             case 0x0e: // Absolute
             case 0x16: // Zero Page,X
             case 0x1e: // Absolute,X
-                tmp = asl(bus.read(effectiveAddress));
+                tmp = asl(bus.read(effectiveAddress, true));
                 bus.write(effectiveAddress, tmp);
                 setArithmeticFlags(tmp);
                 break;
@@ -459,7 +459,7 @@ public class Cpu implements InstructionTable {
             /** BIT - Bit Test ******************************************************/
             case 0x24: // Zero Page
             case 0x2c: // Absolute
-                tmp = bus.read(effectiveAddress);
+                tmp = bus.read(effectiveAddress, true);
                 setZeroFlag((state.a & tmp) == 0);
                 setNegativeFlag((tmp & 0x80) != 0);
                 setOverflowFlag((tmp & 0x40) != 0);
@@ -478,7 +478,7 @@ public class Cpu implements InstructionTable {
             case 0x35: // Zero Page,X
             case 0x39: // Absolute,Y
             case 0x3d: // Absolute,X
-                state.a &= bus.read(effectiveAddress);
+                state.a &= bus.read(effectiveAddress, true);
                 setArithmeticFlags(state.a);
                 break;
 
@@ -492,7 +492,7 @@ public class Cpu implements InstructionTable {
             case 0x2e: // Absolute
             case 0x36: // Zero Page,X
             case 0x3e: // Absolute,X
-                tmp = rol(bus.read(effectiveAddress));
+                tmp = rol(bus.read(effectiveAddress, true));
                 bus.write(effectiveAddress, tmp);
                 setArithmeticFlags(tmp);
                 break;
@@ -510,7 +510,7 @@ public class Cpu implements InstructionTable {
             case 0x55: // Zero Page,X
             case 0x59: // Absolute,Y
             case 0x5d: // Absolute,X
-                state.a ^= bus.read(effectiveAddress);
+                state.a ^= bus.read(effectiveAddress, true);
                 setArithmeticFlags(state.a);
                 break;
 
@@ -524,7 +524,7 @@ public class Cpu implements InstructionTable {
             case 0x4e: // Absolute
             case 0x56: // Zero Page,X
             case 0x5e: // Absolute,X
-                tmp = lsr(bus.read(effectiveAddress));
+                tmp = lsr(bus.read(effectiveAddress, true));
                 bus.write(effectiveAddress, tmp);
                 setArithmeticFlags(tmp);
                 break;
@@ -546,9 +546,9 @@ public class Cpu implements InstructionTable {
             case 0x79: // Absolute,Y
             case 0x7d: // Absolute,X
                 if (state.decimalModeFlag) {
-                    state.a = adcDecimal(state.a, bus.read(effectiveAddress));
+                    state.a = adcDecimal(state.a, bus.read(effectiveAddress, true));
                 } else {
-                    state.a = adc(state.a, bus.read(effectiveAddress));
+                    state.a = adc(state.a, bus.read(effectiveAddress, true));
                 }
                 break;
 
@@ -562,7 +562,7 @@ public class Cpu implements InstructionTable {
             case 0x6e: // Absolute
             case 0x76: // Zero Page,X
             case 0x7e: // Absolute,X
-                tmp = ror(bus.read(effectiveAddress));
+                tmp = ror(bus.read(effectiveAddress, true));
                 bus.write(effectiveAddress, tmp);
                 setArithmeticFlags(tmp);
                 break;
@@ -605,7 +605,7 @@ public class Cpu implements InstructionTable {
             case 0xac: // Absolute
             case 0xb4: // Zero Page,X
             case 0xbc: // Absolute,X
-                state.y = bus.read(effectiveAddress);
+                state.y = bus.read(effectiveAddress, true);
                 setArithmeticFlags(state.y);
                 break;
 
@@ -619,7 +619,7 @@ public class Cpu implements InstructionTable {
             case 0xae: // Absolute
             case 0xb6: // Zero Page,Y
             case 0xbe: // Absolute,Y
-                state.x = bus.read(effectiveAddress);
+                state.x = bus.read(effectiveAddress, true);
                 setArithmeticFlags(state.x);
                 break;
 
@@ -636,7 +636,7 @@ public class Cpu implements InstructionTable {
             case 0xb5: // Zero Page,X
             case 0xb9: // Absolute,Y
             case 0xbd: // Absolute,X
-                state.a = bus.read(effectiveAddress);
+                state.a = bus.read(effectiveAddress, true);
                 setArithmeticFlags(state.a);
                 break;
 
@@ -647,7 +647,7 @@ public class Cpu implements InstructionTable {
                 break;
             case 0xc4: // Zero Page
             case 0xcc: // Absolute
-                cmp(state.y, bus.read(effectiveAddress));
+                cmp(state.y, bus.read(effectiveAddress, true));
                 break;
 
 
@@ -662,7 +662,7 @@ public class Cpu implements InstructionTable {
             case 0xd5: // Zero Page,X
             case 0xd9: // Absolute,Y
             case 0xdd: // Absolute,X
-                cmp(state.a, bus.read(effectiveAddress));
+                cmp(state.a, bus.read(effectiveAddress, true));
                 break;
 
 
@@ -671,7 +671,7 @@ public class Cpu implements InstructionTable {
             case 0xce: // Absolute
             case 0xd6: // Zero Page,X
             case 0xde: // Absolute,X
-                tmp = (bus.read(effectiveAddress) - 1) & 0xff;
+                tmp = (bus.read(effectiveAddress, true) - 1) & 0xff;
                 bus.write(effectiveAddress, tmp);
                 setArithmeticFlags(tmp);
                 break;
@@ -683,7 +683,7 @@ public class Cpu implements InstructionTable {
                 break;
             case 0xe4: // Zero Page
             case 0xec: // Absolute
-                cmp(state.x, bus.read(effectiveAddress));
+                cmp(state.x, bus.read(effectiveAddress, true));
                 break;
 
 
@@ -703,9 +703,9 @@ public class Cpu implements InstructionTable {
             case 0xf9: // Absolute,Y
             case 0xfd: // Absolute,X
                 if (state.decimalModeFlag) {
-                    state.a = sbcDecimal(state.a, bus.read(effectiveAddress));
+                    state.a = sbcDecimal(state.a, bus.read(effectiveAddress, true));
                 } else {
-                    state.a = sbc(state.a, bus.read(effectiveAddress));
+                    state.a = sbc(state.a, bus.read(effectiveAddress, true));
                 }
                 break;
 
@@ -715,7 +715,7 @@ public class Cpu implements InstructionTable {
             case 0xee: // Absolute
             case 0xf6: // Zero Page,X
             case 0xfe: // Absolute,X
-                tmp = (bus.read(effectiveAddress) + 1) & 0xff;
+                tmp = (bus.read(effectiveAddress, true) + 1) & 0xff;
                 bus.write(effectiveAddress, tmp);
                 setArithmeticFlags(tmp);
                 break;
@@ -734,11 +734,11 @@ public class Cpu implements InstructionTable {
     }
 
     private void peekAhead() throws MemoryAccessException {
-        state.nextIr = bus.read(state.pc);
+        state.nextIr = bus.read(state.pc, true);
         int nextInstSize = Cpu.instructionSizes[state.nextIr];
         for (int i = 1; i < nextInstSize; i++) {
             int nextRead = (state.pc + i) % bus.endAddress();
-            state.nextArgs[i-1] = bus.read(nextRead);
+            state.nextArgs[i-1] = bus.read(nextRead, true);
         }
     }
 
@@ -783,7 +783,7 @@ public class Cpu implements InstructionTable {
         setIrqDisableFlag();
 
         // Load interrupt vector address into PC
-        state.pc = Utils.address(bus.read(vectorLow), bus.read(vectorHigh));
+        state.pc = Utils.address(bus.read(vectorLow, true), bus.read(vectorHigh, true));
     }
 
     /**
@@ -1290,14 +1290,14 @@ public class Cpu implements InstructionTable {
             ++state.sp;
         }
 
-        return bus.read(0x100 + state.sp);
+        return bus.read(0x100 + state.sp, true);
     }
 
     /**
      * Peek at the value currently at the top of the stack
      */
     int stackPeek() throws MemoryAccessException {
-        return bus.read(0x100 + state.sp + 1);
+        return bus.read(0x100 + state.sp + 1, true);
     }
 
     /*
@@ -1435,12 +1435,12 @@ public class Cpu implements InstructionTable {
      * @return String containing the disassembled instruction and operands.
      */
     public String disassembleOpAtAddress(int address) throws MemoryAccessException {
-        int opCode = bus.read(address);
+        int opCode = bus.read(address, true);
         int args[] = new int[2];
         int size = Cpu.instructionSizes[opCode];
         for (int i = 1; i < size; i++) {
             int nextRead = (address + i) % bus.endAddress();
-            args[i-1] = bus.read(nextRead);
+            args[i-1] = bus.read(nextRead, true);
         }
 
         return disassembleOp(opCode, args);
