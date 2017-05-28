@@ -61,7 +61,7 @@ public class Acia6551 extends Acia {
             case DATA_REG:
                 return rxRead(cpuAccess);
             case STAT_REG:
-                return statusReg();
+                return statusReg(cpuAccess);
             case CMND_REG:
                 return commandRegister;
             case CTRL_REG:
@@ -178,8 +178,8 @@ public class Acia6551 extends Acia {
      * @return The contents of the status register.
      */
     @Override
-    public int statusReg() {
-        // TODO: Parity Error, Framing Error, DTR, DSR, and Interrupt flags.
+    public int statusReg(boolean cpuAccess) {
+        // TODO: Parity Error, Framing Error, DTR, and DSR flags.
         int stat = 0;
         if (rxFull && System.nanoTime() >= (lastRxRead + baudRateDelay)) {
             stat |= 0x08;
@@ -190,6 +190,14 @@ public class Acia6551 extends Acia {
         if (overrun) {
             stat |= 0x04;
         }
+        if (interrupt) {
+            stat |= 0x80;
+        }
+
+        if (cpuAccess) {
+            interrupt = false;
+        }
+
         return stat;
     }
 
@@ -201,6 +209,7 @@ public class Acia6551 extends Acia {
         rxFull = false;
         receiveIrqEnabled = false;
         transmitIrqEnabled = false;
+        interrupt = false;
     }
 
 }
