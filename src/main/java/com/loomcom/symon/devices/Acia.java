@@ -101,7 +101,7 @@ public abstract class Acia extends Device {
     /**
      * @return The contents of the status register.
      */
-    public abstract int statusReg(boolean statusReg);
+    public abstract int statusReg(boolean cpuAccess);
 
     @Override
     public String toString() {
