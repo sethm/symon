@@ -43,7 +43,7 @@ public class Acia6850 extends Acia {
 
     static final int STAT_REG = 0;	// read-only
     static final int CTRL_REG = 0;	// write-only
-	
+
     static final int RX_REG = 1;	// read-only
     static final int TX_REG = 1;	// write-only
 
@@ -56,9 +56,12 @@ public class Acia6850 extends Acia {
     public int read(int address, boolean cpuAccess) throws MemoryAccessException {
         switch (address) {
             case RX_REG:
+                if (cpuAccess) {
+                    interrupt = false;
+                }
                 return rxRead(cpuAccess);
             case STAT_REG:
-                return statusReg();
+                return statusReg(cpuAccess);
 
             default:
                 throw new MemoryAccessException("No register.");
@@ -69,6 +72,9 @@ public class Acia6850 extends Acia {
     public void write(int address, int data) throws MemoryAccessException {
         switch (address) {
             case TX_REG:
+                if (cpuAccess) {
+                    interrupt = false;
+                }
                 txWrite(data);
                 break;
             case CTRL_REG:
@@ -78,7 +84,7 @@ public class Acia6850 extends Acia {
                 throw new MemoryAccessException("No register.");
         }
     }
-    
+
     private void setCommandRegister(int data) {
         // Bits 0 & 1 control the master reset
         if((data & 0x01) != 0 && (data & 0x02) != 0) {
@@ -97,8 +103,8 @@ public class Acia6850 extends Acia {
      * @return The contents of the status register.
      */
     @Override
-    public int statusReg() {
-        // TODO: Parity Error, Framing Error, DTR, DSR, and Interrupt flags.
+    public int statusReg(boolean cpuAccess) {
+        // TODO: Parity Error, Framing Error, DTR, and DSR flags.
         int stat = 0;
         if (rxFull && System.nanoTime() >= (lastRxRead + baudRateDelay)) {
             stat |= 0x01;
@@ -109,7 +115,10 @@ public class Acia6850 extends Acia {
         if (overrun) {
             stat |= 0x20;
         }
-		
+        if (interrupt) {
+            stat |= 0x80;
+        }
+
         return stat;
     }
 
@@ -118,6 +127,7 @@ public class Acia6850 extends Acia {
         overrun = false;
         rxFull = false;
         txEmpty = true;
+        interrupt = false;
     }
 
 }

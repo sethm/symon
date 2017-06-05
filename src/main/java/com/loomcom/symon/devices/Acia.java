@@ -33,7 +33,7 @@ import com.loomcom.symon.exceptions.MemoryRangeException;
 public abstract class Acia extends Device {
 
     private String name;
-    
+
     /**
      * Register addresses
      */
@@ -42,13 +42,14 @@ public abstract class Acia extends Device {
     boolean receiveIrqEnabled = false;
     boolean transmitIrqEnabled = false;
     boolean overrun = false;
-    
-	long lastTxWrite   = 0;
+    boolean interrupt = false;
+
+    long lastTxWrite   = 0;
     long lastRxRead    = 0;
     int  baudRate      = 0;
     long baudRateDelay = 0;
-	
-	/**
+
+    /**
      * Read/Write buffers
      */
     int rxChar = 0;
@@ -56,8 +57,8 @@ public abstract class Acia extends Device {
 
     boolean rxFull  = false;
     boolean txEmpty = true;
-	
-	
+
+
     public Acia(int address, int size, String name) throws MemoryRangeException {
         super(address, address + size - 1, name);
         this.name = name;
@@ -100,7 +101,7 @@ public abstract class Acia extends Device {
     /**
      * @return The contents of the status register.
      */
-    public abstract int statusReg();
+    public abstract int statusReg(boolean cpuAccess);
 
     @Override
     public String toString() {
@@ -117,13 +118,14 @@ public abstract class Acia extends Device {
     }
 
     public synchronized void rxWrite(int data) {
-        if(rxFull) {
+        if (rxFull) {
             overrun = true;
         }
-        
+
         rxFull = true;
 
         if (receiveIrqEnabled) {
+            interrupt = true;
             getBus().assertIrq();
         }
 
@@ -132,11 +134,12 @@ public abstract class Acia extends Device {
 
     public synchronized int txRead(boolean cpuAccess) {
         if (cpuAccess) {
-          txEmpty = true;
+            txEmpty = true;
 
-          if (transmitIrqEnabled) {
-            getBus().assertIrq();
-           }
+            if (transmitIrqEnabled) {
+                interrupt = true;
+                getBus().assertIrq();
+            }
         }
         return txChar;
     }
