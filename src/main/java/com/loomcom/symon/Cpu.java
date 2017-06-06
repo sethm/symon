@@ -79,7 +79,7 @@ public class Cpu implements InstructionTable {
      * Construct a new CPU.
      */
     public Cpu() {
-        this(CpuBehavior.NMOS_WITH_INDIRECT_JMP_BUG);
+        this(CpuBehavior.NMOS_6502);
     }
 
     public Cpu(CpuBehavior behavior) {
@@ -102,6 +102,10 @@ public class Cpu implements InstructionTable {
 
     public void setBehavior(CpuBehavior behavior) {
         this.behavior = behavior;
+    }
+
+    public CpuBehavior getBehavior() {
+        return behavior;
     }
 
     /**
@@ -204,19 +208,42 @@ public class Cpu implements InstructionTable {
                     case 3: // Absolute
                         effectiveAddress = Utils.address(state.args[0], state.args[1]);
                         break;
+                    case 4: // 65C02 (Zero Page)
+                        if (behavior == CpuBehavior.CMOS_6502 ||
+                            behavior == CpuBehavior.CMOS_65816) {
+                            effectiveAddress = Utils.address(bus.read(state.args[0], true),
+                                                             bus.read((state.args[0] + 1) & 0xff, true));
+                        }
+                        break;
                     case 5: // Zero Page,X / Zero Page,Y
-                        if (state.ir == 0x96 || state.ir == 0xb6) {
+                        if (state.ir == 0x14) { // 65C02 TRB Zero Page
+                            effectiveAddress = state.args[0];
+                        }
+                        else if (state.ir == 0x96 || state.ir == 0xb6) {
                             effectiveAddress = zpyAddress(state.args[0]);
                         } else {
                             effectiveAddress = zpxAddress(state.args[0]);
                         }
                         break;
-                    case 7: // Absolute,X / Absolute,Y
-                        if (state.ir == 0xbe) {
+                    case 7:
+                        if (state.ir == 0x9c || state.ir == 0x1c) { // 65C02 STZ & TRB Absolute
+                            effectiveAddress = Utils.address(state.args[0], state.args[1]);
+                        }
+                        else if (state.ir == 0xbe) { // Absolute,X / Absolute,Y
                             effectiveAddress = yAddress(state.args[0], state.args[1]);
                         } else {
                             effectiveAddress = xAddress(state.args[0], state.args[1]);
                         }
+                        break;
+                }
+                break;
+            case 3: // Rockwell/WDC 65C02
+                switch (irAddressMode) {
+                    case 1: // Zero Page
+                    case 3:
+                    case 5:
+                    case 7: // Zero Page, Relative
+                        effectiveAddress = state.args[0];
                         break;
                 }
                 break;
@@ -262,7 +289,7 @@ public class Cpu implements InstructionTable {
                 break;
             case 0x08: // PHP - Push Processor Status - Implied
                 // Break flag is always set in the stack value.
-                stackPush(state.getStatusFlag() | 0x10); 
+                stackPush(state.getStatusFlag() | 0x10);
                 break;
             case 0x10: // BPL - Branch if Positive - Relative
                 if (!getNegativeFlag()) {
@@ -305,6 +332,13 @@ public class Cpu implements InstructionTable {
             case 0x58: // CLI - Clear Interrupt Disable - Implied
                 clearIrqDisableFlag();
                 break;
+            case 0x5a: // 65C02 PHY - Push Y to stack
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                stackPush(state.y);
+                break;
             case 0x60: // RTS - Return from Subroutine - Implied
                 lo = stackPop();
                 hi = stackPop();
@@ -321,6 +355,20 @@ public class Cpu implements InstructionTable {
                 break;
             case 0x78: // SEI - Set Interrupt Disable - Implied
                 setIrqDisableFlag();
+                break;
+            case 0x7a: // 65C02 PLY - Pull Y from Stack
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                state.y = stackPop();
+                setArithmeticFlags(state.y);
+                break;
+            case 0x80: // 65C02 BRA - Branch Always
+                if (behavior == CpuBehavior.CMOS_6502 ||
+                    behavior == CpuBehavior.CMOS_65816) {
+                        state.pc = relAddress(state.args[0]);
+                }
                 break;
             case 0x88: // DEY - Decrement Y Register - Implied
                 state.y = --state.y & 0xff;
@@ -378,6 +426,13 @@ public class Cpu implements InstructionTable {
             case 0xd8: // CLD - Clear Decimal Mode - Implied
                 clearDecimalModeFlag();
                 break;
+            case 0xda: // 65C02 PHX - Push X to stack
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                stackPush(state.x);
+                break;
             case 0xe8: // INX - Increment X Register - Implied
                 state.x = ++state.x & 0xff;
                 setArithmeticFlags(state.x);
@@ -393,6 +448,14 @@ public class Cpu implements InstructionTable {
             case 0xf8: // SED - Set Decimal Flag - Implied
                 setDecimalModeFlag();
                 break;
+            case 0xfa: // 65C02 PLX - Pull X from Stack
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                state.x = stackPop();
+                setArithmeticFlags(state.x);
+                break;
 
             /** JMP *****************************************************************/
             case 0x4c: // JMP - Absolute
@@ -402,7 +465,7 @@ public class Cpu implements InstructionTable {
                 lo = Utils.address(state.args[0], state.args[1]); // Address of low byte
 
                 if (state.args[0] == 0xff &&
-                    (behavior == CpuBehavior.NMOS_WITH_INDIRECT_JMP_BUG ||
+                    (behavior == CpuBehavior.NMOS_6502 ||
                      behavior == CpuBehavior.NMOS_WITH_ROR_BUG)) {
                     hi = Utils.address(0x00, state.args[1]);
                 } else {
@@ -422,13 +485,26 @@ public class Cpu implements InstructionTable {
                  * (http://www.obelisk.demon.co.uk/6502/reference.html#JMP)
                  */
                 break;
-
+            case 0x7c: // 65C02 JMP - (Absolute Indexed Indirect,X)
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                lo = (((state.args[1] << 8) | state.args[0]) + state.x) & 0xffff;
+                hi = lo + 1;
+                state.pc = Utils.address(bus.read(lo, true), bus.read(hi, true));
+                break;
 
             /** ORA - Logical Inclusive Or ******************************************/
             case 0x09: // #Immediate
                 state.a |= state.args[0];
                 setArithmeticFlags(state.a);
                 break;
+            case 0x12: // 65C02 ORA (ZP)
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
             case 0x01: // (Zero Page,X)
             case 0x05: // Zero Page
             case 0x0d: // Absolute
@@ -457,8 +533,17 @@ public class Cpu implements InstructionTable {
 
 
             /** BIT - Bit Test ******************************************************/
+            case 0x89: // 65C02 #Immediate
+                setZeroFlag((state.a & state.args[0]) == 0);
+                break;
+            case 0x34: // 65C02 Zero Page,X
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
             case 0x24: // Zero Page
             case 0x2c: // Absolute
+            case 0x3c: // Absolute,X
                 tmp = bus.read(effectiveAddress, true);
                 setZeroFlag((state.a & tmp) == 0);
                 setNegativeFlag((tmp & 0x80) != 0);
@@ -471,6 +556,11 @@ public class Cpu implements InstructionTable {
                 state.a &= state.args[0];
                 setArithmeticFlags(state.a);
                 break;
+            case 0x32: // 65C02 AND (ZP)
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
             case 0x21: // (Zero Page,X)
             case 0x25: // Zero Page
             case 0x2d: // Absolute
@@ -503,6 +593,11 @@ public class Cpu implements InstructionTable {
                 state.a ^= state.args[0];
                 setArithmeticFlags(state.a);
                 break;
+            case 0x52: // 65C02 EOR (ZP)
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
             case 0x41: // (Zero Page,X)
             case 0x45: // Zero Page
             case 0x4d: // Absolute
@@ -538,6 +633,11 @@ public class Cpu implements InstructionTable {
                     state.a = adc(state.a, state.args[0]);
                 }
                 break;
+            case 0x72: // 65C02 ADC (ZP)
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
             case 0x61: // (Zero Page,X)
             case 0x65: // Zero Page
             case 0x6d: // Absolute
@@ -569,6 +669,11 @@ public class Cpu implements InstructionTable {
 
 
             /** STA - Store Accumulator *********************************************/
+            case 0x92: // 65C02 STA (ZP)
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
             case 0x81: // (Zero Page,X)
             case 0x85: // Zero Page
             case 0x8d: // Absolute
@@ -595,6 +700,17 @@ public class Cpu implements InstructionTable {
                 bus.write(effectiveAddress, state.x);
                 break;
 
+            /** STZ - 65C02 Store Zero ****************************************************/
+            case 0x64: // Zero Page
+            case 0x74: // Zero Page,X
+            case 0x9c: // Absolute
+            case 0x9e: // Absolute,X
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                bus.write(effectiveAddress, 0);
+                break;
 
             /** LDY - Load Y Register ***********************************************/
             case 0xa0: // #Immediate
@@ -629,6 +745,11 @@ public class Cpu implements InstructionTable {
                 state.a = state.args[0];
                 setArithmeticFlags(state.a);
                 break;
+            case 0xb2: // 65C02 LDA (ZP)
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
             case 0xa1: // (Zero Page,X)
             case 0xa5: // Zero Page
             case 0xad: // Absolute
@@ -655,6 +776,11 @@ public class Cpu implements InstructionTable {
             case 0xc9: // #Immediate
                 cmp(state.a, state.args[0]);
                 break;
+            case 0xd2: // 65C02 CMP (ZP)
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
             case 0xc1: // (Zero Page,X)
             case 0xc5: // Zero Page
             case 0xcd: // Absolute
@@ -667,6 +793,14 @@ public class Cpu implements InstructionTable {
 
 
             /** DEC - Decrement Memory **********************************************/
+            case 0x3a: // 65C02 Immediate
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                state.a = --state.a & 0xFF;
+                setArithmeticFlags(state.a);
+                break;
             case 0xc6: // Zero Page
             case 0xce: // Absolute
             case 0xd6: // Zero Page,X
@@ -695,6 +829,11 @@ public class Cpu implements InstructionTable {
                     state.a = sbc(state.a, state.args[0]);
                 }
                 break;
+            case 0xf2: // 65C02 SBC (ZP)
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
             case 0xe1: // (Zero Page,X)
             case 0xe5: // Zero Page
             case 0xed: // Absolute
@@ -711,6 +850,14 @@ public class Cpu implements InstructionTable {
 
 
             /** INC - Increment Memory **********************************************/
+            case 0x1a: // 65C02 Increment Immediate
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                state.a = ++state.a & 0xff;
+                setArithmeticFlags(state.a);
+                break;
             case 0xe6: // Zero Page
             case 0xee: // Absolute
             case 0xf6: // Zero Page,X
@@ -719,6 +866,364 @@ public class Cpu implements InstructionTable {
                 bus.write(effectiveAddress, tmp);
                 setArithmeticFlags(tmp);
                 break;
+
+
+            /** 65C02 RMB - Reset Memory Bit **************************************/
+            case 0x07: // 65C02 RMB0 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp &= ~(1 << 0);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0x17: // 65C02 RMB1 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp &= ~(1 << 1);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0x27: // 65C02 RMB2 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp &= ~(1 << 2);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0x37: // 65C02 RMB3 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp &= ~(1 << 3);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0x47: // 65C02 RMB4 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp &= ~(1 << 4);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0x57: // 65C02 RMB5 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp &= ~(1 << 5);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0x67: // 65C02 RMB6 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp &= ~(1 << 6);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0x77: // 65C02 RMB7 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp &= ~(1 << 7);
+                bus.write(effectiveAddress, tmp);
+                break;
+
+
+            /** 65C02 SMB - Set Memory Bit **************************************/
+            case 0x87: // 65C02 SMB0 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp |= (1);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0x97: // 65C02 SMB1 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp |= (1 << 1);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0xa7: // 65C02 SMB2 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp |= (1 << 2);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0xb7: // 65C02 SMB3 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp |= (1 << 3);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0xc7: // 65C02 SMB4 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp |= (1 << 4);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0xd7: // 65C02 SMB5 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp |= (1 << 5);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0xe7: // 65C02 SMB6 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp |= (1 << 6);
+                bus.write(effectiveAddress, tmp);
+                break;
+            case 0xf7: // 65C02 SMB7 - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true) & 0xff;
+                tmp |= (1 << 7);
+                bus.write(effectiveAddress, tmp);
+                break;
+
+            /** 65C02 TRB/TSB - Test and Reset Bit/Test and Set Bit ***************/
+            case 0x14: // 65C02 TRB - Test and Reset bit - Zero Page
+            case 0x1c: // 65C02 TRB - Test and Reset bit - Absolute
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                setZeroFlag((state.a & tmp) == 0);
+                tmp = (tmp &= ~(state.a)) & 0xff;
+                bus.write(effectiveAddress,tmp);
+                break;
+
+            case 0x04: // 65C02 TSB - Test and Set bit - Zero Page
+            case 0x0c: // 65C02 TSB - Test and Set bit - Absolute
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                setZeroFlag((state.a & tmp) == 0);
+                tmp = (tmp |= (state.a)) & 0xff;
+                bus.write(effectiveAddress,tmp);
+                break;
+
+            /** 65C02 BBR - Branch if Bit Reset *************************************/
+            case 0x0f: // 65C02 BBR - Branch if bit 0 reset - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 0) == 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0x1f: // 65C02 BBR - Branch if bit 1 reset - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 1) == 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0x2f: // 65C02 BBR - Branch if bit 2 reset - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 2) == 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0x3f: // 65C02 BBR - Branch if bit 3 reset - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 3) == 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0x4f: // 65C02 BBR - Branch if bit 4 reset - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 4) == 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+
+            case 0x5f: // 65C02 BBR - Branch if bit 5 reset - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 5) == 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0x6f: // 65C02 BBR - Branch if bit 6 reset - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 6) == 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0x7f: // 65C02 BBR - Branch if bit 5 reset - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 7) == 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+
+            /** 65C02 BBS - Branch if Bit Set  ************************************/
+            case 0x8f: // 65C02 BBS - Branch if bit 0 set - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 0) > 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0x9f: // 65C02 BBS - Branch if bit 1 set - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 1) > 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0xaf: // 65C02 BBS - Branch if bit 2 set - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 2) > 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0xbf: // 65C02 BBS - Branch if bit 3 set - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 3) > 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+
+            case 0xcf: // 65C02 BBS - Branch if bit 4 set - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 4) > 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+
+            case 0xdf: // 65C02 BBS - Branch if bit 5 set - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 5) > 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0xef: // 65C02 BBS - Branch if bit 6 set - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 6) > 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
+            case 0xff: // 65C02 BBS - Branch if bit 5 set - Zero Page
+                if (behavior == CpuBehavior.NMOS_6502 ||
+                    behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                    break;
+                }
+                tmp = bus.read(effectiveAddress, true);
+                if ((tmp & 1 << 7) > 0) {
+                    state.pc = relAddress(state.args[1]);
+                }
+                break;
+
 
             /** Unimplemented Instructions ****************************************/
             // TODO: Create a flag to enable highly-accurate emulation of unimplemented instructions.
@@ -782,6 +1287,12 @@ public class Cpu implements InstructionTable {
         // Set the Interrupt Disabled flag.  RTI will clear it.
         setIrqDisableFlag();
 
+        // 65C02 & 65816 clear Decimal flag after pushing Processor status to the stack
+        if (behavior == CpuBehavior.CMOS_6502||
+            behavior == CpuBehavior.CMOS_65816) {
+            clearDecimalModeFlag();
+        }
+
         // Load interrupt vector address into PC
         state.pc = Utils.address(bus.read(vectorLow, true), bus.read(vectorHigh, true));
     }
@@ -819,8 +1330,15 @@ public class Cpu implements InstructionTable {
         result &= 0xff;
         setCarryFlag(h > 15);
         setZeroFlag(result == 0);
-        setNegativeFlag(false); // BCD is never negative
         setOverflowFlag(false); // BCD never sets overflow flag
+
+        if (behavior == CpuBehavior.NMOS_6502||
+            behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                setNegativeFlag(false); // BCD is never negative on NMOS 6502
+        }
+        else {
+            state.negativeFlag = (result & 0x80) != 0; // N Flag is valid on CMOS 6502/65816
+        }
         return result;
     }
 
@@ -845,11 +1363,18 @@ public class Cpu implements InstructionTable {
         if ((l & 0x10) != 0) l -= 6;
         h = (acc >> 4) - (operand >> 4) - ((l & 0x10) != 0 ? 1 : 0);
         if ((h & 0x10) != 0) h -= 6;
-        result = (l & 0x0f) | (h << 4);
+        result = (l & 0x0f) | (h << 4) & 0xff;
         setCarryFlag((h & 0xff) < 15);
         setZeroFlag(result == 0);
-        setNegativeFlag(false); // BCD is never negative
         setOverflowFlag(false); // BCD never sets overflow flag
+
+        if (behavior == CpuBehavior.NMOS_6502||
+            behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
+                setNegativeFlag(false); // BCD is never negative on NMOS 6502
+        }
+        else {
+            state.negativeFlag = (result & 0x80) != 0; // N Flag is valid on CMOS 6502/65816
+        }
         return (result & 0xff);
     }
 
@@ -1335,6 +1860,13 @@ public class Cpu implements InstructionTable {
     }
 
     /**
+     * Given a single byte, compute the Zero Page,Y offset address.
+     */
+    int zpyAddress(int zp) {
+        return (zp + state.y) & 0xff;
+    }
+
+    /**
      * Given a single byte, compute the offset address.
      */
     int relAddress(int offset) {
@@ -1342,21 +1874,21 @@ public class Cpu implements InstructionTable {
         return (state.pc + (byte) offset) & 0xffff;
     }
 
-    /**
-     * Given a single byte, compute the Zero Page,Y offset address.
-     */
-    int zpyAddress(int zp) {
-        return (zp + state.y) & 0xff;
-    }
-
     /*
      * Perform a busy-loop until the instruction should complete on the wall clock
      */
     private void delayLoop(int opcode) {
-        int clockSteps = Cpu.instructionClocks[0xff & opcode];
+        final int clockSteps;
+
+        if (behavior == CpuBehavior.NMOS_WITH_ROR_BUG ||
+            behavior == CpuBehavior.NMOS_6502) {
+            clockSteps = Cpu.instructionClocksNmos[0xff & opcode];
+        } else {
+            clockSteps = Cpu.instructionClocksCmos[0xff & opcode];
+        }
 
         if (clockSteps == 0) {
-            logger.warn("Opcode {} has clock step of 0!", opcode);
+            logger.warn("Opcode {} has clock step of 0!", String.format("0x%02x", opcode));
             return;
         }
 
@@ -1387,6 +1919,8 @@ public class Cpu implements InstructionTable {
             case ABS:
                 sb.append(" $").append(Utils.wordToHex(Utils.address(args[0], args[1])));
                 break;
+            case AIX:
+                sb.append(" ($").append(Utils.wordToHex(Utils.address(args[0], args[1]))).append(",X)");
             case ABX:
                 sb.append(" $").append(Utils.wordToHex(Utils.address(args[0], args[1]))).append(",X");
                 break;
@@ -1406,6 +1940,7 @@ public class Cpu implements InstructionTable {
                 sb.append(" ($").append(Utils.byteToHex(args[0])).append("),Y");
                 break;
             case REL:
+            case ZPR:
             case ZPG:
                 sb.append(" $").append(Utils.byteToHex(args[0]));
                 break;

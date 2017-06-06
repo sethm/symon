@@ -162,7 +162,7 @@ public class CpuIndirectXModeTest extends TestCase {
 
         cpu.setXRegister(0x30);
 
-        bus.loadProgram(0xa9, 0x88,         // LDA #$88
+        bus.loadProgram(0xa9, 0x88,        // LDA #$88
                         0x5d, 0x10, 0xab,  // EOR $ab10,X
                         0x5d, 0x11, 0xab,  // EOR $ab11,X
                         0x5d, 0x12, 0xab,  // EOR $ab12,X
