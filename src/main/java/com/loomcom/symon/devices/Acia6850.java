@@ -30,8 +30,8 @@ import com.loomcom.symon.exceptions.MemoryRangeException;
 
 /**
  * This is a simulation of the Motorola 6850 ACIA, with limited
- * functionality.  Interrupts are not supported.
- * <p/>
+ * functionality.
+ *
  * Unlike a 16550 UART, the 6850 ACIA has only one-byte transmit and
  * receive buffers. It is the programmer's responsibility to check the
  * status (full or empty) for transmit and receive buffers before
@@ -56,9 +56,6 @@ public class Acia6850 extends Acia {
     public int read(int address, boolean cpuAccess) throws MemoryAccessException {
         switch (address) {
             case RX_REG:
-                if (cpuAccess) {
-                    interrupt = false;
-                }
                 return rxRead(cpuAccess);
             case STAT_REG:
                 return statusReg(cpuAccess);
@@ -72,9 +69,6 @@ public class Acia6850 extends Acia {
     public void write(int address, int data) throws MemoryAccessException {
         switch (address) {
             case TX_REG:
-                if (cpuAccess) {
-                    interrupt = false;
-                }
                 txWrite(data);
                 break;
             case CTRL_REG:
@@ -117,6 +111,10 @@ public class Acia6850 extends Acia {
         }
         if (interrupt) {
             stat |= 0x80;
+        }
+
+        if (cpuAccess) {
+            interrupt = false;
         }
 
         return stat;

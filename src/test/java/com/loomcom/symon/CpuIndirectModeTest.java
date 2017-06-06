@@ -64,7 +64,7 @@ public class CpuIndirectModeTest extends TestCase {
     }
 
     public void test_JMP_withIndirectBug() throws MemoryAccessException {
-        cpu.setBehavior(Cpu.CpuBehavior.NMOS_WITH_INDIRECT_JMP_BUG);
+        cpu.setBehavior(Cpu.CpuBehavior.NMOS_6502);
         bus.write(0x3400, 0x22);
         bus.write(0x34ff, 0x00);
         bus.write(0x3500, 0x54);
@@ -76,7 +76,7 @@ public class CpuIndirectModeTest extends TestCase {
     }
 
     public void test_JMP_withOutIndirectBug() throws MemoryAccessException {
-        cpu.setBehavior(Cpu.CpuBehavior.NMOS_WITHOUT_INDIRECT_JMP_BUG);
+        cpu.setBehavior(Cpu.CpuBehavior.CMOS_6502);
         bus.write(0x3400, 0x22);
         bus.write(0x34ff, 0x00);
         bus.write(0x3500, 0x54);
@@ -88,7 +88,7 @@ public class CpuIndirectModeTest extends TestCase {
     }
 
     public void test_JMP_cmos() throws MemoryAccessException {
-        cpu.setBehavior(Cpu.CpuBehavior.CMOS);
+        cpu.setBehavior(Cpu.CpuBehavior.CMOS_6502);
         bus.write(0x3400, 0x22);
         bus.write(0x34ff, 0x00);
         bus.write(0x3500, 0x54);

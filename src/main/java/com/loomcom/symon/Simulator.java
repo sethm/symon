@@ -678,6 +678,21 @@ public class Simulator {
         }
     }
 
+    class SetCpuAction extends AbstractAction {
+        private Cpu.CpuBehavior behavior;
+
+        public SetCpuAction(String cpu, Cpu.CpuBehavior behavior) {
+            super(cpu, null);
+            this.behavior = behavior;
+            putValue(SHORT_DESCRIPTION, "Set CPU to " + cpu);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            machine.getCpu().setBehavior(behavior);
+        }
+    }
+
     class ToggleTraceWindowAction extends AbstractAction {
         public ToggleTraceWindowAction() {
             super("Trace Log", null);
@@ -868,6 +883,13 @@ public class Simulator {
             JMenuItem selectMachineItem = new JMenuItem(new SelectMachineAction());
             simulatorMenu.add(selectMachineItem);
 
+            // "CPU" sub-menu
+            JMenu cpuTypeMenu = new JMenu("CPU");
+            ButtonGroup cpuGroup = new ButtonGroup();
+
+            makeCpuMenuItem("NMOS 6502", Cpu.CpuBehavior.NMOS_6502, cpuTypeMenu, cpuGroup);
+            makeCpuMenuItem("CMOS 65C02", Cpu.CpuBehavior.CMOS_6502, cpuTypeMenu, cpuGroup);
+
             // "Clock Speed" sub-menu
             JMenu speedSubMenu = new JMenu("Clock Speed");
             ButtonGroup speedGroup = new ButtonGroup();
@@ -878,6 +900,7 @@ public class Simulator {
             makeSpeedMenuItem(8, speedSubMenu, speedGroup);
 
             simulatorMenu.add(speedSubMenu);
+            simulatorMenu.add(cpuTypeMenu);
 
             // "Breakpoints"
             final JCheckBoxMenuItem showBreakpoints = new JCheckBoxMenuItem(new ToggleBreakpointWindowAction());
@@ -914,6 +937,17 @@ public class Simulator {
             subMenu.add(item);
             group.add(item);
         }
+
+        private void makeCpuMenuItem(String cpu, Cpu.CpuBehavior behavior, JMenu subMenu, ButtonGroup group) {
+
+            Action action = new SetCpuAction(cpu, behavior);
+
+            JCheckBoxMenuItem item = new JCheckBoxMenuItem(action);
+            item.setSelected(machine.getCpu().getBehavior() == behavior);
+            subMenu.add(item);
+            group.add(item);
+        }
+
     }
 
     private void updateVisibleState() {
