@@ -73,10 +73,82 @@ public class AciaTest {
         // Write data
         acia.write(0, 'a');
 
-        // Transmission should cause IRQ
+        // Transmission should not cause IRQ
         acia.txRead(true);
 
         verify(mockBus, never()).assertIrq();
+    }
+
+    @Test
+    public void shouldTriggerInterruptFlagOnRxFullIfRxIrqEnabled() throws Exception {
+        Bus mockBus = mock(Bus.class);
+
+        Acia acia = new Acia6551(0x000);
+        acia.setBus(mockBus);
+
+        // Disable TX IRQ, Enable RX IRQ
+        acia.write(2, 0x00);
+
+        acia.rxWrite('a');
+
+        // Receive should cause IRQ flag to be set
+        assertEquals(0x80, acia.read(0x0001, true) & 0x80);
+    }
+
+    @Test
+    public void shouldNotTriggerInterruptFlagOnRxFullIfRxIrqNotEnabled() throws Exception {
+        Bus mockBus = mock(Bus.class);
+
+        Acia acia = new Acia6551(0x000);
+        acia.setBus(mockBus);
+
+        // Disable TX IRQ, Disable RX IRQ
+        acia.write(2, 0x02);
+
+        acia.rxWrite('a');
+
+        // Receive should not cause IRQ flag to be set
+        assertEquals(0x00, acia.read(0x0001, true) & 0x80);
+    }
+
+    @Test
+    public void shouldTriggerInterruptFlagOnTxEmptyIfTxIrqEnabled() throws Exception {
+        Bus mockBus = mock(Bus.class);
+
+        Acia acia = new Acia6551(0x000);
+        acia.setBus(mockBus);
+
+        // Enable TX IRQ, Disable RX IRQ
+        acia.write(2, 0x06);
+
+        // Write data
+        acia.write(0, 'a');
+
+        verify(mockBus, never()).assertIrq();
+
+        // Transmission should cause IRQ flag to be set
+        acia.txRead(true);
+
+        assertEquals(0x80, acia.read(0x0001, true) & 0x80);
+    }
+
+    @Test
+    public void shouldNotTriggerInterruptFlagOnTxEmptyIfTxIrqNotEnabled() throws Exception {
+        Bus mockBus = mock(Bus.class);
+
+        Acia acia = new Acia6551(0x000);
+        acia.setBus(mockBus);
+
+        // Disable TX IRQ, Disable RX IRQ
+        acia.write(2, 0x02);
+
+        // Write data
+        acia.write(0, 'a');
+
+        // Transmission should not cause IRQ flag to be set
+        acia.txRead(true);
+
+        assertEquals(0x00, acia.read(0x0001, true) & 0x80);
     }
 
     @Test
