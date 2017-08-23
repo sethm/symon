@@ -233,7 +233,7 @@ public interface InstructionTable {
         Mode.ABS, Mode.ABS, Mode.ABS, Mode.ZPR,   // 0x4c-0x4f
         Mode.REL, Mode.INY, Mode.ZPI, Mode.NUL,   // 0x50-0x53
         Mode.NUL, Mode.ZPX, Mode.ZPX, Mode.ZPG,   // 0x54-0x57
-        Mode.IMP, Mode.ABY, Mode.IMM, Mode.NUL,   // 0x58-0x5b
+        Mode.IMP, Mode.ABY, Mode.IMP, Mode.NUL,   // 0x58-0x5b
         Mode.NUL, Mode.ABX, Mode.ABX, Mode.ZPR,   // 0x5c-0x5f
         Mode.IMP, Mode.XIN, Mode.NUL, Mode.NUL,   // 0x60-0x63
         Mode.ZPG, Mode.ZPG, Mode.ZPG, Mode.ZPG,   // 0x64-0x67
@@ -241,7 +241,7 @@ public interface InstructionTable {
         Mode.IND, Mode.ABS, Mode.ABS, Mode.ZPR,   // 0x6c-0x6f
         Mode.REL, Mode.INY, Mode.ZPI, Mode.NUL,   // 0x70-0x73
         Mode.ZPX, Mode.ZPX, Mode.ZPX, Mode.ZPG,   // 0x74-0x77
-        Mode.IMP, Mode.ABY, Mode.IMM, Mode.NUL,   // 0x78-0x7b
+        Mode.IMP, Mode.ABY, Mode.IMP, Mode.NUL,   // 0x78-0x7b
         Mode.AIX, Mode.ABX, Mode.ABX, Mode.ZPR,   // 0x7c-0x7f
         Mode.REL, Mode.XIN, Mode.NUL, Mode.NUL,   // 0x80-0x83
         Mode.ZPG, Mode.ZPG, Mode.ZPG, Mode.ZPG,   // 0x84-0x87
