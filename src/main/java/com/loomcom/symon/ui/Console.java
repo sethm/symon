@@ -23,8 +23,8 @@
 
 package com.loomcom.symon.ui;
 
-import com.grahamedgecombe.jterminal.JTerminal;
-import com.grahamedgecombe.jterminal.vt100.Vt100TerminalModel;
+import com.loomcom.symon.jterminal.JTerminal;
+import com.loomcom.symon.jterminal.vt100.Vt100TerminalModel;
 import com.loomcom.symon.exceptions.FifoUnderrunException;
 import com.loomcom.symon.util.FifoRingBuffer;
 
@@ -44,7 +44,9 @@ import java.awt.event.MouseListener;
 
 public class Console extends JTerminal implements KeyListener, MouseListener {
 
-    private static final int     DEFAULT_BORDER_WIDTH = 10;
+	private static final long serialVersionUID = 6633818486963338126L;
+	
+	private static final int     DEFAULT_BORDER_WIDTH = 10;
     // If true, swap CR and LF characters.
     private static final boolean SWAP_CR_AND_LF       = true;
 
@@ -54,6 +56,7 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
 
     public Console(int columns, int rows, Font font, boolean sendCrForLf) {
         super(new Vt100TerminalModel(columns, rows), font);
+    		//super(new Vt100TerminalModel(columns, rows));
         // A small type-ahead buffer, as might be found in any real
         // VT100-style serial terminal.
         this.typeAheadBuffer = new FifoRingBuffer<>(128);
