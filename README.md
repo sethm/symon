@@ -1,9 +1,9 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**Version:** 1.2.1
+**Version:** 1.3.0
 
-**Last Updated:** 8 January, 2016
+**Last Updated:** 25 February, 2018
 
 See the file COPYING for license.
 
@@ -16,9 +16,9 @@ Technologies 6502 microprocessor and compatibles. Symon is implemented
 in Java. Its core goals are accuracy, ease of development, clear
 documentation, and extensive test suites for validating correctness.
 
-Symon simulates a complete system with a 1 MHz NMOS 6502, 32KB of RAM,
-16KB of ROM, a MOS 6551 or Motorola 6850 ACIA, a MOS 6522 VIA, and an
-experimental 6545 CRTC.
+Symon simulates a complete system with a 1 MHz NMOS 6502 or CMOS
+65C02, 32KB of RAM, 16KB of ROM, a MOS 6551 or Motorola 6850 ACIA, a
+MOS 6522 VIA, and an experimental 6545 CRTC.
 
 Symon has extensive unit tests to verify correctness, and fully passes
 Klaus Dormann's 6502 Functional Test Suite as of version 0.8.2
@@ -234,6 +234,8 @@ After loading a program or ROM image, clicking "Run" will start the simulator
 running.
 
 ## 5.0 Revision History
+
+  - **1.3.0:** 24 February, 2018 - Adds support for 65C02 opcodes.
 
   - **1.2.1:** 8 January, 2016 - Remove dependency on Java 8. Now
     supports compiling and running under Java 1.7.
