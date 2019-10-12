@@ -7,7 +7,7 @@ SYMON - A 6502 System Simulator
 
 See the file COPYING for license.
 
-![Symon Simulator in Action](https://static.loomcom.com/symon/screenshots/full.jpg)
+![Symon Simulator in Action](https://github.com/sethm/symon/raw/master/screenshots/full.jpg)
 
 ## 1.0 About
 
@@ -66,7 +66,7 @@ memory.
 
 ### 3.2 Serial Console and CPU Status
 
-![Serial Console](https://static.loomcom.com/symon/screenshots/console.png)
+![Serial Console](https://github.com/sethm/symon/raw/master/screenshots/console.png)
 
 The main window of the simulator acts as the primary Input/Output
 system through a virtual serial terminal. The terminal is attached to
@@ -78,13 +78,13 @@ It also provides CPU status. Contents of the accumulator, index
 registers, processor status flags, disassembly of the instruction
 register, and stack pointer are all displayed.
 
-![Font Selection](https://static.loomcom.com/symon/screenshots/font_selection.png)
+![Font Selection](https://github.com/sethm/symon/raw/master/screenshots/font_selection.png)
 
 The console supports font sizes from 10 to 20 points.
 
 ### 3.3 ROM Loading
 
-![ROM Loading](https://static.loomcom.com/symon/screenshots/load_rom.png)
+![ROM Loading](https://github.com/sethm/symon/raw/master/screenshots/load_rom.png)
 
 Symon can load any appropriately sized ROM image. The Symon
 architecture expects as 16KB (16384 byte) ROM image, while the
@@ -95,32 +95,32 @@ address.
 
 ### 3.4 Memory Window
 
-![Memory Window](https://static.loomcom.com/symon/screenshots/memory_window.png)
+![Memory Window](https://github.com/sethm/symon/raw/master/screenshots/memory_window.png)
 
 Memory contents can be viewed (and edited) one page at a time through the Memory Window.
 
 ### 3.5 Trace Log
 
-![Trace Log](https://static.loomcom.com/symon/screenshots/trace_log.png)
+![Trace Log](https://github.com/sethm/symon/raw/master/screenshots/trace_log.png)
 
 The last 20,000 execution steps are disassembled and logged to the Trace Log
 Window.
 
 ### 3.6 Simulator Speeds
 
-![Speeds](https://static.loomcom.com/symon/screenshots/simulator_menu.png)
+![Speeds](https://github.com/sethm/symon/raw/master/screenshots/simulator_menu.png)
 
 Simulated speeds may be set from 1MHz to 8MHz.
 
 ### 3.7 Breakpoints
 
-![Breakpoints](https://static.loomcom.com/symon/screenshots/breakpoints.png)
+![Breakpoints](https://github.com/sethm/symon/raw/master/screenshots/breakpoints.png)
 
 Breakpoints can be set and removed through the Breakpoints window.
 
 ### 3.8 Experimental 6545 CRTC Video
 
-![Composite Video](https://static.loomcom.com/symon/screenshots/video_window.png)
+![Composite Video](https://github.com/sethm/symon/raw/master/screenshots/video_window.png)
 
 This feature is highly experimental. It's possible to open a video window
 from the "View" menu.  This window simulates the output of a MOS 6545 CRT
@@ -154,7 +154,7 @@ between the simulated 6545 and a real 6545:
     of 6545 programming tricks that were achieved by updating the
     frame address during vertical and horizontal sync times are not
     achievable.  There is no way (for example) to change the Display Start
-    Address (R12 and R13) while a frame is being drawn.  
+    Address (R12 and R13) while a frame is being drawn.
 
 For more information on the 6545 CRTC and its programming model, please see the following resources
 
@@ -192,6 +192,18 @@ Java 1.8 or greater, just type:
 
 When Symon is running, you should be presented with a simple graphical
 interface.
+
+#### 4.1.1 Command Line Options
+
+Two command line options may be passed to the JAR file on startup,
+to specify machine type and CPU type. The options are:
+
+  - `-cpu 6502`: Use the NMOS 6502 CPU type by default.
+  - `-cpu 65c02`: Use the CMOS 65C02 CPU type by default.
+  - `-machine symon`: Use the **Symon** machine type by default.
+  - `-machine multicomp`: Use the **Multicomp** machine type by default.
+  - `-machine simple`: Use the **Simple** machine type by default.
+  - `-rom <file>`: Use the specified file as the ROM image.
 
 ### 4.2 ROM images
 
@@ -235,6 +247,10 @@ running.
 
 ## 5.0 Revision History
 
+  - **1.3.1:** 12 October, 2019 - Add support for new command line
+    option `-cpu <type>` to specify one of `6502` or `65c02` on startup,
+    and new option `-rom <file>` to specify a ROM file to load.
+
   - **1.3.0:** 24 February, 2018 - Adds support for 65C02 opcodes.
 
   - **1.2.1:** 8 January, 2016 - Remove dependency on Java 8. Now
@@ -242,11 +258,11 @@ running.
 
   - **1.2.0:** 3 January, 2016 - Add symbolic disassembly to breakpoints
     window.
-  
+
   - **1.1.1:** 2 January, 2016 - Minor enhancement: Allows breakpoints
     to be added with the Enter key.
 
-  - **1.1.0:** 31 December, 2015 - Fixed delay loop to better 
+  - **1.1.0:** 31 December, 2015 - Fixed delay loop to better
     simulate various clock speeds. Added ability to select clock
     speed at runtime. Status display now shows the next instruction
     to be executed, instead of the last instruction executed.

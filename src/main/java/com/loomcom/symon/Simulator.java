@@ -31,6 +31,7 @@ import com.loomcom.symon.ui.Console;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.monitor.CounterMonitor;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -136,9 +137,15 @@ public class Simulator {
     private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
     public Simulator(Class machineClass) throws Exception {
+        this(machineClass, InstructionTable.CpuBehavior.NMOS_6502, null);
+    }
+
+    public Simulator(Class machineClass, InstructionTable.CpuBehavior cpuType, String romFile) throws Exception {
         this.breakpoints = new Breakpoints(this);
 
-        this.machine = (Machine) machineClass.getConstructors()[0].newInstance();
+        this.machine = (Machine) machineClass.getConstructors()[0].newInstance(romFile);
+        this.machine.getCpu().setBehavior(cpuType);
+
 
         // Initialize final fields in the constructor.
         this.traceLog = new TraceLog();
@@ -887,8 +894,9 @@ public class Simulator {
             JMenu cpuTypeMenu = new JMenu("CPU");
             ButtonGroup cpuGroup = new ButtonGroup();
 
-            makeCpuMenuItem("NMOS 6502", Cpu.CpuBehavior.NMOS_6502, cpuTypeMenu, cpuGroup);
-            makeCpuMenuItem("CMOS 65C02", Cpu.CpuBehavior.CMOS_6502, cpuTypeMenu, cpuGroup);
+            makeCpuMenuItem("6502", Cpu.CpuBehavior.NMOS_6502, cpuTypeMenu, cpuGroup);
+            makeCpuMenuItem("65C02", Cpu.CpuBehavior.CMOS_6502, cpuTypeMenu, cpuGroup);
+            makeCpuMenuItem("65C816", Cpu.CpuBehavior.CMOS_65816, cpuTypeMenu, cpuGroup);
 
             // "Clock Speed" sub-menu
             JMenu speedSubMenu = new JMenu("Clock Speed");

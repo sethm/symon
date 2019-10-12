@@ -70,7 +70,7 @@ public class SymonMachine implements Machine {
     private       Memory rom;
 
 
-    public SymonMachine() throws Exception {
+    public SymonMachine(String romFile) throws Exception {
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
         this.ram = new Memory(MEMORY_BASE, MEMORY_BASE + MEMORY_SIZE - 1, false);
@@ -83,14 +83,18 @@ public class SymonMachine implements Machine {
         bus.addDevice(pia);
         bus.addDevice(acia);
         bus.addDevice(crtc);
-        
-        // TODO: Make this configurable, of course.
-        File romImage = new File("rom.bin");
-        if (romImage.canRead()) {
-            logger.info("Loading ROM image from file {}", romImage);
-            this.rom = Memory.makeROM(ROM_BASE, ROM_BASE + ROM_SIZE - 1, romImage);
+
+        if (romFile != null) {
+            File romImage = new File(romFile);
+            if (romImage.canRead()) {
+                logger.info("Loading ROM image from file {}", romImage);
+                this.rom = Memory.makeROM(ROM_BASE, ROM_BASE + ROM_SIZE - 1, romImage);
+            } else {
+                logger.info("Default ROM file {} not found, loading empty R/W memory image.", romImage);
+                this.rom = Memory.makeRAM(ROM_BASE, ROM_BASE + ROM_SIZE - 1);
+            }
         } else {
-            logger.info("Default ROM file {} not found, loading empty R/W memory image.", romImage);
+            logger.info("No ROM file specified, loading empty R/W memory image.");
             this.rom = Memory.makeRAM(ROM_BASE, ROM_BASE + ROM_SIZE - 1);
         }
 
