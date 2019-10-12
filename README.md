@@ -193,6 +193,18 @@ Java 1.8 or greater, just type:
 When Symon is running, you should be presented with a simple graphical
 interface.
 
+#### 4.1.1 Command Line Options
+
+Two command line options may be passed to the JAR file on startup,
+to specify machine type and CPU type. The options are:
+
+  - `-cpu 6502`: Use the NMOS 6502 CPU type by default.
+  - `-cpu 65c02`: Use the CMOS 65C02 CPU type by default.
+  - `-machine symon`: Use the **Symon** machine type by default.
+  - `-machine multicomp`: Use the **Multicomp** machine type by default.
+  - `-machine simple`: Use the **Simple** machine type by default.
+  - `-rom <file>`: Use the specified file as the ROM image.
+
 ### 4.2 ROM images
 
 The simulator requires a ROM image loaded into memory to work
@@ -234,6 +246,10 @@ After loading a program or ROM image, clicking "Run" will start the simulator
 running.
 
 ## 5.0 Revision History
+
+  - **1.3.1:** 12 October, 2019 - Add support for new command line
+    option `-cpu <type>` to specify one of `6502` or `65c02` on startup,
+    and new option `-rom <file>` to specify a ROM file to load.
 
   - **1.3.0:** 24 February, 2018 - Adds support for 65C02 opcodes.
 

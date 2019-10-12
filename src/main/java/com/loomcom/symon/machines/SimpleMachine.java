@@ -46,7 +46,7 @@ public class SimpleMachine implements Machine {
     private final Memory ram;
     private final Cpu cpu;
 
-    public SimpleMachine() throws MemoryRangeException {
+    public SimpleMachine(String romFile) throws MemoryRangeException {
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.ram = new Memory(BUS_BOTTOM, BUS_TOP, false);
         this.cpu = new Cpu();

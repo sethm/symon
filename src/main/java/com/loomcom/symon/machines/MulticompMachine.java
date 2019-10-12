@@ -68,7 +68,7 @@ public class MulticompMachine implements Machine {
     private       Memory rom;
 
 
-    public MulticompMachine() throws Exception {
+    public MulticompMachine(String romFile) throws Exception {
         this.bus = new Bus(BUS_BOTTOM, BUS_TOP);
         this.cpu = new Cpu();
         this.ram = new Memory(MEMORY_BASE, MEMORY_BASE + MEMORY_SIZE - 1, false);
@@ -79,20 +79,23 @@ public class MulticompMachine implements Machine {
         bus.addDevice(ram);
         bus.addDevice(acia, 1);
         bus.addDevice(new SdController(SD_BASE), 1);
-        
-        // TODO: Make this configurable, of course.
-        File romImage = new File("rom.bin");
-        if (romImage.canRead()) {
-            logger.info("Loading ROM image from file " + romImage);
-            this.rom = Memory.makeROM(ROM_BASE, ROM_BASE + ROM_SIZE - 1, romImage);
-        } else {
-            logger.info("Default ROM file " + romImage +
+
+        if (romFile != null) {
+            File romImage = new File("rom.bin");
+            if (romImage.canRead()) {
+                logger.info("Loading ROM image from file " + romImage);
+                this.rom = Memory.makeROM(ROM_BASE, ROM_BASE + ROM_SIZE - 1, romImage);
+            } else {
+                logger.info("Default ROM file " + romImage +
                         " not found, loading empty R/W memory image.");
+                this.rom = Memory.makeRAM(ROM_BASE, ROM_BASE + ROM_SIZE - 1);
+            }
+        } else {
+            logger.info("No ROM file specified, loading empty R/W memory image.");
             this.rom = Memory.makeRAM(ROM_BASE, ROM_BASE + ROM_SIZE - 1);
         }
 
         bus.addDevice(rom);
-        
     }
 
     @Override
