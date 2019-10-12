@@ -1,9 +1,9 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**Version:** 1.3.0
+**Version:** 1.3.1
 
-**Last Updated:** 25 February, 2018
+**Last Updated:** 12 October, 2019
 
 See the file COPYING for license.
 
