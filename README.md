@@ -356,7 +356,7 @@ Additional components used in this project are copyright their respective owners
 
 This project would not have been possible without the following resources:
 
-  - [Andrew Jacobs' 6502 Pages](http://www.obelisk.demon.co.uk/6502/), for
+  - [Andrew Jacobs' 6502 Pages](http://obelisk.me.uk/6502/), for
     wonderfully detailed information about the 6502
 
   - [Neil Parker's "The 6502/65C02/65C816 Instruction Set Decoded"](http://www.llx.com/~nparker/a2/opcodes.html),
