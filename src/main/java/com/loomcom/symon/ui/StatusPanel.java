@@ -30,6 +30,7 @@ import com.loomcom.symon.machines.Machine;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.plaf.metal.MetalTextFieldUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -69,7 +70,7 @@ public class StatusPanel extends JPanel {
     private JTextField xField;
     private JTextField yField;
 
-    private Machine machine;
+    private final Machine machine;
 
     private static final int EMPTY_BORDER = 10;
     private static final Border LABEL_BORDER = BorderFactory.createEmptyBorder(0, 5, 0, 0);
@@ -392,6 +393,13 @@ public class StatusPanel extends JPanel {
         textField.setMaximumSize(size);
         textField.setPreferredSize(size);
         textField.setBackground(Color.WHITE);
+        // Although we usually defer to the system look-and-feel, for
+        // these small text fields in particular, we use a Metal
+        // look-and-feel because native look-and-feel breaks very small
+        // text fields under GTK+ (they are drawn with an inner margin
+        // even if the margin is set to 0)
+        textField.setUI(new MetalTextFieldUI());
+
         return textField;
     }
 
