@@ -4,3 +4,4 @@ target
 .DS_Store
 .idea
 symon.iml
+/dependency-reduced-pom.xml
