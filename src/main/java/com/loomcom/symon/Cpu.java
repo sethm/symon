@@ -15,7 +15,7 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This class provides a simulation of the MOS 6502 CPU's state machine.
  * A simple interface allows this 6502 to read and write to a simulated bus,
- * and exposes some of the internal state for inspection and debugging.
+ * and exposes some internal state for inspection and debugging.
  */
 public class Cpu implements InstructionTable {
 
@@ -283,7 +283,7 @@ public class Cpu implements InstructionTable {
         // Execute
         switch (state.ir) {
 
-            /** Single Byte Instructions; Implied and Relative **/
+            // Single Byte Instructions; Implied and Relative
             case 0x00: // BRK - Force Interrupt - Implied
                 handleBrk(state.pc + 1);
                 break;
@@ -457,7 +457,7 @@ public class Cpu implements InstructionTable {
                 setArithmeticFlags(state.x);
                 break;
 
-            /** JMP *****************************************************************/
+            // JMP
             case 0x4c: // JMP - Absolute
                 state.pc = Utils.address(state.args[0], state.args[1]);
                 break;
@@ -495,7 +495,7 @@ public class Cpu implements InstructionTable {
                 state.pc = Utils.address(bus.read(lo, true), bus.read(hi, true));
                 break;
 
-            /** ORA - Logical Inclusive Or ******************************************/
+            // ORA - Logical Inclusive Or
             case 0x09: // #Immediate
                 state.a |= state.args[0];
                 setArithmeticFlags(state.a);
@@ -517,7 +517,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** ASL - Arithmetic Shift Left *****************************************/
+            // ASL - Arithmetic Shift Left
             case 0x0a: // Accumulator
                 state.a = asl(state.a);
                 setArithmeticFlags(state.a);
@@ -532,7 +532,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** BIT - Bit Test ******************************************************/
+            // BIT - Bit Test
             case 0x89: // 65C02 #Immediate
                 setZeroFlag((state.a & state.args[0]) == 0);
                 break;
@@ -551,7 +551,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** AND - Logical AND ***************************************************/
+            // AND - Logical AND
             case 0x29: // #Immediate
                 state.a &= state.args[0];
                 setArithmeticFlags(state.a);
@@ -573,7 +573,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** ROL - Rotate Left ***************************************************/
+            // ROL - Rotate Left
             case 0x2a: // Accumulator
                 state.a = rol(state.a);
                 setArithmeticFlags(state.a);
@@ -588,7 +588,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** EOR - Exclusive OR **************************************************/
+            // EOR - Exclusive OR
             case 0x49: // #Immediate
                 state.a ^= state.args[0];
                 setArithmeticFlags(state.a);
@@ -610,7 +610,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** LSR - Logical Shift Right *******************************************/
+            // LSR - Logical Shift Right
             case 0x4a: // Accumulator
                 state.a = lsr(state.a);
                 setArithmeticFlags(state.a);
@@ -625,7 +625,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** ADC - Add with Carry ************************************************/
+            // ADC - Add with Carry
             case 0x69: // #Immediate
                 if (state.decimalModeFlag) {
                     state.a = adcDecimal(state.a, state.args[0]);
@@ -653,7 +653,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** ROR - Rotate Right **************************************************/
+            // ROR - Rotate Right
             case 0x6a: // Accumulator
                 state.a = ror(state.a);
                 setArithmeticFlags(state.a);
@@ -668,7 +668,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** STA - Store Accumulator *********************************************/
+            // STA - Store Accumulator
             case 0x92: // 65C02 STA (ZP)
                 if (behavior == CpuBehavior.NMOS_6502 ||
                     behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
@@ -685,7 +685,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** STY - Store Y Register **********************************************/
+            // STY - Store Y Register
             case 0x84: // Zero Page
             case 0x8c: // Absolute
             case 0x94: // Zero Page,X
@@ -693,14 +693,14 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** STX - Store X Register **********************************************/
+            // STX - Store X Register
             case 0x86: // Zero Page
             case 0x8e: // Absolute
             case 0x96: // Zero Page,Y
                 bus.write(effectiveAddress, state.x);
                 break;
 
-            /** STZ - 65C02 Store Zero ****************************************************/
+            // STZ - 65C02 Store Zero
             case 0x64: // Zero Page
             case 0x74: // Zero Page,X
             case 0x9c: // Absolute
@@ -712,7 +712,7 @@ public class Cpu implements InstructionTable {
                 bus.write(effectiveAddress, 0);
                 break;
 
-            /** LDY - Load Y Register ***********************************************/
+            // LDY - Load Y Register
             case 0xa0: // #Immediate
                 state.y = state.args[0];
                 setArithmeticFlags(state.y);
@@ -726,7 +726,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** LDX - Load X Register ***********************************************/
+            // LDX - Load X Register
             case 0xa2: // #Immediate
                 state.x = state.args[0];
                 setArithmeticFlags(state.x);
@@ -740,7 +740,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** LDA - Load Accumulator **********************************************/
+            // LDA - Load Accumulator
             case 0xa9: // #Immediate
                 state.a = state.args[0];
                 setArithmeticFlags(state.a);
@@ -762,7 +762,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** CPY - Compare Y Register ********************************************/
+            // CPY - Compare Y Register
             case 0xc0: // #Immediate
                 cmp(state.y, state.args[0]);
                 break;
@@ -772,7 +772,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** CMP - Compare Accumulator *******************************************/
+            // CMP - Compare Accumulator
             case 0xc9: // #Immediate
                 cmp(state.a, state.args[0]);
                 break;
@@ -792,7 +792,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** DEC - Decrement Memory **********************************************/
+            // DEC - Decrement Memory
             case 0x3a: // 65C02 Immediate
                 if (behavior == CpuBehavior.NMOS_6502 ||
                     behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
@@ -811,7 +811,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** CPX - Compare X Register ********************************************/
+            // CPX - Compare X Register
             case 0xe0: // #Immediate
                 cmp(state.x, state.args[0]);
                 break;
@@ -821,7 +821,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** SBC - Subtract with Carry (Borrow) **********************************/
+            // SBC - Subtract with Carry (Borrow)
             case 0xe9: // #Immediate
                 if (state.decimalModeFlag) {
                     state.a = sbcDecimal(state.a, state.args[0]);
@@ -849,7 +849,7 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** INC - Increment Memory **********************************************/
+            // INC - Increment Memory
             case 0x1a: // 65C02 Increment Immediate
                 if (behavior == CpuBehavior.NMOS_6502 ||
                     behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
@@ -868,14 +868,14 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** 65C02 RMB - Reset Memory Bit **************************************/
+            // 65C02 RMB - Reset Memory Bit
             case 0x07: // 65C02 RMB0 - Zero Page
                 if (behavior == CpuBehavior.NMOS_6502 ||
                     behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true) & 0xff;
-                tmp &= ~(1 << 0);
+                tmp &= ~1;
                 bus.write(effectiveAddress, tmp);
                 break;
             case 0x17: // 65C02 RMB1 - Zero Page
@@ -943,14 +943,14 @@ public class Cpu implements InstructionTable {
                 break;
 
 
-            /** 65C02 SMB - Set Memory Bit **************************************/
+            // 65C02 SMB - Set Memory Bit
             case 0x87: // 65C02 SMB0 - Zero Page
                 if (behavior == CpuBehavior.NMOS_6502 ||
                     behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true) & 0xff;
-                tmp |= (1);
+                tmp |= 1;
                 bus.write(effectiveAddress, tmp);
                 break;
             case 0x97: // 65C02 SMB1 - Zero Page
@@ -1017,7 +1017,7 @@ public class Cpu implements InstructionTable {
                 bus.write(effectiveAddress, tmp);
                 break;
 
-            /** 65C02 TRB/TSB - Test and Reset Bit/Test and Set Bit ***************/
+            // 65C02 TRB/TSB - Test and Reset Bit/Test and Set Bit
             case 0x14: // 65C02 TRB - Test and Reset bit - Zero Page
             case 0x1c: // 65C02 TRB - Test and Reset bit - Absolute
                 if (behavior == CpuBehavior.NMOS_6502 ||
@@ -1026,8 +1026,9 @@ public class Cpu implements InstructionTable {
                 }
                 tmp = bus.read(effectiveAddress, true);
                 setZeroFlag((state.a & tmp) == 0);
-                tmp = (tmp &= ~(state.a)) & 0xff;
-                bus.write(effectiveAddress,tmp);
+                tmp &= ~(state.a);
+                tmp &= 0xff;
+                bus.write(effectiveAddress, tmp);
                 break;
 
             case 0x04: // 65C02 TSB - Test and Set bit - Zero Page
@@ -1038,18 +1039,19 @@ public class Cpu implements InstructionTable {
                 }
                 tmp = bus.read(effectiveAddress, true);
                 setZeroFlag((state.a & tmp) == 0);
-                tmp = (tmp |= (state.a)) & 0xff;
+                tmp |= state.a;
+                tmp = tmp & 0xff;
                 bus.write(effectiveAddress,tmp);
                 break;
 
-            /** 65C02 BBR - Branch if Bit Reset *************************************/
+            // 65C02 BBR - Branch if Bit Reset
             case 0x0f: // 65C02 BBR - Branch if bit 0 reset - Zero Page
                 if (behavior == CpuBehavior.NMOS_6502 ||
                     behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 0) == 0) {
+                if ((tmp & 1) == 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1060,7 +1062,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 1) == 0) {
+                if ((tmp & (1 << 1)) == 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1071,7 +1073,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 2) == 0) {
+                if ((tmp & (1 << 2)) == 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1082,7 +1084,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 3) == 0) {
+                if ((tmp & (1 << 3)) == 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1093,7 +1095,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 4) == 0) {
+                if ((tmp & (1 << 4)) == 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1105,7 +1107,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 5) == 0) {
+                if ((tmp & (1 << 5)) == 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1116,7 +1118,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 6) == 0) {
+                if ((tmp & (1 << 6)) == 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1127,20 +1129,20 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 7) == 0) {
+                if ((tmp & (1 << 7)) == 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
 
 
-            /** 65C02 BBS - Branch if Bit Set  ************************************/
+            // 65C02 BBS - Branch if Bit Set
             case 0x8f: // 65C02 BBS - Branch if bit 0 set - Zero Page
                 if (behavior == CpuBehavior.NMOS_6502 ||
                     behavior == CpuBehavior.NMOS_WITH_ROR_BUG) {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 0) > 0) {
+                if ((tmp & 1) != 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1151,7 +1153,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 1) > 0) {
+                if ((tmp & (1 << 1)) != 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1162,7 +1164,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 2) > 0) {
+                if ((tmp & (1 << 2)) > 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1173,7 +1175,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 3) > 0) {
+                if ((tmp & (1 << 3)) > 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1185,7 +1187,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 4) > 0) {
+                if ((tmp & (1 << 4)) > 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1197,7 +1199,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 5) > 0) {
+                if ((tmp & (1 << 5)) > 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1208,7 +1210,7 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 6) > 0) {
+                if ((tmp & (1 << 6)) > 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
@@ -1219,13 +1221,13 @@ public class Cpu implements InstructionTable {
                     break;
                 }
                 tmp = bus.read(effectiveAddress, true);
-                if ((tmp & 1 << 7) > 0) {
+                if ((tmp & (1 << 7)) > 0) {
                     state.pc = relAddress(state.args[1]);
                 }
                 break;
 
 
-            /** Unimplemented Instructions ****************************************/
+            // Unimplemented Instructions
             // TODO: Create a flag to enable highly-accurate emulation of unimplemented instructions.
             default:
                 setOpTrap();
@@ -1234,7 +1236,7 @@ public class Cpu implements InstructionTable {
 
         delayLoop(state.ir);
 
-        // Peek ahead to the next insturction and arguments
+        // Peek ahead to the next instruction and arguments
         peekAhead();
     }
 
@@ -1265,7 +1267,7 @@ public class Cpu implements InstructionTable {
     /**
      * Handle the common behavior of BRK, /IRQ, and /NMI
      *
-     * @throws MemoryAccessException
+     * @throws MemoryAccessException on memory access failure
      */
     private void handleInterrupt(int returnPc, int vectorLow, int vectorHigh, boolean isBreak) throws MemoryAccessException {
 
@@ -1674,7 +1676,7 @@ public class Cpu implements InstructionTable {
     public void setProgramCounter(int addr) {
         state.pc = addr;
 
-        // As a side-effect of setting the program counter,
+        // As a side effect of setting the program counter,
         // we want to peek ahead at the next state.
         try {
             peekAhead();
@@ -1971,7 +1973,7 @@ public class Cpu implements InstructionTable {
      */
     public String disassembleOpAtAddress(int address) throws MemoryAccessException {
         int opCode = bus.read(address, true);
-        int args[] = new int[2];
+        int[] args = new int[2];
         int size = Cpu.instructionSizes[opCode];
         for (int i = 1; i < size; i++) {
             int nextRead = (address + i) % bus.endAddress();

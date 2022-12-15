@@ -12,7 +12,7 @@ public class CpuState {
     public int a;
 
     /**
-     * X index regsiter
+     * X index register
      */
     public int x;
 
@@ -61,13 +61,12 @@ public class CpuState {
     public CpuState() {}
 
     /**
-     * Snapshot a copy of the CpuState.
-     *
-     * (This is a copy constructor rather than an implementation of <code>Cloneable</code>
-     * based on Josh Bloch's recommendation)
+     * Snapshot a copy of the CpuState. (This is a copy constructor rather than an
+     * implementation of <code>Cloneable</code> based on Josh Bloch's recommendation)
      *
      * @param s The CpuState to copy.
      */
+    @SuppressWarnings("CopyConstructorMissesField")
     public CpuState(CpuState s) {
         this.a = s.a;
         this.x = s.x;
@@ -83,6 +82,7 @@ public class CpuState {
         this.nextArgs[1] = s.nextArgs[1];
         this.instSize = s.instSize;
         this.opTrap = s.opTrap;
+        this.nmiAsserted = s.nmiAsserted;
         this.irqAsserted = s.irqAsserted;
         this.carryFlag = s.carryFlag;
         this.negativeFlag = s.negativeFlag;
