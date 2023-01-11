@@ -61,6 +61,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
     private static final Logger logger = Logger.getLogger(VideoWindow.class.getName());
 
+    private static final long WINDOW_REPAINT_INTERVAL = 66; // 30fps rate
     private static final int CHAR_WIDTH = 8;
     private static final int CHAR_HEIGHT = 8;
 
@@ -127,6 +128,18 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
                 public void run() {
                     if (cursorBlinkRate > 0) {
                         hideCursor = !hideCursor;
+                    }
+                }
+            });
+        }
+    }
+
+    private class WindowPainter implements Runnable {
+        public void run() {
+            SwingUtilities.invokeLater(new Runnable () {
+                @Override
+                public void run() {
+                    if (VideoWindow.this.isVisible()) {
                         VideoWindow.this.repaint();
                     }
                 }
@@ -151,6 +164,11 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
                                                                cursorBlinkRate,
                                                                TimeUnit.MILLISECONDS);
         }
+
+        scheduler.scheduleAtFixedRate(new WindowPainter(),
+                WINDOW_REPAINT_INTERVAL,
+                WINDOW_REPAINT_INTERVAL,
+                TimeUnit.MILLISECONDS);
 
         // Capture some state from the CRTC that will define the
         // window size. When these values change, the window will
