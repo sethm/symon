@@ -126,7 +126,7 @@ public class Cpu implements InstructionTable {
         // Clear status register bits.
         state.carryFlag = false;
         state.zeroFlag = false;
-        state.irqDisableFlag = false;
+        state.irqDisableFlag = true;
         state.decimalModeFlag = false;
         state.breakFlag = false;
         state.overflowFlag = false;

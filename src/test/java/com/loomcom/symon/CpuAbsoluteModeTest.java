@@ -29,7 +29,7 @@ public class CpuAbsoluteModeTest extends TestCase {
         assertEquals(0, cpu.getYRegister());
         assertEquals(0x200, cpu.getProgramCounter());
         assertEquals(0xff, cpu.getStackPointer());
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     /*
@@ -169,7 +169,7 @@ public class CpuAbsoluteModeTest extends TestCase {
         assertEquals(0x04, bus.read(0x1fe, true));
 
         // No flags should have changed.
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     /* BIT - Bit Test - $2c */
@@ -362,7 +362,7 @@ public class CpuAbsoluteModeTest extends TestCase {
         cpu.step();
         assertEquals(0x3400, cpu.getProgramCounter());
         // No change to status flags.
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     /* EOR - Exclusive OR - $4d */

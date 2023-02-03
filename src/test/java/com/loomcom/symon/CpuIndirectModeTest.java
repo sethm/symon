@@ -29,7 +29,7 @@ public class CpuIndirectModeTest extends TestCase {
         assertEquals(0, cpu.getYRegister());
         assertEquals(0x200, cpu.getProgramCounter());
         assertEquals(0xff, cpu.getStackPointer());
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     /*
@@ -48,7 +48,7 @@ public class CpuIndirectModeTest extends TestCase {
         cpu.step();
         assertEquals(0x5400, cpu.getProgramCounter());
         // No change to status flags.
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     public void test_JMP_with_ROR_Bug() throws MemoryAccessException {
@@ -60,7 +60,7 @@ public class CpuIndirectModeTest extends TestCase {
         cpu.step();
         assertEquals(0x2200, cpu.getProgramCounter());
         // No change to status flags.
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     public void test_JMP_withIndirectBug() throws MemoryAccessException {
@@ -72,7 +72,7 @@ public class CpuIndirectModeTest extends TestCase {
         cpu.step();
         assertEquals(0x2200, cpu.getProgramCounter());
         // No change to status flags.
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     public void test_JMP_withOutIndirectBug() throws MemoryAccessException {
@@ -84,7 +84,7 @@ public class CpuIndirectModeTest extends TestCase {
         cpu.step();
         assertEquals(0x5400, cpu.getProgramCounter());
         // No change to status flags.
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     public void test_JMP_cmos() throws MemoryAccessException {
@@ -96,7 +96,7 @@ public class CpuIndirectModeTest extends TestCase {
         cpu.step();
         assertEquals(0x5400, cpu.getProgramCounter());
         // No change to status flags.
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
 }

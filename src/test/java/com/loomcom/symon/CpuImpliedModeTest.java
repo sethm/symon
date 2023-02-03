@@ -33,7 +33,7 @@ public class CpuImpliedModeTest {
         assertEquals(0, cpu.getYRegister());
         assertEquals(0x200, cpu.getProgramCounter());
         assertEquals(0xff, cpu.getStackPointer());
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     /*
@@ -76,6 +76,7 @@ public class CpuImpliedModeTest {
     public void test_BRK() throws MemoryAccessException {
         cpu.setCarryFlag();
         cpu.setOverflowFlag();
+        cpu.clearIrqDisableFlag();
         assertEquals(0x20 | Cpu.P_CARRY | Cpu.P_OVERFLOW,
                      cpu.getProcessorStatus());
         assertEquals(0x00, cpu.stackPeek());
@@ -343,7 +344,7 @@ public class CpuImpliedModeTest {
         assertEquals(0, cpu.getYRegister());
         assertEquals(0x201, cpu.getProgramCounter());
         assertEquals(0xff, cpu.getStackPointer());
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     /* PHA - Push Accumulator - $48 */
@@ -432,7 +433,7 @@ public class CpuImpliedModeTest {
         cpu.step();
 
         assertEquals(0x0f12, cpu.getProgramCounter());
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     /* SEC - Set Carry Flag - $38 */
