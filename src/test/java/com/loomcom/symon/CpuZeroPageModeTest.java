@@ -29,7 +29,7 @@ public class CpuZeroPageModeTest extends TestCase {
         assertEquals(0, cpu.getYRegister());
         assertEquals(0x200, cpu.getProgramCounter());
         assertEquals(0xff, cpu.getStackPointer());
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     /*

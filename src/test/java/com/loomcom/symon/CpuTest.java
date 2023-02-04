@@ -44,7 +44,7 @@ public class CpuTest extends TestCase {
         assertEquals(0x0200, cpu.getProgramCounter());
         assertFalse(cpu.getCarryFlag());
         assertFalse(cpu.getZeroFlag());
-        assertFalse(cpu.getIrqDisableFlag());
+        assertTrue(cpu.getIrqDisableFlag());
         assertFalse(cpu.getDecimalModeFlag());
         assertFalse(cpu.getBreakFlag());
         assertFalse(cpu.getOverflowFlag());
@@ -205,14 +205,12 @@ public class CpuTest extends TestCase {
     }
 
     public void testGetProcessorStatus() {
-        // By default, no flags are set.  Remember, bit 5
+        // By default, only "interrupt disable" is set.  Remember, bit 5
         // is always '1'.
-        assertEquals(0x20, cpu.getProcessorStatus());
+        assertEquals(0x24, cpu.getProcessorStatus());
         cpu.setCarryFlag();
-        assertEquals(0x21, cpu.getProcessorStatus());
+        assertEquals(0x25, cpu.getProcessorStatus());
         cpu.setZeroFlag();
-        assertEquals(0x23, cpu.getProcessorStatus());
-        cpu.setIrqDisableFlag();
         assertEquals(0x27, cpu.getProcessorStatus());
         cpu.setDecimalModeFlag();
         assertEquals(0x2f, cpu.getProcessorStatus());
@@ -237,13 +235,16 @@ public class CpuTest extends TestCase {
         assertEquals(0xa0, cpu.getProcessorStatus());
         cpu.clearNegativeFlag();
         assertEquals(0x20, cpu.getProcessorStatus());
+
+        cpu.setIrqDisableFlag();
+        assertEquals(0x24, cpu.getProcessorStatus());
     }
 
     public void testSetProcessorStatus() {
         // Default
         assertFalse(cpu.getZeroFlag());
         assertFalse(cpu.getZeroFlag());
-        assertFalse(cpu.getIrqDisableFlag());
+        assertTrue(cpu.getIrqDisableFlag());
         assertFalse(cpu.getDecimalModeFlag());
         assertFalse(cpu.getBreakFlag());
         assertFalse(cpu.getOverflowFlag());
