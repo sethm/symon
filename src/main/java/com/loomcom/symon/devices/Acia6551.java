@@ -211,13 +211,16 @@ public class Acia6551 extends Acia {
 
 
     private synchronized void reset() {
-        txChar = 0;
-        txEmpty = true;
-        rxChar = 0;
-        rxFull = false;
-        receiveIrqEnabled = false;
-        transmitIrqEnabled = false;
-        interrupt = false;
-    }
+        // Figure 6 in the 6551 ACIA data sheet says the "program reset"
+        // event does not modify the control register.
 
+        // Figure 7 in the 6551 ACIA data sheet says the "program reset"
+        // event keeps the "parity check" configuration in the command
+        // register, but resets the other bits to defaults.
+        setCommandRegister((commandRegister & 0xe0) | 0x02);
+
+        // Figure 8 in the 6551 ACIA data sheet says the "program reset"
+        // event clears the "overrun" flag but otherwise has no effect.
+        overrun = false;
+    }
 }

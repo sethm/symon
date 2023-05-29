@@ -275,4 +275,55 @@ public class AciaTest {
 
         assertEquals(0x00, acia.read(0x0003, false));
     }
+
+    @Test
+    public void programResetClearsOverrunStatus() throws Exception {
+        Acia6551 acia = new Acia6551(0x0000);
+        Bus bus = new Bus(acia.ACIA_SIZE);
+        acia.setBus(bus);
+
+        // Change as many status bits as we can.
+        acia.write(0x0002, 0x00); // enable receive interrupt
+        acia.rxWrite('a');
+        acia.rxWrite('b'); // overrun, receive full, interrupt signalled
+        acia.write(0x0000, 'c'); // Transmitter Data Register not empty
+
+        // Check that all the bits we expected to be set actually are
+        assertEquals(0x8C, acia.read(0x0001, false));
+
+        // Do a "program reset". The value is ignored.
+        acia.write(0x0001, 0xFF);
+
+        // Check that only bit 2 was cleared.
+        assertEquals(0x88, acia.read(0x0001, false));
+    }
+
+    @Test
+    public void programResetKeepsParitySettings() throws Exception {
+        Acia6551 acia = new Acia6551(0x0000);
+
+        // Set all the command register bits
+        acia.write(0x0002, 0xFF);
+
+        // Do a "program reset". The value is ignored.
+        acia.write(0x0001, 0xFF);
+
+        // The top 3 bits should be kept as-is,
+        // the bottom 5 bits should be reset to defaults.
+        assertEquals(0xE2, acia.read(0x0002, false));
+    }
+
+    @Test
+    public void programResetLeavesControlRegisterUnchanged() throws Exception {
+        Acia6551 acia = new Acia6551(0x0000);
+
+        // Set all the control register bits
+        acia.write(0x0003, 0xFF);
+
+        // Do a "program reset". The value is ignored.
+        acia.write(0x0001, 0xFF);
+
+        // No bits should have changed.
+        assertEquals(0xFF, acia.read(0x0003, false));
+    }
 }
