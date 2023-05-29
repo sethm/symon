@@ -53,6 +53,14 @@ public class Acia6551 extends Acia {
 
     public Acia6551(int address) throws MemoryRangeException {
         super(address, ACIA_SIZE, "ACIA");
+
+        // Figure 6 in the 6551 ACIA data sheet says the "hardware reset"
+        // state of the Control Register is all zeros.
+        setControlRegister(0b00000000);
+        // Figure 7 of the 6551 ACIA data sheet says the "hardware reset"
+        // state of the Command Register is zeros, but Transmitter Control
+        // is set to "interrupt disabled, ready to send".
+        setCommandRegister(0b00000010);
     }
 
     @Override
