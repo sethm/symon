@@ -254,4 +254,25 @@ public class AciaTest {
 
         assertEquals(0x08, acia.read(0x0001, true));
     }
+
+    @Test
+    public void statusRegisterInitializedAtHardwareReset() throws Exception {
+        Acia6551 acia = new Acia6551(0x0000);
+
+        assertEquals(0x10, acia.read(0x0001, false));
+    }
+
+    @Test
+    public void commandRegisterInitializedAtHardwareReset() throws Exception {
+        Acia6551 acia = new Acia6551(0x0000);
+
+        assertEquals(0x02, acia.read(0x0002, false));
+    }
+
+    @Test
+    public void controlRegisterInitializedAtHardwareReset() throws Exception {
+        Acia6551 acia = new Acia6551(0x0000);
+
+        assertEquals(0x00, acia.read(0x0003, false));
+    }
 }
