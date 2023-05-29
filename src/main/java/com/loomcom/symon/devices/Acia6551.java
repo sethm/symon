@@ -74,16 +74,16 @@ public class Acia6551 extends Acia {
     @Override
     public void write(int address, int data) throws MemoryAccessException {
         switch (address) {
-            case 0:
+            case DATA_REG:
                 txWrite(data);
                 break;
-            case 1:
+            case STAT_REG:
                 reset();
                 break;
-            case 2:
+            case CMND_REG:
                 setCommandRegister(data);
                 break;
-            case 3:
+            case CTRL_REG:
                 setControlRegister(data);
                 break;
             default:
