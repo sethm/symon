@@ -118,67 +118,60 @@ public class Acia6551 extends Acia {
         controlRegister = data;
         int rate = 0;
 
-        // If the value of the data is 0, this is a request to reset,
-        // otherwise it's a control update.
-
-        if (data == 0) {
-            reset();
-        } else {
-            // Mask the lower four bits to get the baud rate.
-            int baudSelector = data & 0x0f;
-            switch (baudSelector) {
-                case 0:
-                    rate = 0;
-                    break;
-                case 1:
-                    rate = 50;
-                    break;
-                case 2:
-                    rate = 75;
-                    break;
-                case 3:
-                    rate = 110; // Real rate is actually 109.92
-                    break;
-                case 4:
-                    rate = 135; // Real rate is actually 134.58
-                    break;
-                case 5:
-                    rate = 150;
-                    break;
-                case 6:
-                    rate = 300;
-                    break;
-                case 7:
-                    rate = 600;
-                    break;
-                case 8:
-                    rate = 1200;
-                    break;
-                case 9:
-                    rate = 1800;
-                    break;
-                case 10:
-                    rate = 2400;
-                    break;
-                case 11:
-                    rate = 3600;
-                    break;
-                case 12:
-                    rate = 4800;
-                    break;
-                case 13:
-                    rate = 7200;
-                    break;
-                case 14:
-                    rate = 9600;
-                    break;
-                case 15:
-                    rate = 19200;
-                    break;
-            }
-
-            setBaudRate(rate);
+        // Mask the lower four bits to get the baud rate.
+        int baudSelector = data & 0x0f;
+        switch (baudSelector) {
+            case 0:
+                rate = 0;
+                break;
+            case 1:
+                rate = 50;
+                break;
+            case 2:
+                rate = 75;
+                break;
+            case 3:
+                rate = 110; // Real rate is actually 109.92
+                break;
+            case 4:
+                rate = 135; // Real rate is actually 134.58
+                break;
+            case 5:
+                rate = 150;
+                break;
+            case 6:
+                rate = 300;
+                break;
+            case 7:
+                rate = 600;
+                break;
+            case 8:
+                rate = 1200;
+                break;
+            case 9:
+                rate = 1800;
+                break;
+            case 10:
+                rate = 2400;
+                break;
+            case 11:
+                rate = 3600;
+                break;
+            case 12:
+                rate = 4800;
+                break;
+            case 13:
+                rate = 7200;
+                break;
+            case 14:
+                rate = 9600;
+                break;
+            case 15:
+                rate = 19200;
+                break;
         }
+
+        setBaudRate(rate);
     }
 
 
