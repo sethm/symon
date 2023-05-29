@@ -28,7 +28,7 @@ import com.loomcom.symon.exceptions.MemoryRangeException;
 
 /**
  * This is a simulation of the MOS 6551 ACIA, with limited
- * functionality.  Interrupts are not supported.
+ * functionality.
  * <p/>
  * Unlike a 16550 UART, the 6551 ACIA has only one-byte transmit and
  * receive buffers. It is the programmer's responsibility to check the
