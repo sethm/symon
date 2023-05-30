@@ -69,14 +69,29 @@ memory.
 ![Serial Console](https://github.com/sethm/symon/raw/master/screenshots/console.png)
 
 The main window of the simulator acts as the primary Input/Output
-system through a virtual serial terminal. The terminal is attached to
-a simulated ACIA, including a programmable baud rate generator that
-tries to approximate the correct "feel" of the programmed baud rate.
-(The sample Enhanced BASIC ROM image is programmed for 9600 baud)
+system through a virtual serial terminal. It also provides CPU status.
+Contents of the accumulator, index registers, processor status flags,
+disassembly of the instruction register, and stack pointer are all displayed.
 
-It also provides CPU status. Contents of the accumulator, index
-registers, processor status flags, disassembly of the instruction
-register, and stack pointer are all displayed.
+The terminal is attached to a simulated MOS 6551 ACIA. It behaves very much
+as described in the datasheet, with some exceptions:
+
+  - The simulated ACIA is permanently connected to the virtual terminal,
+    the Data Carrier Detect and Data Set Ready status bits always indicate
+    a connection is ready.
+  - The parity, stop-bits and bits-per-character settings are ignored. The
+    ACIA always sends and receives 8-bit characters, and parity errors
+    do not occur.
+  - The ACIA tries to honour the configured baud rate, but as a special case
+    the default "16x External Clock" rate is interpreted to mean "as fast as
+    possible" (The sample Enhanced BASIC ROM image is programmed for 9600 baud).
+  - The ACIA ignores the configured state of the Data Terminal Ready pin;
+    it is always ready to receive and transmit.
+
+For more information on the MOS 6551 ACIA and its programming model,
+see the official datasheet:
+
+  - [MOS 6551 ACIA](http://archive.6502.org/datasheets/mos_6551_acia.pdf)
 
 ![Font Selection](https://github.com/sethm/symon/raw/master/screenshots/font_selection.png)
 
