@@ -227,10 +227,9 @@ properly. Without a ROM in memory, the simulator will not be able to
 reset, since the reset vector for the 6502 is located in the ROM
 address space.
 
-By default, any file named `rom.bin` that exists in the same directory
-where Symon is launched will be loaded as a ROM image. ROM images can
-also be swapped out at run-time with the "Load ROM Image..." in the
-File menu.
+ROM images can be loaded with the `-rom` argument when running
+Symon from the command line. ROM images can also be swapped out at
+run-time with the "Load ROM..." item in the File menu.
 
 The "samples" directory contains a ROM image for the Symon
 architecture named 'ehbasic.rom', containing Lee Davison's Enhanced
