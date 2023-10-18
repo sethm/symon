@@ -28,6 +28,7 @@ package com.loomcom.symon;
 import com.loomcom.symon.machines.MulticompMachine;
 import com.loomcom.symon.machines.SimpleMachine;
 import com.loomcom.symon.machines.SymonMachine;
+import com.loomcom.symon.machines.BenEaterMachine;
 import org.apache.commons.cli.*;
 
 import java.util.Locale;
@@ -72,6 +73,9 @@ public class Main {
                     case "symon":
                         machineClass = SymonMachine.class;
                         break;
+                    case "beneater":
+                        machineClass = BenEaterMachine.class;
+                        break;
                     default:
                         System.err.println("Could not start Symon. Unknown machine type " + machine);
                         return;
@@ -102,7 +106,7 @@ public class Main {
 
             while (true) {
                 if (machineClass == null) {
-                    Object[] possibilities = {"Symon", "Multicomp", "Simple"};
+                    Object[] possibilities = {"Symon", "Multicomp", "Simple", "BenEater"};
                     String s = (String)JOptionPane.showInputDialog(
                             null,
                             "Please choose the machine type to be emulated:",
@@ -117,6 +121,8 @@ public class Main {
                         machineClass = MulticompMachine.class;
                     } else if (s != null && s.equals("Simple")) {
                         machineClass = SimpleMachine.class;
+                    } else if (s != null && s.equals("BenEater")) {
+                        machineClass = BenEaterMachine.class;
                     } else {
                         machineClass = SymonMachine.class;
                     }
