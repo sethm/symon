@@ -36,8 +36,8 @@ are always welcome.
 
 ## 3.0 Features
 
-Symon can simulate multiple 6502 based architectures. At present, three
-machines are implemented: Symon (the default), MULTICOMP, and a "Simple"
+Symon can simulate multiple 6502 based architectures. At present, four
+machines are implemented: Symon (the default), MULTICOMP, BenEater, and a "Simple"
 machine useful for debugging.
 
 ### 3.1 Memory Maps
@@ -63,6 +63,13 @@ memory.
 ### 3.1.3 Simple Memory Map
 
   - `$0000`--`$FFFF`: 64KB RAM
+
+#### 3.1.4 BenEater Memory Map
+
+  - `$0000`--`$3FFF`: 16KB RAM
+  - `$6000`--`$600F`: MOS 6551 ACIA (Serial Console)
+  - `$5000`--`$5003`: 6522 VIA
+  - `$8000`--`$FFFF`: 16KB ROM
 
 ### 3.2 Serial Console and CPU Status
 
@@ -218,6 +225,7 @@ to specify machine type and CPU type. The options are:
   - `-machine symon`: Use the **Symon** machine type by default.
   - `-machine multicomp`: Use the **Multicomp** machine type by default.
   - `-machine simple`: Use the **Simple** machine type by default.
+  - `-machine beneater`: Use the **BenEater** machine type by default.
   - `-rom <file>`: Use the specified file as the ROM image.
 
 ### 4.2 ROM images
