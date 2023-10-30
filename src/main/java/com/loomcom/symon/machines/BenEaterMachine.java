@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2016 Seth J. Morabito <web@loomcom.com>
  *                    Maik Merten <maikmerten@googlemail.com>
+ *                    Chelsea Wilkinson <mail@chelseawilkinson.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
