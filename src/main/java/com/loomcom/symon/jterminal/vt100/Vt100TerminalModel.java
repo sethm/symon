@@ -215,7 +215,8 @@ public class Vt100TerminalModel extends AbstractTerminalModel {
 				case '\t':
 					while ((++cursorColumn % TAB_WIDTH) != 0);
 					continue;
-				case 127:
+				case 8:   // ASCII Backspace
+				case 127: // ASCII Delete
 					if (cursorColumn > 0) {
 						cells[cursorRow][--cursorColumn] = null;
 					}
