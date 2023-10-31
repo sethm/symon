@@ -67,8 +67,8 @@ memory.
 #### 3.1.4 BenEater Memory Map
 
   - `$0000`--`$3FFF`: 16KB RAM
-  - `$6000`--`$600F`: MOS 6551 ACIA (Serial Console)
-  - `$5000`--`$5003`: 6522 VIA
+  - `$5000`--`$5003`: MOS 6551 ACIA (Serial Console)
+  - `$6000`--`$600F`: 6522 VIA
   - `$8000`--`$FFFF`: 16KB ROM
 
 ### 3.2 Serial Console and CPU Status
