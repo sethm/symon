@@ -42,11 +42,11 @@ public class PreferencesDialog extends Observable implements Preferences {
     private JTextField programLoadAddressField;
 
     private int programLoadAddress = DEFAULT_PROGRAM_LOAD_ADDRESS;
-    private boolean haltOnBreak = DEFAULT_HALT_ON_BREAK;
+    private boolean haltOnBreak;
 
-    public PreferencesDialog(Frame parent, boolean modal) {
+    public PreferencesDialog(Frame parent, boolean modal, boolean haltOnBreak) {
         this.dialog = new JDialog(parent, modal);
-
+        this.haltOnBreak = haltOnBreak;
         createUi();
         updateUi();
     }

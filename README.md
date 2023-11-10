@@ -227,6 +227,7 @@ to specify machine type and CPU type. The options are:
   - `-machine simple`: Use the **Simple** machine type by default.
   - `-machine beneater`: Use the **BenEater** machine type by default.
   - `-rom <file>`: Use the specified file as the ROM image.
+  - `-brk`: Halt the simulator on a BRK instruction (default is to continue)
 
 ### 4.2 ROM images
 

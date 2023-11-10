@@ -29,8 +29,6 @@ public interface Preferences {
 
     int DEFAULT_PROGRAM_LOAD_ADDRESS = 0x0300;
 
-    boolean DEFAULT_HALT_ON_BREAK = true;
-
     JDialog getDialog();
 
     int getProgramStartAddress();
