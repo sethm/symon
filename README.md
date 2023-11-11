@@ -220,14 +220,14 @@ interface.
 Two command line options may be passed to the JAR file on startup,
 to specify machine type and CPU type. The options are:
 
-  - `-cpu 6502`: Use the NMOS 6502 CPU type by default.
-  - `-cpu 65c02`: Use the CMOS 65C02 CPU type by default.
-  - `-machine symon`: Use the **Symon** machine type by default.
-  - `-machine multicomp`: Use the **Multicomp** machine type by default.
-  - `-machine simple`: Use the **Simple** machine type by default.
-  - `-machine beneater`: Use the **BenEater** machine type by default.
-  - `-rom <file>`: Use the specified file as the ROM image.
-  - `-brk`: Halt the simulator on a BRK instruction (default is to continue)
+  - `-c`,`-cpu 6502`: Use the NMOS 6502 CPU type by default.
+  - `-c`,`-cpu 65c02`: Use the CMOS 65C02 CPU type by default.
+  - `-c`,`-machine symon`: Use the **Symon** machine type by default.
+  - `-c`,`-machine multicomp`: Use the **Multicomp** machine type by default.
+  - `-m`,`-machine simple`: Use the **Simple** machine type by default.
+  - `-m`,`-machine beneater`: Use the **BenEater** machine type by default.
+  - `-r`,`-rom <file>`: Use the specified file as the ROM image.
+  - `-b`,`-brk`: Halt the simulator on a BRK instruction (default is to continue)
 
 ### 4.2 ROM images
 
@@ -269,6 +269,16 @@ After loading a program or ROM image, clicking "Run" will start the simulator
 running.
 
 ## 5.0 Revision History
+
+  - **1.4.0:** 11 November 2023 - Adds a new machine, the Ben Eater
+    machine.  Correct handling of 6551 interrupts, and several 6551
+    bug fixes. Fixes power-on status of 6502 status register. Fixes a
+    bug with ASCII backspace character not moving the cursor
+    backwards. Finally, "halt on BRK" is no longer enabled by default,
+    but can be set at runtime or by a command line flag. Thank you to
+    Tim Allen and Chelsea Wilkinson for contributions!
+
+  - **1.3.2:** 8 March 2022 - Minor bug fixes.
 
   - **1.3.1:** 12 October, 2019 - Add support for new command line
     option `-cpu <type>` to specify one of `6502` or `65c02` on startup,
@@ -370,6 +380,8 @@ running.
 **Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;**
 
 Portions Copyright (c) 2014 Maik Merten &lt;maikmerten@googlemail.com&gt;
+Portions Copyright (c) 2022 Tim Allen &lt;thristian@gmail.com&gt;
+Portions Copyright (c) 2023 Chelsea Wilkinson &lt;mail@chelseawilkinson.me&gt;
 
 Additional components used in this project are copyright their respective owners.
 
