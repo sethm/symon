@@ -25,8 +25,8 @@ Klaus Dormann's 6502 Functional Test Suite as of version 0.8.2
 (See [this thread on the 6502.org Forums](http://forum.6502.org/viewtopic.php?f=2&t=2241)
 for more information about this functional test suite).
 
-Symon is under constant, active development. Feedback and patches
-are always welcome.
+Symon is under active maintenance. Feedback and patches are always
+welcome.
 
 ## 2.0 Requirements
 
@@ -37,8 +37,8 @@ are always welcome.
 ## 3.0 Features
 
 Symon can simulate multiple 6502 based architectures. At present, four
-machines are implemented: Symon (the default), MULTICOMP, BenEater, and a "Simple"
-machine useful for debugging.
+machines are implemented: Symon (the default), MULTICOMP, BenEater, and
+a "Simple" machine useful for debugging.
 
 ### 3.1 Memory Maps
 
