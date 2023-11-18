@@ -379,9 +379,12 @@ running.
 
 **Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;**
 
-Portions Copyright (c) 2014 Maik Merten &lt;maikmerten@googlemail.com&gt;
-Portions Copyright (c) 2022 Tim Allen &lt;thristian@gmail.com&gt;
-Portions Copyright (c) 2023 Chelsea Wilkinson &lt;mail@chelseawilkinson.me&gt;
+  - Portions Copyright (c) 2014 Maik Merten 
+    &lt;maikmerten@googlemail.com&gt;
+  - Portions Copyright (c) 2022 Tim Allen 
+    &lt;thristian@gmail.com&gt;
+  - Portions Copyright (c) 2023 Chelsea Wilkinson 
+    &lt;mail@chelseawilkinson.me&gt;
 
 Additional components used in this project are copyright their respective owners.
 
