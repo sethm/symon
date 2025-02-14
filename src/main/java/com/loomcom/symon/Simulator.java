@@ -31,14 +31,11 @@ import com.loomcom.symon.ui.Console;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.monitor.CounterMonitor;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * Symon Simulator Interface and Control.
@@ -72,7 +69,7 @@ public class Simulator {
     private static final int MAX_STEPS_BETWEEN_UPDATES = 20000;
 
     // The simulated machine
-    private Machine machine;
+    private final Machine machine;
 
     // Number of CPU steps between CRT repaints.
     // TODO: Dynamically refresh the value at runtime based on performance figures to reach ~ 30fps.
@@ -120,13 +117,13 @@ public class Simulator {
     private JFileChooser fileChooser;
     private PreferencesDialog preferences;
 
-    private Breakpoints breakpoints;
+    private final Breakpoints breakpoints;
 
     private final Object commandMonitorObject = new Object();
 
     private MainCommand command = MainCommand.NONE;
 
-    private boolean haltOnBreak;
+    private final boolean haltOnBreak;
 
     public enum MainCommand {
         NONE,
@@ -138,11 +135,11 @@ public class Simulator {
      */
     private static final String[] STEPS = {"1", "5", "10", "20", "50", "100"};
 
-    public Simulator(Class machineClass) throws Exception {
+    public Simulator(Class<?> machineClass) throws Exception {
         this(machineClass, InstructionTable.CpuBehavior.NMOS_6502, null, false);
     }
 
-    public Simulator(Class machineClass, InstructionTable.CpuBehavior cpuType,
+    public Simulator(Class<?> machineClass, InstructionTable.CpuBehavior cpuType,
                      String romFile, boolean haltOnBreak) throws Exception {
         this.haltOnBreak = haltOnBreak;
         this.breakpoints = new Breakpoints(this);
@@ -165,7 +162,7 @@ public class Simulator {
     /**
      * Display the main simulator UI.
      */
-    public void createAndShowUi() throws IOException {
+    public void createAndShowUi() {
         mainWindow = new JFrame();
         mainWindow.setTitle("6502 Simulator - " + machine.getName());
         mainWindow.setResizable(false);
@@ -195,14 +192,16 @@ public class Simulator {
         JButton hardResetButton = new JButton("Hard Reset");
 
         stepCountBox = new JComboBox<>(STEPS);
-        stepCountBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
+        stepCountBox.addActionListener(actionEvent -> {
+            JComboBox<?> cb = (JComboBox<?>) actionEvent.getSource();
+            String cbStepsPerClick = (String) cb.getSelectedItem();
+
+            stepsPerClick = 1; // Default in case of error
+
+            if (cbStepsPerClick != null) {
                 try {
-                    JComboBox cb = (JComboBox) actionEvent.getSource();
-                    stepsPerClick = Integer.parseInt((String) cb.getSelectedItem());
+                    stepsPerClick = Integer.parseInt(cbStepsPerClick);
                 } catch (NumberFormatException ex) {
-                    stepsPerClick = 1;
                     stepCountBox.setSelectedIndex(0);
                 }
             }
@@ -224,38 +223,24 @@ public class Simulator {
         // Bottom - buttons.
         mainWindow.getContentPane().add(buttonContainer, BorderLayout.PAGE_END);
 
-        runStopButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                if (runLoop != null && runLoop.isRunning()) {
-                    Simulator.this.handleStop();
-                } else {
-                    Simulator.this.handleStart();
-                }
+        runStopButton.addActionListener(actionEvent -> {
+            if (runLoop != null && runLoop.isRunning()) {
+                Simulator.this.handleStop();
+            } else {
+                Simulator.this.handleStart();
             }
         });
 
-        stepButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                Simulator.this.handleStep(stepsPerClick);
-            }
+        stepButton.addActionListener(actionEvent -> Simulator.this.handleStep(stepsPerClick));
+
+        softResetButton.addActionListener(actionEvent -> {
+            // If this was a CTRL-click, do a hard reset.
+            Simulator.this.handleReset(false);
         });
 
-        softResetButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                // If this was a CTRL-click, do a hard reset.
-                Simulator.this.handleReset(false);
-            }
-        });
-
-        hardResetButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                // If this was a CTRL-click, do a hard reset.
-                Simulator.this.handleReset(true);
-            }
+        hardResetButton.addActionListener(actionEvent -> {
+            // If this was a CTRL-click, do a hard reset.
+            Simulator.this.handleReset(true);
         });
 
         mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -277,7 +262,7 @@ public class Simulator {
             try {
                 commandMonitorObject.wait();
             } catch (InterruptedException ex) {
-                ex.printStackTrace();
+                logger.error("Interrupted during wait on command monitor.");
             }
         }
         return command;
@@ -342,7 +327,6 @@ public class Simulator {
             updateVisibleState();
         } catch (SymonException ex) {
             logger.error("Exception during simulator step", ex);
-            ex.printStackTrace();
         }
     }
 
@@ -365,7 +349,7 @@ public class Simulator {
         // If a key has been pressed, fill the ACIA.
         try {
             if (machine.getAcia() != null && console.hasInput()) {
-                machine.getAcia().rxWrite((int) console.readInputChar());
+                machine.getAcia().rxWrite(console.readInputChar());
             }
         } catch (FifoUnderrunException ex) {
             logger.error("Console type-ahead buffer underrun!");
@@ -427,16 +411,13 @@ public class Simulator {
             logger.debug("Starting main run loop.");
             isRunning = true;
 
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    // Don't allow step while the simulator is running
-                    stepButton.setEnabled(false);
-                    stepCountBox.setEnabled(false);
-                    menuBar.simulatorDidStart();
-                    // Toggle the state of the run button
-                    runStopButton.setText("Stop");
-                }
+            SwingUtilities.invokeLater(() -> {
+                // Don't allow step while the simulator is running
+                stepButton.setEnabled(false);
+                stepCountBox.setEnabled(false);
+                menuBar.simulatorDidStart();
+                // Toggle the state of the run button
+                runStopButton.setText("Stop");
             });
 
             try {
@@ -447,20 +428,17 @@ public class Simulator {
                 logger.error("Exception in main simulator run thread. Exiting run.", ex);
             }
 
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    statusPane.updateState();
-                    memoryWindow.updateState();
-                    runStopButton.setText("Run");
-                    stepButton.setEnabled(true);
-                    stepCountBox.setEnabled(true);
-                    if (traceLog.isVisible()) {
-                        traceLog.refresh();
-                    }
-                    menuBar.simulatorDidStop();
-                    traceLog.simulatorDidStop();
+            SwingUtilities.invokeLater(() -> {
+                statusPane.updateState();
+                memoryWindow.updateState();
+                runStopButton.setText("Run");
+                stepButton.setEnabled(true);
+                stepCountBox.setEnabled(true);
+                if (traceLog.isVisible()) {
+                    traceLog.refresh();
                 }
+                menuBar.simulatorDidStop();
+                traceLog.simulatorDidStop();
             });
 
             isRunning = false;
@@ -513,12 +491,9 @@ public class Simulator {
                             // Now load the program at the starting address.
                             loadProgram(program, preferences.getProgramStartAddress());
 
-                            SwingUtilities.invokeLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    console.reset();
-                                    breakpoints.refresh();
-                                }
+                            SwingUtilities.invokeLater(() -> {
+                                console.reset();
+                                breakpoints.refresh();
                             });
 
                             // TODO: "Don't Show Again" checkbox
@@ -556,7 +531,7 @@ public class Simulator {
                         long fileSize = romFile.length();
 
                         if (fileSize != machine.getRomSize()) {
-                            throw new IOException("ROM file must be exactly " + String.valueOf(machine.getRomSize()) + " bytes.");
+                            throw new IOException("ROM file must be exactly " + machine.getRomSize() + " bytes.");
                         }
 
                         // Load the new ROM image
@@ -650,30 +625,27 @@ public class Simulator {
     }
 
     class SetFontAction extends AbstractAction {
-        private int size;
+        private final int size;
 
         public SetFontAction(int size) {
-            super(Integer.toString(size) + " pt", null);
+            super(size + " pt", null);
             this.size = size;
             putValue(SHORT_DESCRIPTION, "Set font to " + size + "pt.");
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    console.setFont(new Font("Monospaced", Font.PLAIN, size));
-                    mainWindow.pack();
-                }
+            SwingUtilities.invokeLater(() -> {
+                console.setFont(new Font("Monospaced", Font.PLAIN, size));
+                mainWindow.pack();
             });
         }
     }
 
     class SetSpeedAction extends AbstractAction {
-        private int speed;
+        private final int speed;
 
         public SetSpeedAction(int speed) {
-            super(Integer.toString(speed) + " MHz", null);
+            super(speed + " MHz", null);
             this.speed = speed;
             putValue(SHORT_DESCRIPTION, "Set simulated speed to " + speed + " MHz.");
         }
@@ -689,7 +661,7 @@ public class Simulator {
     }
 
     class SetCpuAction extends AbstractAction {
-        private Cpu.CpuBehavior behavior;
+        private final Cpu.CpuBehavior behavior;
 
         public SetCpuAction(String cpu, Cpu.CpuBehavior behavior) {
             super(cpu, null);
@@ -729,11 +701,7 @@ public class Simulator {
 
         public void actionPerformed(ActionEvent actionEvent) {
             synchronized (memoryWindow) {
-                if (memoryWindow.isVisible()) {
-                    memoryWindow.setVisible(false);
-                } else {
-                    memoryWindow.setVisible(true);
-                }
+                memoryWindow.setVisible(!memoryWindow.isVisible());
             }
         }
     }
@@ -746,11 +714,7 @@ public class Simulator {
 
         public void actionPerformed(ActionEvent actionEvent) {
             synchronized (videoWindow) {
-                if (videoWindow.isVisible()) {
-                    videoWindow.setVisible(false);
-                } else {
-                    videoWindow.setVisible(true);
-                }
+                videoWindow.setVisible(!videoWindow.isVisible());
             }
         }
     }
@@ -763,11 +727,7 @@ public class Simulator {
 
         public void actionPerformed(ActionEvent actionEvent) {
             synchronized (breakpointsWindow) {
-                if (breakpointsWindow.isVisible()) {
-                    breakpointsWindow.setVisible(false);
-                } else {
-                    breakpointsWindow.setVisible(true);
-                }
+                breakpointsWindow.setVisible(!breakpointsWindow.isVisible());
             }
         }
     }
@@ -963,15 +923,12 @@ public class Simulator {
 
     private void updateVisibleState() {
         // Immediately update the UI.
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                // Now update the state
-                statusPane.updateState();
-                memoryWindow.updateState();
-                if (traceLog.shouldUpdate()) {
-                    traceLog.refresh();
-                }
+        SwingUtilities.invokeLater(() -> {
+            // Now update the state
+            statusPane.updateState();
+            memoryWindow.updateState();
+            if (traceLog.shouldUpdate()) {
+                traceLog.refresh();
             }
         });
     }

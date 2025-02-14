@@ -91,7 +91,7 @@ public class SimpleMachine implements Machine {
     }
 
     @Override
-    public void setRom(Memory rom) throws MemoryRangeException {
+    public void setRom(Memory rom) {
         // No-op
     }
 

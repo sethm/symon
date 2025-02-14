@@ -25,13 +25,8 @@
 package com.loomcom.symon.jterminal;
 
 import com.loomcom.symon.jterminal.vt100.Vt100TerminalModel;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
+
+import java.awt.*;
 import javax.swing.JComponent;
 import javax.swing.JScrollBar;
 
@@ -88,10 +83,6 @@ public class JTerminal extends JComponent {
 		revalidate();
 	}
 
-	public int getBorderWidth() {
-		return borderWidth;
-	}
-
 	public void setFont(Font font) {
 		this.font = font;
 		setCellWidthAndHeight(font);
@@ -111,13 +102,6 @@ public class JTerminal extends JComponent {
 
 	public TerminalModel getModel() {
 		return model;
-	}
-
-	public void println(String str) {
-		if (str == null) {
-			throw new NullPointerException("str");
-		}
-		print(str.concat("\r\n"));
 	}
 
 	public void print(String str) {
@@ -177,12 +161,8 @@ public class JTerminal extends JComponent {
 		int bufferSize = model.getBufferSize();
 
 		if (bufferSize > rows) {
-			scrollBar = new JScrollBar(1, 0, rows, 0, bufferSize + 1);
-			scrollBar.addAdjustmentListener(new AdjustmentListener() {
-				public void adjustmentValueChanged(AdjustmentEvent evt) {
-					repaint();
-				}
-			});
+			scrollBar = new JScrollBar(Adjustable.VERTICAL, 0, rows, 0, bufferSize + 1);
+			scrollBar.addAdjustmentListener(evt -> repaint());
 			add("After", scrollBar);
 		}
 

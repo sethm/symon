@@ -28,23 +28,17 @@ public interface InstructionTable {
     /**
      * Enumeration of valid CPU behaviors. These determine what behavior and instruction
      * set will be simulated, depending on desired version of 6502.
-     *
-     * TODO: As of version 0.6, this is still not used! All CPUs are "idealized" NMOS 6502 only.
      */
     enum CpuBehavior {
         /**
          * The earliest NMOS 6502 includes a bug that causes the ROR instruction
          * to behave like an ASL that does not affect the carry bit. This version
          * is very rare in the wild.
-         *
-         * NB: Does NOT implement "unimplemented" NMOS instructions.
          */
         NMOS_WITH_ROR_BUG,
 
         /**
          * All NMOS 6502's have a bug with the indirect JMP instruction. If the
-         *
-         * NB: Does NOT implement "unimplemented" NMOS instructions.
          */
         NMOS_6502,
 

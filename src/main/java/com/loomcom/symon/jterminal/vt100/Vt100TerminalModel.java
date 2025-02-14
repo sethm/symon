@@ -56,6 +56,7 @@ public class Vt100TerminalModel extends AbstractTerminalModel {
 		@Override
 		public void parsedControlSequence(AnsiControlSequence seq) {
 			char command = seq.getCommand();
+			int n;
 			String[] parameters = seq.getParameters();
 
 			switch (command) {
@@ -63,7 +64,7 @@ public class Vt100TerminalModel extends AbstractTerminalModel {
 			case 'B':
 			case 'C':
 			case 'D':
-				int n = 1;
+				n = 1;
 				if (parameters.length == 1) {
 					n = Integer.parseInt(parameters[0]);
 				}
@@ -73,7 +74,7 @@ public class Vt100TerminalModel extends AbstractTerminalModel {
 					moveCursorDown(n);
 				} else if (command == 'C') {
 					moveCursorForward(n);
-				} else if (command == 'D') {
+				} else {
 					moveCursorBack(n);
 				}
 				break;
@@ -85,7 +86,7 @@ public class Vt100TerminalModel extends AbstractTerminalModel {
 				}
 				if (command == 'E') {
 					moveCursorDown(n);
-				} else if (command == 'F') {
+				} else {
 					moveCursorUp(n);
 				}
 				setCursorColumn(0);
@@ -465,12 +466,7 @@ public class Vt100TerminalModel extends AbstractTerminalModel {
 		return bufferSize;
 	}
 
-	@Override
-	public BellStrategy getBellStrategy() {
-		return bellStrategy;
-	}
-
-	@Override
+    @Override
 	public void setBellStrategy(BellStrategy strategy) {
 		if (strategy == null) {
 			throw new NullPointerException("strategy");

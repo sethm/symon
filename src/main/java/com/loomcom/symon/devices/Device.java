@@ -45,7 +45,7 @@ public abstract class Device implements Comparable<Device> {
     /**
      * The memory range for this device.
      */
-    private MemoryRange memoryRange;
+    private final MemoryRange memoryRange;
 
     /**
      * The name of the device.
@@ -60,7 +60,7 @@ public abstract class Device implements Comparable<Device> {
     /**
      * Listeners to notify on update.
      */
-    private Set<DeviceChangeListener> deviceChangeListeners;
+    private final Set<DeviceChangeListener> deviceChangeListeners;
 
     public Device(int startAddress, int endAddress, String name) throws MemoryRangeException {
         this.memoryRange = new MemoryRange(startAddress, endAddress);

@@ -31,7 +31,7 @@ public interface BellStrategy {
 	/**
 	 * Sounds the bell.
 	 */
-	public void soundBell();
+	void soundBell();
 
 }
 

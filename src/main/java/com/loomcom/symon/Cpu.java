@@ -158,6 +158,8 @@ public class Cpu implements InstructionTable {
      * Performs an individual instruction cycle.
      */
     public void step() throws MemoryAccessException {
+        int hi, lo; // Address calculation
+
         opBeginTime = System.nanoTime();
 
         // Store the address from which the IR was read, for debugging
@@ -317,8 +319,8 @@ public class Cpu implements InstructionTable {
                 break;
             case 0x40: // RTI - Return from Interrupt - Implied
                 setProcessorStatus(stackPop());
-                int lo = stackPop();
-                int hi = stackPop();
+                lo = stackPop();
+                hi = stackPop();
                 setProgramCounter(Utils.address(lo, hi));
                 break;
             case 0x48: // PHA - Push Accumulator - Implied

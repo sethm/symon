@@ -34,8 +34,8 @@ import java.util.Queue;
  */
 public class FifoRingBuffer<E> implements Iterable<E> {
 
-    private Queue<E> fifoBuffer;
-    private int maxLength;
+    private final Queue<E> fifoBuffer;
+    private final int maxLength;
 
     public FifoRingBuffer(int maxLength) {
         this.fifoBuffer = new LinkedList<>();

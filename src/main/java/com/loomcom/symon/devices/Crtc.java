@@ -26,8 +26,6 @@ package com.loomcom.symon.devices;
 import com.loomcom.symon.exceptions.MemoryAccessException;
 import com.loomcom.symon.exceptions.MemoryRangeException;
 
-import java.io.IOException;
-
 /**
  * Simulation of a 6545 CRTC and virtual CRT output.
  */
@@ -87,9 +85,9 @@ public class Crtc extends Device {
     private boolean displayEnableSkew = false;
     private boolean cursorSkew = false;
 
-    private Memory memory;
+    private final Memory memory;
 
-    public Crtc(int deviceAddress, Memory memory) throws MemoryRangeException, IOException {
+    public Crtc(int deviceAddress, Memory memory) throws MemoryRangeException {
         super(deviceAddress, deviceAddress + 2, "CRTC");
         this.memory = memory;
 
@@ -120,19 +118,17 @@ public class Crtc extends Device {
 
     @Override
     public int read(int address, boolean cpuAccess) throws MemoryAccessException {
-        switch (address) {
-            case REGISTER_RW:
-                switch (currentRegister) {
-                    case CURSOR_POSITION_LOW:
-                        return cursorPosition & 0xff;
-                    case CURSOR_POSITION_HIGH:
-                        return cursorPosition >> 8;
-                    default:
-                        return 0;
-                }
-            default:
-                return 0;
+        if (address == REGISTER_RW) {
+            switch (currentRegister) {
+                case CURSOR_POSITION_LOW:
+                    return cursorPosition & 0xff;
+                case CURSOR_POSITION_HIGH:
+                    return cursorPosition >> 8;
+                default:
+                    return 0;
+            }
         }
+        return 0;
     }
 
     @Override

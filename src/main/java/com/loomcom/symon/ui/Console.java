@@ -51,8 +51,8 @@ public class Console extends JTerminal implements KeyListener, MouseListener {
     private static final boolean SWAP_CR_AND_LF       = true;
 
     // If true, send CRLF (0x0d 0x0a) whenever CR is typed
-    private boolean sendCrForLf;
-    private FifoRingBuffer<Character> typeAheadBuffer;
+    private final boolean sendCrForLf;
+    private final FifoRingBuffer<Character> typeAheadBuffer;
 
     public Console(int columns, int rows, Font font, boolean sendCrForLf) {
         super(new Vt100TerminalModel(columns, rows), font);

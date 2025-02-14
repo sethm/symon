@@ -9,8 +9,8 @@ import java.util.TreeSet;
 
 public class Breakpoints extends AbstractTableModel {
 
-    private TreeSet<Integer> breakpoints;
-    private Simulator simulator;
+    private final TreeSet<Integer> breakpoints;
+    private final Simulator simulator;
 
     public Breakpoints(Simulator simulator) {
         this.breakpoints = new TreeSet<>();
@@ -23,11 +23,6 @@ public class Breakpoints extends AbstractTableModel {
 
     public void addBreakpoint(int address) {
         this.breakpoints .add(address);
-        fireTableDataChanged();
-    }
-
-    public void removeBreakpoint(int address) {
-        this.breakpoints.remove(address);
         fireTableDataChanged();
     }
 

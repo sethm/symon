@@ -32,7 +32,7 @@ import com.loomcom.symon.exceptions.MemoryRangeException;
 
 public abstract class Acia extends Device {
 
-    private String name;
+    private final String name;
 
     /**
      * Register addresses

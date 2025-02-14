@@ -64,12 +64,13 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
     private static final long WINDOW_REPAINT_INTERVAL = 66; // 30fps rate
     private static final int CHAR_WIDTH = 8;
     private static final int CHAR_HEIGHT = 8;
+    private static final String ASCII_ROM = "/ascii.rom";
 
     private final int scaleX, scaleY;
     private final boolean shouldScale;
 
     private BufferedImage image;
-    private int[] charRom;
+    private final int[] charRom;
 
     private int horizontalDisplayed;
     private int verticalDisplayed;
@@ -78,9 +79,9 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
     private boolean hideCursor;
 
     private Dimension dimensions;
-    private Crtc crtc;
+    private final Crtc crtc;
 
-    private ScheduledExecutorService scheduler;
+    private final ScheduledExecutorService scheduler;
     private ScheduledFuture<?> cursorBlinker;
 
     /**
@@ -123,12 +124,9 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
      */
     private class CursorBlinker implements Runnable {
         public void run() {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    if (cursorBlinkRate > 0) {
-                        hideCursor = !hideCursor;
-                    }
+            SwingUtilities.invokeLater(() -> {
+                if (cursorBlinkRate > 0) {
+                    hideCursor = !hideCursor;
                 }
             });
         }
@@ -136,12 +134,9 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
     private class WindowPainter implements Runnable {
         public void run() {
-            SwingUtilities.invokeLater(new Runnable () {
-                @Override
-                public void run() {
-                    if (VideoWindow.this.isVisible()) {
-                        VideoWindow.this.repaint();
-                    }
+            SwingUtilities.invokeLater(() -> {
+                if (VideoWindow.this.isVisible()) {
+                    VideoWindow.this.repaint();
                 }
             });
         }
@@ -152,7 +147,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
 
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         this.crtc = crtc;
-        this.charRom = loadCharRom("/ascii.rom");
+        this.charRom = loadCharRom();
         this.scaleX = scaleX;
         this.scaleY = scaleY;
         this.shouldScale = (scaleX > 1 || scaleY > 1);
@@ -292,14 +287,17 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
      * Since the BufferedImage is a TYPE_BYTE_BINARY, the data must be converted
      * into a single byte per pixel, 0 for black and 255 for white.
 
-     * @param resource The ROM file resource to load.
      * @return An array of glyphs, each ready for insertion.
-     * @throws IOException
+     * @throws IOException Failure to load character ROM.
      */
-    private int[] loadCharRom(String resource) throws IOException {
-        BufferedInputStream bis = null;
-        try {
-            bis = new BufferedInputStream(this.getClass().getResourceAsStream(resource));
+    private int[] loadCharRom() throws IOException {
+        var resource = this.getClass().getResourceAsStream(ASCII_ROM);
+
+        if (resource == null) {
+            throw new IOException("Resource " + ASCII_ROM + " not found");
+        }
+
+        try (BufferedInputStream bis = new BufferedInputStream(resource)) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             while (bis.available() > 0) {
                 bos.write(bis.read());
@@ -314,7 +312,7 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
             int[] converted = new int[raw.length * CHAR_WIDTH];
 
             int romIndex = 0;
-            for (int i = 0; i < converted.length;) {
+            for (int i = 0; i < converted.length; ) {
                 byte charRow = raw[romIndex++];
 
                 for (int j = 7; j >= 0; j--) {
@@ -322,10 +320,6 @@ public class VideoWindow extends JFrame implements DeviceChangeListener {
                 }
             }
             return converted;
-        } finally {
-            if (bis != null) {
-                bis.close();
-            }
         }
     }
 }

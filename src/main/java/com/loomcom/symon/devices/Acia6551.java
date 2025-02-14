@@ -121,9 +121,6 @@ public class Acia6551 extends Acia {
         // Mask the lower four bits to get the baud rate.
         int baudSelector = data & 0x0f;
         switch (baudSelector) {
-            case 0:
-                rate = 0;
-                break;
             case 1:
                 rate = 50;
                 break;
@@ -168,6 +165,8 @@ public class Acia6551 extends Acia {
                 break;
             case 15:
                 rate = 19200;
+                break;
+            default:
                 break;
         }
 

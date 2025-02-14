@@ -42,19 +42,19 @@ import java.util.TreeSet;
 public class Bus {
 
     // The default address at which to load programs
-    public static int DEFAULT_LOAD_ADDRESS = 0x0200;
+    public static final int DEFAULT_LOAD_ADDRESS = 0x0200;
 
     // By default, our bus starts at 0, and goes up to 64K
-    private int startAddress = 0x0000;
-    private int endAddress = 0xffff;
+    private final int startAddress;
+    private final int endAddress;
 
     // The CPU
     private Cpu cpu;
 
     // Ordered sets of IO devices, associated with their priority
-    private Map<Integer, SortedSet<Device>> deviceMap;
+    private final Map<Integer, SortedSet<Device>> deviceMap;
 
-    // an array for quick lookup of adresses, brute-force style
+    // an array for quick lookup of addresses, brute-force style
     private Device[] deviceAddressArray;
 
 
@@ -94,8 +94,8 @@ public class Bus {
      * Add a device to the bus.
      *
      * @param device   Device to add
-     * @param priority Bus prioirity.
-     * @throws MemoryRangeException
+     * @param priority Bus priority.
+     * @throws MemoryRangeException Invalid device address range.
      */
     public void addDevice(Device device, int priority) throws MemoryRangeException {
 
@@ -109,12 +109,7 @@ public class Bus {
             throw new MemoryRangeException("end address of device " + device.getName() + " does not fall within the address range of the bus");
         }
 
-        SortedSet<Device> deviceSet = deviceMap.get(priority);
-
-        if (deviceSet == null) {
-            deviceSet = new TreeSet<>();
-            deviceMap.put(priority, deviceSet);
-        }
+        SortedSet<Device> deviceSet = deviceMap.computeIfAbsent(priority, k -> new TreeSet<>());
 
         device.setBus(this);
         deviceSet.add(device);
@@ -125,7 +120,7 @@ public class Bus {
      * Add a device to the bus. Throws a MemoryRangeException if the device overlaps with any others.
      *
      * @param device Device to add
-     * @throws MemoryRangeException
+     * @throws MemoryRangeException Invalid device memory range.
      */
     public void addDevice(Device device) throws MemoryRangeException {
         addDevice(device, 0);
@@ -224,9 +219,7 @@ public class Bus {
 
         for (int priority : priorities) {
             SortedSet<Device> deviceSet = deviceMap.get(priority);
-            for (Device device : deviceSet) {
-                devices.add(device);
-            }
+            devices.addAll(deviceSet);
         }
 
         return devices;

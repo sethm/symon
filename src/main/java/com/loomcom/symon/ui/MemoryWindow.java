@@ -49,7 +49,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
 
     private static final Logger logger = LoggerFactory.getLogger(MemoryWindow.class);
 
-    private MemoryTableModel memoryTableModel;
+    private final MemoryTableModel memoryTableModel;
     private JTable memoryTable;
     private JTextField pageNumberTextField;
     private JButton previousPageButton;
@@ -111,7 +111,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
     }
 
     /**
-     * Set-up the UI.
+     * Set up the UI.
      */
     private void createUi() {
         setTitle("Memory Contents");
@@ -230,7 +230,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
      * A JTable that will automatically select all text in a cell
      * being edited.
      */
-    private class MemoryTable extends JTable {
+    private static class MemoryTable extends JTable {
 
         public MemoryTable(TableModel tableModel) {
             super(tableModel);
@@ -242,7 +242,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
 
             final Component editor = getEditorComponent();
 
-            if (editor != null && editor instanceof JTextComponent) {
+            if (editor instanceof JTextComponent) {
                 ((JTextComponent) editor).selectAll();
             }
 
@@ -250,7 +250,7 @@ public class MemoryWindow extends JFrame implements ActionListener {
         }
     }
 
-    private class MemoryTableCellRenderer extends DefaultTableCellRenderer {
+    private static class MemoryTableCellRenderer extends DefaultTableCellRenderer {
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
@@ -272,9 +272,9 @@ public class MemoryWindow extends JFrame implements ActionListener {
     /**
      * The model that backs the Memory Table.
      */
-    private class MemoryTableModel extends AbstractTableModel {
+    private static class MemoryTableModel extends AbstractTableModel {
 
-        private Bus bus;
+        private final Bus bus;
         private int pageNumber;
 
         private static final int COLUMN_COUNT = 17;

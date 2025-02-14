@@ -50,7 +50,7 @@ public class AnsiControlSequence {
 			throw new NullPointerException("parameters");
 		}
 		this.command = command;
-		if (parameters.length == 1 && parameters[0].equals("")) {
+		if (parameters.length == 1 && parameters[0].isEmpty()) {
 			this.parameters = new String[0];
 		} else {
 			this.parameters = parameters.clone();

@@ -33,7 +33,7 @@ import java.io.StringReader;
 public class AnsiControlSequenceParser {
 
 	/**
-	 * The multi-byte control sequence introducer.
+	 * The multibyte control sequence introducer.
 	 */
 	private static final char[] MULTI_CSI = new char[] { 27, '[' };
 
@@ -43,7 +43,7 @@ public class AnsiControlSequenceParser {
 	private static final char SINGLE_CSI = 155;
 
 	/**
-	 * The buffer of data from the last call to {@link #parse()}. This is
+	 * The buffer of data from the last call to "parse()". This is
 	 * populated with data if an escape sequence is not complete.
 	 */
 	private StringBuilder buffer = new StringBuilder();
@@ -70,13 +70,10 @@ public class AnsiControlSequenceParser {
 			str = buffer.toString().concat(str);
 			buffer = new StringBuilder();
 		}
-		Reader reader = new StringReader(str);
-		try {
-			try {
-				parse(reader);
-			} finally {
-				reader.close();
-			}
+        try {
+            try (Reader reader = new StringReader(str)) {
+                parse(reader);
+            }
 		} catch (IOException ex) {
 			/* ignore */
 		}
@@ -147,7 +144,7 @@ public class AnsiControlSequenceParser {
 		if (!finishedSequence) {
 			// not an ideal solution if they used the two byte CSI, but it's
 			// easier and cleaner than keeping track of it
-			buffer.append((char) SINGLE_CSI);
+			buffer.append(SINGLE_CSI);
 			buffer.append(parameters);
 		}
 	}

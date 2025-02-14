@@ -30,8 +30,8 @@ import com.loomcom.symon.exceptions.*;
 
 public class Memory extends Device {
 
-    private boolean readOnly;
-    private int[] mem;
+    private final boolean readOnly;
+    private final int[] mem;
 
     /* Initialize all locations to 0x00 (BRK) */
     private static final int DEFAULT_FILL = 0x00;

@@ -119,7 +119,10 @@ public class SdController extends Device {
         if (sdImageFile != null) {
             try {
                 FileInputStream fis = new FileInputStream(sdImageFile);
-                fis.skip(this.position);
+                long bytesSkipped = fis.skip(this.position);
+                if (bytesSkipped < this.position) {
+                    logger.log(Level.WARNING, "Failed to seek to position " + this.position);
+                }
                 int read = fis.read(readBuffer);
                 if (read < SECTOR_SIZE) {
                     logger.log(Level.WARNING, "not enough data to fill read buffer from SD image file");
