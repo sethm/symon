@@ -670,4 +670,78 @@ public class CpuTest extends TestCase {
         cpu.step();
         assertEquals(0x3E, cpu.getAccumulator());
     }
+
+    // Have tests:
+    //    ACC, AIX, ABS, ABX, ABY, IMP, IMM, IND, XIN, INY,
+    //    REL, ZPG, ZPI
+
+    // Need to test:
+    //    ZPR, ZPX, ZPY, NUL
+
+    // Question: Should 'NUL' even exist? Isn't it just 'IMP'?
+
+    public void testDisassembleOpHandlesAccumulatorCorrectly() {
+        var dis = Cpu.disassembleOp(0x2a, new int[]{});
+        assertEquals("ROL", dis);
+    }
+
+    public void testDisassembleOpHandlesAbsoluteXIndexedIndirectCorrectly() {
+        var dis = Cpu.disassembleOp(0x7c, new int[]{0x00, 0x1a});
+        assertEquals("JMP ($1A00,X)", dis);
+    }
+
+    public void testDisassembleOpHandlesAbsoluteCorrectly() {
+        var dis = Cpu.disassembleOp(0x0d, new int[]{0x10, 0x0c});
+        assertEquals("ORA $0C10", dis);
+    }
+
+    public void testDisassembleOpHandlesAbsoluteXIndexedCorrectly() {
+        var dis = Cpu.disassembleOp(0x1d, new int[]{0x00, 0x1c});
+        assertEquals("ORA $1C00,X", dis);
+    }
+
+    public void testDisassembleOpHandlesAbsoluteYIndexedCorrectly() {
+        var dis = Cpu.disassembleOp(0x19, new int[]{0x00, 0x1c});
+        assertEquals("ORA $1C00,Y", dis);
+    }
+
+    public void testDisassembleOpHandlesImpliedCorrectly() {
+        var dis = Cpu.disassembleOp(0x00, new int[]{});
+        assertEquals("BRK", dis);
+    }
+
+    public void testDisassembleOpHandlesIndirectCorrectly() {
+        var dis = Cpu.disassembleOp(0x6c, new int[]{0x00, 0x1c});
+        assertEquals("JMP ($1C00)", dis);
+    }
+
+    public void testDisassembleOpHandlesImmediateCorrectly() {
+        var dis = Cpu.disassembleOp(0xA9, new int[]{0xff});
+        assertEquals("LDA #$FF", dis);
+    }
+
+    public void testDisassembleOpHandlesXIndexedIndirectCorrectly() {
+        var dis = Cpu.disassembleOp(0x01, new int[]{0x10});
+        assertEquals("ORA ($10,X)", dis);
+    }
+
+    public void testDisassembleOpHandlesIndirectYIndexedCorrectly() {
+        var dis = Cpu.disassembleOp(0x11, new int[]{0x10});
+        assertEquals("ORA ($10),Y", dis);
+    }
+
+    public void testDisassembleOpHandlesRelativeCorrectly() {
+        var dis = Cpu.disassembleOp(0x10, new int[]{0xff});
+        assertEquals("BPL $FF", dis);
+    }
+
+    public void testDisassembleOpHandlesZeroPageCorrectly() {
+        var dis = Cpu.disassembleOp(0x24, new int[]{0x10});
+        assertEquals("BIT $10", dis);
+    }
+
+    public void testDisassembleOpHandlesZeroPageIndirectCorrectly() throws Exception {
+        var dis = Cpu.disassembleOp(0xB2, new int[]{0x1a});
+        assertEquals("LDA ($1A)", dis);
+    }
 }

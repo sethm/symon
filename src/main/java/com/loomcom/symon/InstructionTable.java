@@ -62,11 +62,13 @@ public interface InstructionTable {
                 return "Accumulator";
             }
         },
+
         AIX {
             public String toString() {
                 return "Absolute, X-Indexed Indirect";
             }
         },
+
         ABS {
             public String toString() {
                 return "Absolute";
@@ -162,41 +164,44 @@ public interface InstructionTable {
 
     /**
      * Instruction opcode names. This lists all opcodes for
-     * NMOS 6502, CMOS 65C02, and CMOS 65C816
+     * NMOS 6502, CMOS 65C02, and CMOS 65C816.
+     * <p>
+     * TODO (2025-03-14): This table is clearly wrong for 65C816.
+     * TODO (2025-03-14): Rockwell/WDC 65C02 names conflict with 65C816 names.
      */
     String[] opcodeNames = {
-        "BRK", "ORA", "NOP", "NOP", "TSB", "ORA", "ASL",  "RMB0",  // 0x00-0x07
-        "PHP", "ORA", "ASL", "NOP", "TSB", "ORA", "ASL",  "BBR0",  // 0x08-0x0f
-        "BPL", "ORA", "ORA", "NOP", "TRB", "ORA", "ASL",  "RMB1",  // 0x10-0x17
-        "CLC", "ORA", "INC", "NOP", "TRB", "ORA", "ASL",  "BBR1",  // 0x18-0x1f
-        "JSR", "AND", "NOP", "NOP", "BIT", "AND", "ROL",  "RMB2",  // 0x20-0x27
-        "PLP", "AND", "ROL", "NOP", "BIT", "AND", "ROL",  "BBR2",  // 0x28-0x2f
-        "BMI", "AND", "AND", "NOP", "BIT", "AND", "ROL",  "RMB3",  // 0x30-0x37
-        "SEC", "AND", "DEC", "NOP", "BIT", "AND", "ROL",  "BBR3",  // 0x38-0x3f
-        "RTI", "EOR", "NOP", "NOP", "NOP", "EOR", "LSR",  "RMB4",  // 0x40-0x47
-        "PHA", "EOR", "LSR", "NOP", "JMP", "EOR", "LSR",  "BBR4",  // 0x48-0x4f
-        "BVC", "EOR", "EOR", "NOP", "NOP", "EOR", "LSR",  "RMB5",  // 0x50-0x57
-        "CLI", "EOR", "PHY", "NOP", "NOP", "EOR", "LSR",  "BBR5",  // 0x58-0x5f
-        "RTS", "ADC", "NOP", "NOP", "STZ", "ADC", "ROR",  "RMB6",  // 0x60-0x67
-        "PLA", "ADC", "ROR", "NOP", "JMP", "ADC", "ROR",  "BBR6",  // 0x68-0x6f
-        "BVS", "ADC", "ADC", "NOP", "STZ", "ADC", "ROR",  "RMB7",  // 0x70-0x77
-        "SEI", "ADC", "PLY", "NOP", "JMP", "ADC", "ROR",  "BBR7",  // 0x78-0x7f
-        "BRA", "STA", "NOP", "NOP", "STY", "STA", "STX",  "SMB0",  // 0x80-0x87
-        "DEY", "BIT", "TXA", "NOP", "STY", "STA", "STX",  "BBS0",  // 0x88-0x8f
-        "BCC", "STA", "STA", "NOP", "STY", "STA", "STX",  "SMB1",  // 0x90-0x97
-        "TYA", "STA", "TXS", "NOP", "STZ", "STA", "STZ",  "BBS1",  // 0x98-0x9f
-        "LDY", "LDA", "LDX", "NOP", "LDY", "LDA", "LDX",  "SMB2",  // 0xa0-0xa7
-        "TAY", "LDA", "TAX", "NOP", "LDY", "LDA", "LDX",  "BBS2",  // 0xa8-0xaf
-        "BCS", "LDA", "LDA", "NOP", "LDY", "LDA", "LDX",  "SMB3",  // 0xb0-0xb7
-        "CLV", "LDA", "TSX", "NOP", "LDY", "LDA", "LDX",  "BBS3",  // 0xb8-0xbf
-        "CPY", "CMP", "NOP", "NOP", "CPY", "CMP", "DEC",  "SMB4",  // 0xc0-0xc7
-        "INY", "CMP", "DEX", "NOP", "CPY", "CMP", "DEC",  "BBS4",  // 0xc8-0xcf
-        "BNE", "CMP", "CMP", "NOP", "NOP", "CMP", "DEC",  "SMB5",  // 0xd0-0xd7
-        "CLD", "CMP", "PHX", "NOP", "NOP", "CMP", "DEC",  "BBS5",  // 0xd8-0xdf
-        "CPX", "SBC", "NOP", "NOP", "CPX", "SBC", "INC",  "SMB6",  // 0xe0-0xe7
-        "INX", "SBC", "NOP", "NOP", "CPX", "SBC", "INC",  "BBS6",  // 0xe8-0xef
-        "BEQ", "SBC", "SBC", "NOP", "NOP", "SBC", "INC",  "SMB7",  // 0xf0-0xf7
-        "SED", "SBC", "PLX", "NOP", "NOP", "SBC", "INC",  "BBS7"   // 0xf8-0xff
+        "BRK", "ORA", "NOP", "NOP", "TSB", "ORA", "ASL", "RMB0",  // 0x00-0x07
+        "PHP", "ORA", "ASL", "NOP", "TSB", "ORA", "ASL", "BBR0",  // 0x08-0x0f
+        "BPL", "ORA", "ORA", "NOP", "TRB", "ORA", "ASL", "RMB1",  // 0x10-0x17
+        "CLC", "ORA", "INC", "NOP", "TRB", "ORA", "ASL", "BBR1",  // 0x18-0x1f
+        "JSR", "AND", "NOP", "NOP", "BIT", "AND", "ROL", "RMB2",  // 0x20-0x27
+        "PLP", "AND", "ROL", "NOP", "BIT", "AND", "ROL", "BBR2",  // 0x28-0x2f
+        "BMI", "AND", "AND", "NOP", "BIT", "AND", "ROL", "RMB3",  // 0x30-0x37
+        "SEC", "AND", "DEC", "NOP", "BIT", "AND", "ROL", "BBR3",  // 0x38-0x3f
+        "RTI", "EOR", "NOP", "NOP", "NOP", "EOR", "LSR", "RMB4",  // 0x40-0x47
+        "PHA", "EOR", "LSR", "NOP", "JMP", "EOR", "LSR", "BBR4",  // 0x48-0x4f
+        "BVC", "EOR", "EOR", "NOP", "NOP", "EOR", "LSR", "RMB5",  // 0x50-0x57
+        "CLI", "EOR", "PHY", "NOP", "NOP", "EOR", "LSR", "BBR5",  // 0x58-0x5f
+        "RTS", "ADC", "NOP", "NOP", "STZ", "ADC", "ROR", "RMB6",  // 0x60-0x67
+        "PLA", "ADC", "ROR", "NOP", "JMP", "ADC", "ROR", "BBR6",  // 0x68-0x6f
+        "BVS", "ADC", "ADC", "NOP", "STZ", "ADC", "ROR", "RMB7",  // 0x70-0x77
+        "SEI", "ADC", "PLY", "NOP", "JMP", "ADC", "ROR", "BBR7",  // 0x78-0x7f
+        "BRA", "STA", "NOP", "NOP", "STY", "STA", "STX", "SMB0",  // 0x80-0x87
+        "DEY", "BIT", "TXA", "NOP", "STY", "STA", "STX", "BBS0",  // 0x88-0x8f
+        "BCC", "STA", "STA", "NOP", "STY", "STA", "STX", "SMB1",  // 0x90-0x97
+        "TYA", "STA", "TXS", "NOP", "STZ", "STA", "STZ", "BBS1",  // 0x98-0x9f
+        "LDY", "LDA", "LDX", "NOP", "LDY", "LDA", "LDX", "SMB2",  // 0xa0-0xa7
+        "TAY", "LDA", "TAX", "NOP", "LDY", "LDA", "LDX", "BBS2",  // 0xa8-0xaf
+        "BCS", "LDA", "LDA", "NOP", "LDY", "LDA", "LDX", "SMB3",  // 0xb0-0xb7
+        "CLV", "LDA", "TSX", "NOP", "LDY", "LDA", "LDX", "BBS3",  // 0xb8-0xbf
+        "CPY", "CMP", "NOP", "NOP", "CPY", "CMP", "DEC", "SMB4",  // 0xc0-0xc7
+        "INY", "CMP", "DEX", "NOP", "CPY", "CMP", "DEC", "BBS4",  // 0xc8-0xcf
+        "BNE", "CMP", "CMP", "NOP", "NOP", "CMP", "DEC", "SMB5",  // 0xd0-0xd7
+        "CLD", "CMP", "PHX", "NOP", "NOP", "CMP", "DEC", "BBS5",  // 0xd8-0xdf
+        "CPX", "SBC", "NOP", "NOP", "CPX", "SBC", "INC", "SMB6",  // 0xe0-0xe7
+        "INX", "SBC", "NOP", "NOP", "CPX", "SBC", "INC", "BBS6",  // 0xe8-0xef
+        "BEQ", "SBC", "SBC", "NOP", "NOP", "SBC", "INC", "SMB7",  // 0xf0-0xf7
+        "SED", "SBC", "PLX", "NOP", "NOP", "SBC", "INC", "BBS7"   // 0xf8-0xff
     };
 
     /**

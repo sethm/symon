@@ -1925,6 +1925,7 @@ public class Cpu implements InstructionTable {
                 break;
             case AIX:
                 sb.append(" ($").append(Utils.wordToHex(Utils.address(args[0], args[1]))).append(",X)");
+                break;
             case ABX:
                 sb.append(" $").append(Utils.wordToHex(Utils.address(args[0], args[1]))).append(",X");
                 break;
@@ -1936,6 +1937,9 @@ public class Cpu implements InstructionTable {
                 break;
             case IND:
                 sb.append(" ($").append(Utils.wordToHex(Utils.address(args[0], args[1]))).append(")");
+                break;
+            case ZPI:
+                sb.append(" ($").append(Utils.byteToHex(args[0])).append(")");
                 break;
             case XIN:
                 sb.append(" ($").append(Utils.byteToHex(args[0])).append(",X)");
