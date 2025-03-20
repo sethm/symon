@@ -377,7 +377,7 @@ running.
 
 ## 8.0 Copyright and Acknowledgements
 
-**Copyright (c) 2014 Seth J. Morabito &lt;web@loomcom.com&gt;**
+**Copyright (c) 2008-2025 Seth J. Morabito &lt;web@loomcom.com&gt;**
 
   - Portions Copyright (c) 2014 Maik Merten 
     &lt;maikmerten@googlemail.com&gt;

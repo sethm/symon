@@ -1,5 +1,5 @@
 /*
- * Copyrighi (c) 2016 Seth J. Morabito <web@loomcom.com>
+ * Copyright (c) 2008-2025 Seth J. Morabito <web@loomcom.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -36,6 +36,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+
+import static com.loomcom.symon.InstructionTable.*;
 
 /**
  * Symon Simulator Interface and Control.
@@ -112,6 +114,7 @@ public class Simulator {
 
     private JButton runStopButton;
     private JButton stepButton;
+    private JButton stepOverButton;
     private JComboBox<String> stepCountBox;
 
     private JFileChooser fileChooser;
@@ -188,6 +191,8 @@ public class Simulator {
 
         runStopButton = new JButton("Run");
         stepButton = new JButton("Step");
+        stepOverButton = new JButton("Step Over");
+        stepOverButton.setEnabled(false);
         JButton softResetButton = new JButton("Soft Reset");
         JButton hardResetButton = new JButton("Hard Reset");
 
@@ -209,6 +214,7 @@ public class Simulator {
 
         buttonContainer.add(runStopButton);
         buttonContainer.add(stepButton);
+        buttonContainer.add(stepOverButton);
         buttonContainer.add(stepCountBox);
         buttonContainer.add(softResetButton);
         buttonContainer.add(hardResetButton);
@@ -232,6 +238,7 @@ public class Simulator {
         });
 
         stepButton.addActionListener(actionEvent -> Simulator.this.handleStep(stepsPerClick));
+        stepOverButton.addActionListener(actionEvent -> Simulator.this.handleStepOver());
 
         softResetButton.addActionListener(actionEvent -> {
             // If this was a CTRL-click, do a hard reset.
@@ -325,9 +332,26 @@ public class Simulator {
                 step();
             }
             updateVisibleState();
+            stepOverButton.setEnabled(machine.getCpu().getNextIr() == JSR);
         } catch (SymonException ex) {
             logger.error("Exception during simulator step", ex);
         }
+    }
+
+    /**
+     * Step over a JSR / RTS function. This function is much more like a "run()"
+     * than a "step()", and may enter an infinite loop if no RTS is encountered.
+     */
+    private void handleStepOver() {
+        if (runLoop != null && runLoop.isRunning()) {
+            // This should really never happen...
+            logger.error("Can't step over when the simulator is already running!");
+            return;
+        }
+
+        runLoop = new RunLoop();
+        runLoop.haltOnRts(true);
+        runLoop.start();
     }
 
     /**
@@ -398,22 +422,36 @@ public class Simulator {
      */
     class RunLoop extends Thread {
         private boolean isRunning = false;
+        private boolean haltOnRts = false;
+        // The number of JSR instructions we've seen since being asked to
+        // step over a subroutine. While stepping over, this is incremented
+        // on RTS instructions, and decremented on JSR instructions.
+        private int callStackDepth = 0;
 
         public boolean isRunning() {
-            return isRunning;
+            return this.isRunning;
         }
 
         public void requestStop() {
-            isRunning = false;
+            this.isRunning = false;
+        }
+
+        public void haltOnRts(boolean value) {
+            this.haltOnRts = value;
         }
 
         public void run() {
-            logger.debug("Starting main run loop.");
-            isRunning = true;
+            if (this.haltOnRts) {
+                logger.debug("Running until next RTS instruction");
+            } else {
+                logger.debug("Running");
+            }
+            this.isRunning = true;
 
             SwingUtilities.invokeLater(() -> {
                 // Don't allow step while the simulator is running
                 stepButton.setEnabled(false);
+                stepOverButton.setEnabled(false);
                 stepCountBox.setEnabled(false);
                 menuBar.simulatorDidStart();
                 // Toggle the state of the run button
@@ -423,6 +461,17 @@ public class Simulator {
             try {
                 do {
                     step();
+                    if (this.haltOnRts) {
+                        var instruction = machine.getCpu().getInstruction();
+                        if (instruction == JSR) {
+                            this.callStackDepth++;
+                            logger.trace("Step-over call stack increased to {}", this.callStackDepth);
+                        } else if (this.callStackDepth > 0 && instruction == RTS) {
+                            this.callStackDepth--;
+                            logger.trace("Step-over call stack decreased to {}", this.callStackDepth);
+                        }
+                    }
+
                 } while (shouldContinue());
             } catch (SymonException ex) {
                 logger.error("Exception in main simulator run thread. Exiting run.", ex);
@@ -433,6 +482,7 @@ public class Simulator {
                 memoryWindow.updateState();
                 runStopButton.setText("Run");
                 stepButton.setEnabled(true);
+                stepOverButton.setEnabled(machine.getCpu().getNextIr() == JSR);
                 stepCountBox.setEnabled(true);
                 if (traceLog.isVisible()) {
                     traceLog.refresh();
@@ -448,9 +498,13 @@ public class Simulator {
          * @return True if the run loop should proceed to the next step.
          */
         private boolean shouldContinue() {
-            return !breakpoints.contains(machine.getCpu().getProgramCounter()) &&
-                    isRunning &&
-                    !(preferences.getHaltOnBreak() && machine.getCpu().getInstruction() == 0x00);
+            var instruction = machine.getCpu().getInstruction();
+
+            var stepOverHalt = this.haltOnRts && this.callStackDepth == 0 && instruction == RTS;
+            var breakpointHalt = breakpoints.contains(machine.getCpu().getProgramCounter());
+            var brkHalt = preferences.getHaltOnBreak() && instruction == BRK;
+
+            return isRunning && !(stepOverHalt || breakpointHalt || brkHalt);
         }
     }
 
@@ -924,7 +978,6 @@ public class Simulator {
     private void updateVisibleState() {
         // Immediately update the UI.
         SwingUtilities.invokeLater(() -> {
-            // Now update the state
             statusPane.updateState();
             memoryWindow.updateState();
             if (traceLog.shouldUpdate()) {

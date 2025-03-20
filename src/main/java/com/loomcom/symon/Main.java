@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2016 Seth J. Morabito <web@loomcom.com>
- *                    Maik Merten <maikmerten@googlemail.com>
+ * Copyright (c) 2008-2025 Seth J. Morabito <web@loomcom.com>
+ *                         Maik Merten <maikmerten@googlemail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -21,7 +21,6 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 
 package com.loomcom.symon;
 

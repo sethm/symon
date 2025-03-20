@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Seth J. Morabito <web@loomcom.com>
+ * Copyright (c) 2008-2025 Seth J. Morabito <web@loomcom.com>
  * Portions Copyright (c) 2009-2011 Graham Edgecombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining

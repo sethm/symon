@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2016 Seth J. Morabito <web@loomcom.com>
- *                    Maik Merten <maikmerten@googlemail.com>
+ * Copyright (c) 2008-2025 Seth J. Morabito <web@loomcom.com>
+ *                         Maik Merten <maikmerten@googlemail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -42,9 +42,9 @@ public interface Machine {
     Memory getRam();
     
     Acia getAcia();
-    
+
     Pia getPia();
-    
+
     Crtc getCrtc();
     
     Memory getRom();
