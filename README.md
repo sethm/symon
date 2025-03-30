@@ -1,9 +1,9 @@
 SYMON - A 6502 System Simulator
 ===============================
 
-**Version:** 1.4.0
+**Version:** 1.5.0
 
-**Last Updated:** 11 November, 2023
+**Last Updated:** 30 March, 2025
 
 See the file COPYING for license.
 
@@ -30,8 +30,8 @@ welcome.
 
 ## 2.0 Requirements
 
-  - Java 1.8 or higher
-  - Maven 2.0.x or higher (for building from source)
+  - Java 10 or higher
+  - Maven 3.0.x or higher (for building from source)
   - JUnit 4 or higher (for testing)
 
 ## 3.0 Features
@@ -270,6 +270,17 @@ running.
 
 ## 5.0 Revision History
 
+  - **1.5.0:** 30 March 2025 - Fixed a bug that caused some 6502
+    instructions to be disassembled improperly in the trace log
+    (GitHub issue #17).
+
+    Added a new "Step Over" button that allows stepping over the
+    current subroutine. This button only becomes active when the
+    next instruction is a "JSR" while stepping through execution 
+    one instruction at a time. It will continue execution until
+    the subroutine returns through a corresponding "RTS" instruction.
+    (GitHub feature request #18).
+
   - **1.4.0:** 11 November 2023 - Adds a new machine, the Ben Eater
     machine.  Correct handling of 6551 interrupts, and several 6551
     bug fixes. Fixes power-on status of 6502 status register. Fixes a
@@ -355,16 +366,11 @@ running.
 
   - Feedback (in the form of dialogs, status bar, etc).
 
-  - Better debugging tools from the UI, including breakpoints
-    and disassembly.
-
   - UI needs a ton more polish.
 
   - More extensive testing.
 
   - Clean up JavaDoc.
-
-  - Implement CMOS 65C02 instructions and NMOS / CMOS mode flag.
 
   - Allow displaying ACIA status and dumping ACIA buffers, for
     debugging.
@@ -374,6 +380,9 @@ running.
     machine steps to approximate real NTSC/PAL refresh rates.
 
   - Symbolic debugging.
+
+  - Better / correct disassembly and tracing of 65C02 and 65C816
+    instructions.
 
 ## 8.0 Copyright and Acknowledgements
 

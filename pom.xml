@@ -4,7 +4,7 @@
     <groupId>com.loomcom.symon</groupId>
     <artifactId>symon</artifactId>
     <packaging>jar</packaging>
-    <version>1.5.0-dev</version>
+    <version>1.5.0</version>
     <name>symon</name>
     <url>https://git.loomcom.com/seth/symon</url>
     <properties>
