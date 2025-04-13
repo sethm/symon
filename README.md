@@ -229,7 +229,18 @@ to specify machine type and CPU type. The options are:
   - `-r`,`-rom <file>`: Use the specified file as the ROM image.
   - `-b`,`-brk`: Halt the simulator on a BRK instruction (default is to continue)
 
-### 4.2 ROM images
+### 4.2 High-DPI UI scaling
+
+In certain environments with high-DPI (e.g. 4K) displays, the UI may
+not automatically scale and appear quite tiny. This can be fixed
+with the command line argument `-Dsun.java2d.uiScale=<factor>`,
+for example:
+
+```
+java -Dsun.java2d.uiScale=2.0 -jar symon-1.5.0.jar
+```
+
+### 4.3 ROM images
 
 The simulator requires a ROM image loaded into memory to work
 properly. Without a ROM in memory, the simulator will not be able to
@@ -247,7 +258,7 @@ architecture named 'ehbasic.rom', containing Lee Davison's Enhanced
 *Note*: Presently, EhBASIC only works with the Symon machine
  architecture, not with MULTICOMP.
 
-### 4.3 Loading A Program
+### 4.4 Loading A Program
 
 In addition to ROM images, programs in the form of raw binary object files can
 be loaded directly into memory from "Load Program..." in the File menu.
@@ -263,7 +274,7 @@ for testing.
 
 - 'hello.prg' will continuously print "Hello, 6502 World!" to the console.
 
-### 4.4 Running
+### 4.5 Running
 
 After loading a program or ROM image, clicking "Run" will start the simulator
 running.
