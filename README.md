@@ -1,6 +1,10 @@
 SYMON - A 6502 System Simulator
 ===============================
 
+---------------------------------------------------------------------
+**NOTE**: The [GitHub repository](https://github.com/sethm/symon) is now archived and read-only. All future work will be available on [Codeberg](https://codeberg.org/sethm/symon)
+---------------------------------------------------------------------
+
 **Version:** 1.5.0
 
 **Last Updated:** 30 March, 2025
